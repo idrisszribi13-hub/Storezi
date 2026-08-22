@@ -435,7 +435,7 @@
             }
         }
 
-        /* ===== CAMEL OVERLAY ===== */
+        /* ===== CAMEL OVERLAY (improved - fixed under player) ===== */
         #camelOverlay {
             position: absolute;
             top: 0;
@@ -447,89 +447,103 @@
             display: none;
             flex-direction: column;
             justify-content: space-between;
-            padding: 8px 10px 50px 10px;
-            background: linear-gradient(180deg, rgba(0, 0, 0, 0.6) 0%, transparent 35%, transparent 65%, rgba(0, 0, 0, 0.5) 100%);
+            padding: 10px 14px 60px 14px;
+            background: linear-gradient(180deg, rgba(0, 0, 0, 0.7) 0%, transparent 30%, transparent 70%, rgba(0, 0, 0, 0.6) 100%);
         }
         #camelOverlay .camel-top {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 4px;
+            gap: 6px;
             flex-wrap: wrap;
             pointer-events: none;
         }
         #camelOverlay .camel-team {
             display: flex;
             align-items: center;
-            gap: 4px;
+            gap: 6px;
         }
         #camelOverlay .camel-team img {
-            width: 22px;
-            height: 22px;
+            width: 28px;
+            height: 28px;
             object-fit: contain;
             filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
             background: rgba(255, 255, 255, 0.08);
             border-radius: 50%;
-            padding: 1px;
+            padding: 2px;
         }
         #camelOverlay .camel-team span {
             font-weight: 700;
-            font-size: 12px;
+            font-size: 13px;
             color: #fff;
             text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8);
         }
         #camelOverlay .camel-score-box {
             display: flex;
             align-items: center;
-            gap: 6px;
-            background: rgba(0, 0, 0, 0.4);
-            padding: 2px 10px;
-            border-radius: 20px;
-            backdrop-filter: blur(4px);
-            border: 1px solid rgba(255, 255, 255, 0.06);
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.5);
+            padding: 4px 14px;
+            border-radius: 30px;
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
         }
         #camelOverlay .camel-score-box .score {
             font-weight: 900;
-            font-size: 18px;
+            font-size: 22px;
             color: var(--live);
             text-shadow: 0 2px 8px rgba(0, 0, 0, 0.9);
             letter-spacing: 0.5px;
         }
         #camelOverlay .camel-score-box .status {
-            font-size: 9px;
+            font-size: 10px;
             color: #aaa;
             background: rgba(255, 255, 255, 0.1);
-            padding: 1px 6px;
-            border-radius: 10px;
+            padding: 2px 8px;
+            border-radius: 12px;
             font-weight: 600;
+        }
+        #camelOverlay .camel-score-box .status.live {
+            color: var(--live);
+            border: 1px solid var(--live);
+        }
+        #camelOverlay .camel-score-box .status.upcoming {
+            color: var(--accent);
+            border: 1px solid var(--accent);
+        }
+        #camelOverlay .camel-score-box .status.ft {
+            color: var(--text-secondary);
+            border: 1px solid var(--text-secondary);
         }
         #camelOverlay .camel-middle {
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 10px;
+            gap: 12px;
             margin: 0 auto;
             background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(6px);
-            border-radius: 20px;
-            padding: 3px 12px;
+            backdrop-filter: blur(8px);
+            border-radius: 24px;
+            padding: 4px 16px;
             border: 1px solid rgba(255, 255, 255, 0.06);
             pointer-events: auto;
         }
         #camelOverlay .camel-middle .time {
             color: #fff;
             font-weight: 700;
-            font-size: 11px;
+            font-size: 12px;
+            min-width: 50px;
+            text-align: center;
         }
         #camelOverlay .camel-middle .divider {
             width: 1px;
-            height: 14px;
+            height: 16px;
             background: rgba(255, 255, 255, 0.15);
         }
         #camelOverlay .camel-middle .possession {
             display: flex;
             align-items: center;
-            gap: 3px;
+            gap: 4px;
         }
         #camelOverlay .camel-middle .possession .label {
             font-size: 9px;
@@ -537,30 +551,30 @@
             font-weight: 600;
         }
         #camelOverlay .camel-middle .possession .bar {
-            width: 40px;
-            height: 3px;
+            width: 50px;
+            height: 4px;
             background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
+            border-radius: 4px;
             overflow: hidden;
             display: flex;
         }
         #camelOverlay .camel-middle .possession .bar .home {
             height: 100%;
             background: #4caf50;
-            border-radius: 3px 0 0 3px;
+            border-radius: 4px 0 0 4px;
             transition: width 0.5s;
         }
         #camelOverlay .camel-middle .possession .bar .away {
             height: 100%;
             background: #f44336;
-            border-radius: 0 3px 3px 0;
+            border-radius: 0 4px 4px 0;
             transition: width 0.5s;
         }
         #camelOverlay .camel-middle .possession .text {
             font-size: 10px;
             color: #fff;
             font-weight: 600;
-            min-width: 40px;
+            min-width: 44px;
         }
         #camelOverlay .camel-bottom {
             display: flex;
@@ -569,12 +583,13 @@
             gap: 4px;
             flex-wrap: wrap;
             pointer-events: auto;
+            margin-top: 4px;
         }
         #camelOverlay .camel-btn {
-            background: rgba(255, 255, 255, 0.07);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            color: rgba(255, 255, 255, 0.8);
-            padding: 2px 10px;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: rgba(255, 255, 255, 0.85);
+            padding: 3px 12px;
             border-radius: 16px;
             font-size: 9px;
             font-weight: 600;
@@ -590,6 +605,40 @@
             border-color: var(--accent);
             transform: scale(1.05);
             color: #fff;
+        }
+        #camelOverlay .camel-btn.active {
+            background: var(--accent);
+            color: #0a0a0f;
+            border-color: var(--accent);
+        }
+
+        /* ===== LIVE TIMER ===== */
+        .zs-live-timer {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+            color: var(--text-secondary);
+            background: var(--surface-glass);
+            padding: 4px 12px;
+            border-radius: 30px;
+            border: 1px solid var(--border);
+        }
+        .zs-live-timer .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--live);
+            animation: blink-dot 1.2s infinite;
+            display: inline-block;
+        }
+        .zs-live-timer .dot.upcoming {
+            background: var(--accent);
+            animation: none;
+        }
+        .zs-live-timer .dot.ft {
+            background: var(--text-secondary);
+            animation: none;
         }
 
         /* ===== BANNER ===== */
@@ -909,7 +958,7 @@
             font-size: 13px;
         }
 
-        /* ===== MATCH DETAIL ===== */
+        /* ===== MATCH DETAIL (Improved) ===== */
         .match-detail-aiscore {
             display: none;
             width: 100%;
@@ -930,6 +979,15 @@
             font-size: 12px;
             color: var(--text-secondary);
             margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .match-header-aiscore .league-name img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
         }
         .match-header-aiscore .match-teams-score {
             display: flex;
@@ -944,20 +1002,24 @@
             gap: 8px;
         }
         .match-header-aiscore .team-block img {
-            width: 28px;
-            height: 28px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: contain;
         }
         .match-header-aiscore .team-block .name {
             font-weight: 700;
-            font-size: 14px;
+            font-size: 15px;
+        }
+        .match-header-aiscore .team-block .coach {
+            font-size: 10px;
+            color: var(--text-secondary);
         }
         .match-header-aiscore .score-block {
             text-align: center;
         }
         .match-header-aiscore .score-block .score {
-            font-size: 24px;
+            font-size: 28px;
             font-weight: 900;
             color: var(--text);
         }
@@ -1010,6 +1072,161 @@
             color: var(--text);
             font-weight: 600;
         }
+
+        /* ===== LINEUPS (Improved - Formation style with player images) ===== */
+        .lineup-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-top: 10px;
+        }
+        @media(max-width:768px) {
+            .lineup-container {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+        .lineup-team-card {
+            background: var(--surface);
+            border-radius: var(--radius-sm);
+            border: 1px solid var(--border);
+            overflow: hidden;
+        }
+        .lineup-team-card .lineup-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            background: var(--surface-hover);
+            border-bottom: 1px solid var(--border);
+        }
+        .lineup-team-card .lineup-header .team-info {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .lineup-team-card .lineup-header .team-info img {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .lineup-team-card .lineup-header .team-info .name {
+            font-weight: 700;
+            font-size: 14px;
+        }
+        .lineup-team-card .lineup-header .formation-badge {
+            font-size: 12px;
+            background: var(--accent);
+            color: #0a0a0f;
+            padding: 2px 12px;
+            border-radius: 20px;
+            font-weight: 700;
+        }
+        .lineup-team-card .lineup-pitch {
+            padding: 10px 12px;
+        }
+        .lineup-team-card .lineup-pitch .position-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 4px;
+            padding: 3px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+        }
+        .lineup-team-card .lineup-pitch .position-row .pos-label {
+            font-size: 9px;
+            font-weight: 700;
+            color: var(--text-secondary);
+            min-width: 28px;
+            background: var(--bg);
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-align: center;
+        }
+        .lineup-team-card .lineup-pitch .position-row .players-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px 8px;
+            flex: 1;
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 11px;
+            background: var(--bg);
+            padding: 2px 8px 2px 4px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            cursor: pointer;
+            transition: var(--transition);
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge:hover {
+            border-color: var(--accent);
+            transform: scale(1.03);
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge img {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge .player-number {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 9px;
+            min-width: 14px;
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge .player-name {
+            color: var(--text);
+            font-size: 10px;
+        }
+        .lineup-team-card .lineup-pitch .position-row .player-badge .player-rating {
+            font-size: 9px;
+            font-weight: 700;
+            color: #f5a623;
+            margin-left: 2px;
+        }
+        .lineup-team-card .lineup-footer {
+            padding: 8px 14px;
+            border-top: 1px solid var(--border);
+            font-size: 11px;
+            color: var(--text-secondary);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .lineup-team-card .lineup-footer .coach {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .lineup-team-card .lineup-footer .coach img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            object-fit: contain;
+        }
+        .lineup-team-card .lineup-footer .injury {
+            color: var(--live);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .lineup-team-card .lineup-footer .subs {
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex-wrap: wrap;
+        }
+        .lineup-team-card .lineup-footer .subs .sub-player {
+            font-size: 10px;
+            color: var(--text-secondary);
+        }
+
+        /* ===== MATCH TABS ===== */
         .match-tabs-aiscore {
             position: sticky;
             top: 70px;
@@ -1059,6 +1276,8 @@
         .match-tab-content-aiscore.active {
             display: block;
         }
+
+        /* ===== STATS ===== */
         .stats-grid-aiscore {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -1108,38 +1327,8 @@
             right: 0;
             top: 0;
         }
-        .lineup-aiscore {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-        }
-        .lineup-aiscore .team-lineup {
-            background: var(--surface);
-            border-radius: var(--radius-sm);
-            padding: 10px;
-            border: 1px solid var(--border);
-        }
-        .lineup-aiscore .team-lineup .title {
-            font-weight: 700;
-            font-size: 14px;
-            margin-bottom: 6px;
-        }
-        .lineup-aiscore .team-lineup .player {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            padding: 3px 0;
-            border-bottom: 1px solid var(--border);
-            font-size: 12px;
-        }
-        .lineup-aiscore .team-lineup .player .number {
-            font-weight: 700;
-            color: var(--accent);
-            min-width: 20px;
-        }
-        .lineup-aiscore .team-lineup .player .name {
-            flex: 1;
-        }
+
+        /* ===== EVENTS ===== */
         .events-aiscore {
             display: flex;
             flex-direction: column;
@@ -1192,6 +1381,8 @@
                 opacity: 0.8;
             }
         }
+
+        /* ===== H2H ===== */
         .h2h-aiscore {
             display: flex;
             flex-direction: column;
@@ -1216,6 +1407,8 @@
             font-size: 11px;
             color: var(--text-secondary);
         }
+
+        /* ===== STANDINGS TABLE ===== */
         .standings-grid-detail .league-block {
             background: var(--surface);
             border-radius: var(--radius-sm);
@@ -1337,8 +1530,17 @@
             .stats-grid-aiscore .stat-bar {
                 width: 36px;
             }
-            .lineup-aiscore {
+            .lineup-container {
                 grid-template-columns: 1fr;
+                gap: 12px;
+            }
+            .lineup-team-card .lineup-pitch .position-row .player-badge {
+                font-size: 10px;
+                padding: 1px 4px 1px 2px;
+            }
+            .lineup-team-card .lineup-pitch .position-row .player-badge img {
+                width: 16px;
+                height: 16px;
             }
             .tv-channel-grid {
                 grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
@@ -1347,18 +1549,18 @@
                 font-size: 10px;
             }
             #camelOverlay .camel-score-box .score {
-                font-size: 15px;
+                font-size: 18px;
             }
             #camelOverlay .camel-team img {
-                width: 18px;
-                height: 18px;
+                width: 20px;
+                height: 20px;
             }
             #camelOverlay .camel-middle .possession .bar {
-                width: 30px;
+                width: 36px;
             }
             #camelOverlay .camel-btn {
                 font-size: 8px;
-                padding: 2px 7px;
+                padding: 2px 8px;
             }
             .match-card {
                 flex-direction: column;
@@ -1595,7 +1797,7 @@
             color: var(--text-secondary);
         }
 
-        /* ===== TRANSFERS (Enhanced) ===== */
+        /* ===== TRANSFERS ===== */
         .transfer-leagues-bar {
             display: flex;
             flex-wrap: wrap;
@@ -2241,6 +2443,7 @@
                             <button class="zs-start-play-btn" id="zsStartPlayBtn">▶</button>
                             <div class="hint">Select a match, movie, series or TV channel</div>
                         </div>
+                        <!-- Camel Overlay - improved -->
                         <div id="camelOverlay">
                             <div class="camel-top">
                                 <div class="camel-team">
@@ -2257,7 +2460,7 @@
                                 </div>
                             </div>
                             <div class="camel-middle">
-                                <span class="time" id="camelTime">1st Half 2'</span>
+                                <span class="time" id="camelTime">--</span>
                                 <span class="divider"></span>
                                 <div class="possession">
                                     <span class="label">Possession</span>
@@ -2269,7 +2472,7 @@
                                 </div>
                             </div>
                             <div class="camel-bottom">
-                                <button class="camel-btn" data-tab="overview">📋 Overview</button>
+                                <button class="camel-btn active" data-tab="overview">📋 Overview</button>
                                 <button class="camel-btn" data-tab="stats">📊 Stats</button>
                                 <button class="camel-btn" data-tab="lineups">👥 Lineup</button>
                                 <button class="camel-btn" data-tab="h2h">⚔️ H2H</button>
@@ -2506,7 +2709,6 @@
             let currentLeagueId = 'all';
             let currentPage = 1;
             let totalPages = 1;
-            let transferLeagues = [];
 
             // ==================== DOM REFS ====================
             const video = document.getElementById('zsVideo');
@@ -2701,8 +2903,8 @@
             document.getElementById('zsErrorRetry').addEventListener('click', () => { if (currentStreamUrl) loadStream(
                     currentStreamUrl); });
 
-            // ==================== CAMEL OVERLAY ====================
-            function updateCamelOverlay(fixture, stats) {
+            // ==================== CAMEL OVERLAY (improved) ====================
+            function updateCamelOverlay(fixture, stats, matchInfo) {
                 if (!fixture) {
                     camelOverlay.style.display = 'none';
                     return;
@@ -2725,17 +2927,27 @@
                 document.getElementById('camelScore').textContent = homeScore + ' - ' + awayScore;
 
                 let timeText = '';
+                let statusClass = 'live';
                 if (statusShort === '1H') timeText = '1st Half ' + elapsed + "'";
                 else if (statusShort === '2H') timeText = '2nd Half ' + elapsed + "'";
                 else if (statusShort === 'HT') timeText = 'Half Time';
-                else if (statusShort === 'FT') timeText = 'Full Time';
-                else timeText = statusShort || 'LIVE';
+                else if (statusShort === 'FT') { timeText = 'Full Time';
+                    statusClass = 'ft'; } else if (statusShort === 'NS') { timeText = 'Not Started';
+                    statusClass = 'upcoming'; } else timeText = statusShort || 'LIVE';
                 document.getElementById('camelTime').textContent = timeText;
-                document.getElementById('camelStatus').textContent = statusShort;
+                const statusEl = document.getElementById('camelStatus');
+                statusEl.textContent = statusShort;
+                statusEl.className = 'status ' + statusClass;
 
+                // Try to get possession from matchInfo or stats
                 let homePoss = 50,
                     awayPoss = 50;
-                if (stats && stats.length > 0) {
+                if (matchInfo && matchInfo.statics_match) {
+                    const homeStat = matchInfo.statics_match[fixture.teams.home.id] || {};
+                    const awayStat = matchInfo.statics_match[fixture.teams.away.id] || {};
+                    if (homeStat.ball_possession) homePoss = parseFloat(homeStat.ball_possession) || 50;
+                    if (awayStat.ball_possession) awayPoss = parseFloat(awayStat.ball_possession) || 50;
+                } else if (stats && stats.length > 0) {
                     const homeStats = stats.find(s => s.team?.name === homeName) || stats[0];
                     const awayStats = stats.find(s => s.team?.name === awayName) || stats[1] || stats[0];
                     if (homeStats && homeStats.statistics) {
@@ -2746,11 +2958,11 @@
                         const possAway = awayStats.statistics.find(s => s.type === 'Ball Possession');
                         if (possAway) awayPoss = parseFloat(possAway.value) || 50;
                     }
-                    const total = homePoss + awayPoss;
-                    if (total > 0) {
-                        homePoss = Math.round((homePoss / total) * 100);
-                        awayPoss = 100 - homePoss;
-                    }
+                }
+                const total = homePoss + awayPoss;
+                if (total > 0) {
+                    homePoss = Math.round((homePoss / total) * 100);
+                    awayPoss = 100 - homePoss;
                 }
 
                 document.getElementById('camelPossessionHome').style.width = homePoss + '%';
@@ -2851,7 +3063,7 @@
                     else statusBadge = '<span class="status-badge finished">✅ FT</span>';
 
                     html += `
-                        <div class="match-card" data-url="${streamUrl}" data-home="${homeName}" data-away="${awayName}" data-league="${leagueName}">
+                        <div class="match-card" data-url="${streamUrl}" data-home="${homeName}" data-away="${awayName}" data-league="${leagueName}" data-match-id="${m.match_id || m.id || ''}" data-start-time="${m.startTime || ''}">
                             <div class="match-info">
                                 <div class="teams">
                                     ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
@@ -2880,7 +3092,13 @@
                             const title = this.dataset.home + ' vs ' + this.dataset.away;
                             loadStream(url, title);
                             window.scrollTo({ top: 0, behavior: 'smooth' });
-                            fetchMatchDetailsForCamel(title);
+                            // Try to fetch match details from YS API for better camel overlay
+                            const matchId = this.dataset.matchId;
+                            if (matchId) {
+                                fetchMatchDetailFromYS(matchId);
+                            } else {
+                                fetchMatchDetailsForCamel(title);
+                            }
                         } else {
                             alert('No stream link available for this match');
                         }
@@ -2888,7 +3106,39 @@
                 });
             }
 
-            // ==================== FETCH MATCH DETAILS ====================
+            // ==================== FETCH MATCH DETAIL FROM YS ====================
+            async function fetchMatchDetailFromYS(matchId) {
+                try {
+                    const url = YS_BASE + `matches/match_info/${matchId}/L/60`;
+                    const data = await fetchViaProxy(url);
+                    if (data.status && data.data) {
+                        // Convert YS format to fixture format for camel overlay
+                        const matchInfo = data.data;
+                        const fixture = {
+                            teams: {
+                                home: { name: matchInfo.home_team?.title || 'Home', logo: matchInfo.home_team
+                                        ?.image ? 'https://imgs.ysscores.com/teams/64/' + matchInfo.home_team
+                                        .image : '' },
+                                away: { name: matchInfo.away_team?.title || 'Away', logo: matchInfo.away_team
+                                        ?.image ? 'https://imgs.ysscores.com/teams/64/' + matchInfo.away_team
+                                        .image : '' }
+                            },
+                            goals: { home: matchInfo.home_scores, away: matchInfo.away_scores },
+                            fixture: {
+                                status: { short: matchInfo.status === 1 ? 'LIVE' : matchInfo.status === 4 ?
+                                        'FT' : 'NS', elapsed: matchInfo.minutes || 0 }
+                            }
+                        };
+                        updateCamelOverlay(fixture, null, matchInfo);
+                        // Also show match detail with lineup
+                        showMatchDetailFromYS(matchId, matchInfo);
+                    }
+                } catch (e) {
+                    console.warn('Could not fetch match detail from YS:', e);
+                }
+            }
+
+            // ==================== FETCH MATCH DETAILS FOR CAMEL (API-Sports) ====================
             async function fetchMatchDetailsForCamel(title) {
                 try {
                     const searchTerms = title.split(' vs ');
@@ -2928,6 +3178,830 @@
                 } catch (e) {
                     console.warn('Could not fetch match details for camel overlay');
                 }
+            }
+
+            // ==================== SHOW MATCH DETAIL FROM YS ====================
+            async function showMatchDetailFromYS(matchId, matchInfo) {
+                matchDetailAiScore.classList.add('visible');
+                matchDetailContentAiScore.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading details...</div></div>';
+                matchDetailTitleAiScore.textContent = matchInfo.championship?.title + ' - ' + matchInfo.home_team
+                    ?.title + ' vs ' + matchInfo.away_team?.title || 'Match Details';
+
+                try {
+                    // Fetch lineup data
+                    const lineupUrl = YS_BASE + `matches/matches_lineup/${matchId}`;
+                    const lineupData = await fetchViaProxy(lineupUrl);
+                    const lineupInfo = lineupData.status ? lineupData.data : null;
+
+                    // Fetch stats if available
+                    let statsData = null;
+                    try {
+                        const statsUrl = YS_BASE + `matches/statics_match/${matchId}`;
+                        const statsResp = await fetchViaProxy(statsUrl);
+                        if (statsResp.status) statsData = statsResp.data;
+                    } catch (e) {}
+
+                    // Fetch events if available
+                    let eventsData = null;
+                    try {
+                        const eventsUrl = YS_BASE + `matches/matches_event/${matchId}`;
+                        const eventsResp = await fetchViaProxy(eventsUrl);
+                        if (eventsResp.status) eventsData = eventsResp.data;
+                    } catch (e) {}
+
+                    renderMatchDetailFromYS(matchInfo, lineupInfo, statsData, eventsData);
+
+                } catch (error) {
+                    matchDetailContentAiScore.innerHTML =
+                        `<div class="error-msg">⚠️ Failed to load details: ${error.message}</div>`;
+                    camelOverlay.style.display = 'none';
+                }
+            }
+
+            // ==================== RENDER MATCH DETAIL FROM YS ====================
+            function renderMatchDetailFromYS(matchInfo, lineupData, statsData, eventsData) {
+                const home = matchInfo.home_team || {};
+                const away = matchInfo.away_team || {};
+                const champ = matchInfo.championship || {};
+                const homeScores = matchInfo.home_scores ?? '-';
+                const awayScores = matchInfo.away_scores ?? '-';
+                const status = matchInfo.status || 0;
+                const minutes = matchInfo.minutes || 0;
+                const stadium = matchInfo.Stadium || 'N/A';
+                const referee = matchInfo.referees?.title || 'N/A';
+                const date = matchInfo.match_date || '';
+                const time = matchInfo.match_time || '';
+                const round = matchInfo.round || '';
+                const isLive = status === 1;
+                const isFinished = status === 4 || status === 2;
+                const isUpcoming = status === 0;
+
+                const homeLogo = home.image ? 'https://imgs.ysscores.com/teams/64/' + home.image : '';
+                const awayLogo = away.image ? 'https://imgs.ysscores.com/teams/64/' + away.image : '';
+                const champLogo = champ.image ? 'https://imgs.ysscores.com/championship/cups/' + champ.image : '';
+
+                const statusText = isLive ? '🔴 LIVE' : (isFinished ? '✅ FT' : (isUpcoming ? '⏳ Upcoming' : ''));
+                const statusClass = isLive ? 'live-score' : '';
+
+                let headerHtml = `
+                    <div class="match-header-aiscore">
+                        <div class="league-name">
+                            ${champLogo ? `<img src="${champLogo}" onerror="this.style.display='none'">` : ''}
+                            ${champ.title || 'League'} ${round ? '• ' + round : ''}
+                        </div>
+                        <div class="match-teams-score">
+                            <div class="team-block">
+                                ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                <div>
+                                    <div class="name">${home.title || 'Home'}</div>
+                                    ${matchInfo.home_coach ? `<div class="coach">🧑‍🏫 ${matchInfo.home_coach.title || ''}</div>` : ''}
+                                </div>
+                            </div>
+                            <div class="score-block">
+                                <div class="score ${statusClass}">${homeScores} - ${awayScores}</div>
+                                <div class="status">${statusText}</div>
+                                ${isLive ? `<div class="ht-score">⏱️ ${minutes}'</div>` : ''}
+                                ${isFinished ? `<div class="ht-score">Full Time</div>` : ''}
+                            </div>
+                            <div class="team-block">
+                                <div>
+                                    <div class="name">${away.title || 'Away'}</div>
+                                    ${matchInfo.away_coach ? `<div class="coach">🧑‍🏫 ${matchInfo.away_coach.title || ''}</div>` : ''}
+                                </div>
+                                ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                            </div>
+                        </div>
+                        <div class="match-meta-info">
+                            <span><span class="label">📅</span> <span class="value">${date}</span></span>
+                            <span><span class="label">🕐</span> <span class="value">${time}</span></span>
+                            <span><span class="label">🏟️</span> <span class="value">${stadium}</span></span>
+                            <span><span class="label">👨‍⚖️</span> <span class="value">${referee}</span></span>
+                            ${isLive ? `<span><span class="label">⏱️</span> <span class="value">${minutes}'</span></span>` : ''}
+                        </div>
+                        ${isLive ? `<div class="progress-bar"><div class="fill" style="width:${Math.min((minutes/90)*100, 100)}%;"></div><div class="time-label">${minutes}'</div></div>` : ''}
+                    </div>
+                `;
+
+                // Lineups tab content (improved with formation)
+                let lineupsHtml = renderLineupsFromYS(lineupData, home, away, matchInfo);
+
+                // Stats
+                let statsHtml = renderStatsFromYS(statsData, home, away);
+
+                // Events
+                let eventsHtml = renderEventsFromYS(eventsData, home, away);
+
+                // H2H
+                let h2hHtml = renderH2HFromYS(matchInfo, home, away);
+
+                // Standings (try to fetch)
+                let standingsHtml =
+                    '<div class="empty-state">Standings data not available for this match</div>';
+
+                matchDetailContentAiScore.innerHTML = headerHtml +
+                    `
+                    <div class="match-tabs-aiscore" id="matchTabsAiScore">
+                        <button class="active" data-tab="overview">📋 Overview</button>
+                        <button data-tab="stats">📊 Stats</button>
+                        <button data-tab="lineups">👥 Lineups</button>
+                        <button data-tab="h2h">⚔️ H2H</button>
+                        <button data-tab="events">⚡ Events</button>
+                    </div>
+                    <div id="tab-overview" class="match-tab-content-aiscore active">
+                        <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0;font-size:13px;">
+                            <div><span class="label">🏆 League:</span> ${champ.title || 'N/A'}</div>
+                            <div><span class="label">📋 Round:</span> ${round || 'N/A'}</div>
+                            <div><span class="label">🏟️ Stadium:</span> ${stadium}</div>
+                            <div><span class="label">👨‍⚖️ Referee:</span> ${referee}</div>
+                            <div><span class="label">📅 Date:</span> ${date}</div>
+                            <div><span class="label">🕐 Time:</span> ${time}</div>
+                            ${isLive ? `<div><span class="label">⏱️ Elapsed:</span> ${minutes}'</div>` : ''}
+                            <div><span class="label">📊 Status:</span> ${statusText}</div>
+                        </div>
+                    </div>
+                    <div id="tab-stats" class="match-tab-content-aiscore">${statsHtml}</div>
+                    <div id="tab-lineups" class="match-tab-content-aiscore">${lineupsHtml}</div>
+                    <div id="tab-h2h" class="match-tab-content-aiscore">${h2hHtml}</div>
+                    <div id="tab-events" class="match-tab-content-aiscore">${eventsHtml}</div>
+                `;
+
+                // Tab switching
+                document.querySelectorAll('#matchTabsAiScore button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#matchTabsAiScore button').forEach(b => b.classList
+                            .remove('active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        document.querySelectorAll('.match-tab-content-aiscore').forEach(el => el.classList
+                            .remove('active'));
+                        const target = document.getElementById('tab-' + tab);
+                        if (target) target.classList.add('active');
+                    });
+                });
+
+                // Update camel buttons
+                document.querySelectorAll('.camel-btn').forEach(btn => {
+                    btn.removeEventListener('click', camelBtnHandler);
+                    btn.addEventListener('click', camelBtnHandler);
+                });
+            }
+
+            // ==================== RENDER LINEUPS (Improved with formation) ====================
+            function renderLineupsFromYS(lineupData, home, away, matchInfo) {
+                if (!lineupData || !lineupData.lineup) {
+                    return '<div class="empty-state">No lineup data available</div>';
+                }
+
+                const homeId = home.row_id || home.id;
+                const awayId = away.row_id || away.id;
+                const homeLineup = lineupData.lineup[homeId] || lineupData.lineup[String(homeId)];
+                const awayLineup = lineupData.lineup[awayId] || lineupData.lineup[String(awayId)];
+
+                const homeFormation = matchInfo.home_formation || '4-2-3-1';
+                const awayFormation = matchInfo.away_formation || '4-4-2';
+
+                function getStartingPlayers(lineup) {
+                    if (!lineup || !lineup.lineup) return [];
+                    return lineup.lineup.filter(p => p.type === 'lineup' || p.type === 'start');
+                }
+
+                function sortByPosition(players) {
+                    const order = { 'G': 0, 'D': 1, 'M': 2, 'F': 3, 'S': 4 };
+                    return players.sort((a, b) => (order[a.position] || 99) - (order[b.position] || 99));
+                }
+
+                function getPlayerImage(player) {
+                    if (!player) return '';
+                    const img = player.image || '';
+                    if (img.startsWith('http')) return img;
+                    return 'https://imgs.ysscores.com/player/64/' + img;
+                }
+
+                function renderTeamLineup(players, team, formation, coach, injuries, subs) {
+                    const sorted = sortByPosition(players);
+                    const groups = {
+                        'G': sorted.filter(p => p.position === 'G'),
+                        'D': sorted.filter(p => p.position === 'D'),
+                        'M': sorted.filter(p => p.position === 'M'),
+                        'F': sorted.filter(p => p.position === 'F'),
+                        'S': sorted.filter(p => p.position === 'S')
+                    };
+                    const labels = { 'G': 'GK', 'D': 'DEF', 'M': 'MID', 'F': 'FWD', 'S': 'SUB' };
+
+                    let html = `
+                        <div class="lineup-team-card">
+                            <div class="lineup-header">
+                                <div class="team-info">
+                                    ${team.image ? `<img src="https://imgs.ysscores.com/teams/64/${team.image}" onerror="this.style.display='none'">` : ''}
+                                    <span class="name">${team.title || 'Team'}</span>
+                                </div>
+                                <span class="formation-badge">${formation || '4-2-3-1'}</span>
+                            </div>
+                            <div class="lineup-pitch">
+                    `;
+
+                    ['G', 'D', 'M', 'F'].forEach(pos => {
+                        const playersList = groups[pos] || [];
+                        if (playersList.length === 0) return;
+                        html += `
+                            <div class="position-row">
+                                <span class="pos-label">${labels[pos]}</span>
+                                <div class="players-row">
+                        `;
+                        playersList.forEach(p => {
+                            const player = p.player || {};
+                            const img = getPlayerImage(player);
+                            const number = player.player_number || '';
+                            const name = player.short_title || player.title || '';
+                            const rating = p.rating || '';
+                            const playerId = player.row_id || player.id || null;
+                            html += `
+                                <div class="player-badge" data-player-id="${playerId}">
+                                    ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
+                                    <span class="player-number">${number}</span>
+                                    <span class="player-name">${name}</span>
+                                    ${rating ? `<span class="player-rating">${rating}</span>` : ''}
+                                </div>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    });
+
+                    // Substitutions
+                    if (subs && subs.length > 0) {
+                        html += `
+                            <div class="position-row">
+                                <span class="pos-label">SUB</span>
+                                <div class="players-row">
+                        `;
+                        subs.slice(0, 7).forEach(p => {
+                            const player = p.player || {};
+                            const img = getPlayerImage(player);
+                            const number = player.player_number || '';
+                            const name = player.short_title || player.title || '';
+                            html += `
+                                <div class="player-badge" data-player-id="${player.row_id || player.id || null}" style="opacity:0.7;">
+                                    ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
+                                    <span class="player-number">${number}</span>
+                                    <span class="player-name">${name}</span>
+                                </div>
+                            `;
+                        });
+                        html += `
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    html += `
+                            </div>
+                            <div class="lineup-footer">
+                                ${coach ? `<span class="coach">🧑‍🏫 Coach: ${coach.title || ''}</span>` : ''}
+                                ${injuries && injuries.length > 0 ? `<span class="injury">⚠️ Injured: ${injuries.map(i => i.player?.short_title || i.player?.title || '').filter(Boolean).join(', ')}</span>` : ''}
+                            </div>
+                        </div>
+                    `;
+
+                    return html;
+                }
+
+                const homePlayers = getStartingPlayers(homeLineup);
+                const awayPlayers = getStartingPlayers(awayLineup);
+
+                const homeInjuries = lineupData.lineup_injureds ? lineupData.lineup_injureds[homeId] || [] : [];
+                const awayInjuries = lineupData.lineup_injureds ? lineupData.lineup_injureds[awayId] || [] : [];
+
+                const homeSubs = homeLineup ? homeLineup.substitutions || [] : [];
+                const awaySubs = awayLineup ? awayLineup.substitutions || [] : [];
+
+                let html = '<div class="lineup-container">';
+                html += renderTeamLineup(homePlayers, home, homeFormation, matchInfo.home_coach, homeInjuries, homeSubs);
+                html += renderTeamLineup(awayPlayers, away, awayFormation, matchInfo.away_coach, awayInjuries, awaySubs);
+                html += '</div>';
+
+                // Add click events for player badges
+                setTimeout(() => {
+                    document.querySelectorAll('.player-badge[data-player-id]').forEach(badge => {
+                        const playerId = badge.dataset.playerId;
+                        if (playerId && playerId !== 'null' && playerId !== '') {
+                            badge.style.cursor = 'pointer';
+                            badge.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                showPlayerDetail(playerId);
+                            });
+                        }
+                    });
+                }, 100);
+
+                return html;
+            }
+
+            // ==================== RENDER STATS ====================
+            function renderStatsFromYS(statsData, home, away) {
+                if (!statsData) {
+                    // Try to get from matchInfo
+                    return '<div class="empty-state">No statistics available</div>';
+                }
+
+                const homeId = home.row_id || home.id;
+                const awayId = away.row_id || away.id;
+                const homeStats = statsData[homeId] || statsData[String(homeId)] || {};
+                const awayStats = statsData[awayId] || statsData[String(awayId)] || {};
+
+                const keys = [
+                    { key: 'ball_possession', label: 'Possession', unit: '%' },
+                    { key: 'total_shots', label: 'Total Shots' },
+                    { key: 'shots_on_goal', label: 'Shots on Goal' },
+                    { key: 'shots_off_goal', label: 'Shots off Goal' },
+                    { key: 'fouls', label: 'Fouls' },
+                    { key: 'corner_kicks', label: 'Corners' },
+                    { key: 'offsides', label: 'Offsides' },
+                    { key: 'goalkeeper_saves', label: 'Saves' },
+                ];
+
+                let html = '<div class="stats-grid-aiscore">';
+                let hasStats = false;
+
+                keys.forEach(k => {
+                    const homeVal = homeStats[k.key] !== undefined ? homeStats[k.key] : '-';
+                    const awayVal = awayStats[k.key] !== undefined ? awayStats[k.key] : '-';
+                    if (homeVal === '-' && awayVal === '-') return;
+                    hasStats = true;
+                    const total = (parseFloat(homeVal) + parseFloat(awayVal)) || 1;
+                    const homePct = Math.round((parseFloat(homeVal) / total) * 100) || 50;
+                    const awayPct = 100 - homePct;
+                    const unit = k.unit || '';
+                    html += `
+                        <div class="stat-item">
+                            <div class="stat-value-home">${homeVal}${unit}</div>
+                            <div style="display:flex;flex-direction:column;align-items:center;">
+                                <div class="stat-bar">
+                                    <div class="fill-home" style="width:${homePct}%;"></div>
+                                    <div class="fill-away" style="width:${awayPct}%;"></div>
+                                </div>
+                            </div>
+                            <div class="stat-value-away">${awayVal}${unit}</div>
+                            <div class="stat-label">${k.label}</div>
+                        </div>
+                    `;
+                });
+
+                html += '</div>';
+                return hasStats ? html : '<div class="empty-state">No statistics available</div>';
+            }
+
+            // ==================== RENDER EVENTS ====================
+            function renderEventsFromYS(eventsData, home, away) {
+                if (!eventsData || !eventsData.events || eventsData.events.length === 0) {
+                    return '<div class="empty-state">No events available</div>';
+                }
+
+                const events = eventsData.events;
+                const homeId = home.row_id || home.id;
+                const awayId = away.row_id || away.id;
+
+                let html = '<div class="events-aiscore">';
+                events.forEach(e => {
+                    const time = e.time_minute || 0;
+                    const playerName = e.player_name ? (e.player_name.short_title || e.player_name.title || '') :
+                        '';
+                    const assistName = e.assist_player_name ? (e.assist_player_name.short_title || e
+                        .assist_player_name.title || '') : '';
+                    const teamId = e.team_id;
+                    const isHome = teamId === homeId;
+                    const isAway = teamId === awayId;
+                    const teamName = isHome ? home.title || '' : (isAway ? away.title || '' : '');
+                    let icon = '⚽',
+                        desc = '';
+                    const type = e.type,
+                        status = e.status_name || '';
+
+                    if (type === 1) {
+                        icon = '⚽';
+                        desc = `${playerName}`;
+                        if (status) desc += ` • ${status}`;
+                        if (assistName) desc += ` (assist: ${assistName})`;
+                        desc += ' <span class="goal-label">GOAL</span>';
+                    } else if (type === 2) { icon = '🟨';
+                        desc = `${playerName} • Yellow card`; } else if (type === 3) { icon = '🟥';
+                        desc = `${playerName} • Red card`; } else if (type === 8) {
+                        if (status && status.includes('substitution')) { icon = '🔄';
+                            desc = `${playerName} • Substitution`; if (assistName) desc += ` (in: ${assistName})`; } else if (
+                            status && status.includes('Injury')) { icon = '🩹';
+                            desc = `${playerName} • Injury`; } else { icon = '🔄';
+                            desc = `${playerName} • Change`; }
+                    } else if (type === 100) {
+                        if (status === 1) { icon = '🟢';
+                            desc = 'Kick-off'; } else if (status === 2) { icon = '⏱️';
+                            desc = 'Half-time'; } else if (status === 3) { icon = '⏱️';
+                            desc = 'Second half start'; } else if (status === 4) { icon = '🔴';
+                            desc = 'Full-time'; } else { icon = '⏱️';
+                            desc = status || 'Event'; }
+                    } else { icon = '📌';
+                        desc = playerName || status || 'Event'; }
+
+                    html += `
+                        <div class="event-row">
+                            <span class="time">${time}'</span>
+                            <span class="icon">${icon}</span>
+                            <span class="desc">${desc}</span>
+                            <span class="team">${teamName}</span>
+                        </div>
+                    `;
+                });
+                html += '</div>';
+
+                return html;
+            }
+
+            // ==================== RENDER H2H ====================
+            function renderH2HFromYS(matchInfo, home, away) {
+                if (!matchInfo.teamWins) return '<div class="empty-state">No H2H data available</div>';
+
+                const homeId = home.row_id || home.id;
+                const awayId = away.row_id || away.id;
+                const homeWins = matchInfo.teamWins[homeId] || 0;
+                const awayWins = matchInfo.teamWins[awayId] || 0;
+                const draws = matchInfo.teamWins['equal'] || 0;
+
+                return `
+                    <div class="h2h-aiscore">
+                        <div style="display:flex;justify-content:space-around;padding:12px;background:var(--surface-hover);border-radius:var(--radius-sm);">
+                            <div style="text-align:center;">
+                                <div style="font-size:24px;font-weight:900;color:var(--accent);">${homeWins}</div>
+                                <div style="font-size:11px;color:var(--text-secondary);">${home.title || 'Home'} Wins</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:24px;font-weight:900;color:#d29922;">${draws}</div>
+                                <div style="font-size:11px;color:var(--text-secondary);">Draws</div>
+                            </div>
+                            <div style="text-align:center;">
+                                <div style="font-size:24px;font-weight:900;color:var(--live);">${awayWins}</div>
+                                <div style="font-size:11px;color:var(--text-secondary);">${away.title || 'Away'} Wins</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==================== CAMEL BUTTON HANDLER ====================
+            function camelBtnHandler(e) {
+                e.stopPropagation();
+                const tab = this.dataset.tab;
+                const btns = document.querySelectorAll('#matchTabsAiScore button');
+                btns.forEach(b => {
+                    if (b.dataset.tab === tab) {
+                        b.click();
+                        // Scroll to match detail
+                        matchDetailAiScore.scrollIntoView({ behavior: 'smooth' });
+                    }
+                });
+            }
+
+            // ==================== FETCH MATCH DETAIL (API-Sports) ====================
+            async function showMatchDetailAiScore(fixtureId) {
+                matchDetailAiScore.classList.add('visible');
+                matchDetailContentAiScore.innerHTML =
+                    '<div class="loading"><div class="spinner"></div><div>Loading details...</div></div>';
+                matchDetailTitleAiScore.textContent = 'Match Details';
+
+                try {
+                    const resp = await fetch(
+                        `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`, {
+                            headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                        });
+                    const data = await resp.json();
+                    const fixture = data.response?.[0];
+                    if (!fixture) throw new Error('Match not found');
+
+                    let stats = [];
+                    try {
+                        const sResp = await fetch(
+                            `https://v3.football.api-sports.io/fixtures/statistics?fixture=${fixtureId}`, {
+                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                            });
+                        const sData = await sResp.json();
+                        stats = sData.response || [];
+                    } catch (e) {}
+
+                    let events = [];
+                    try {
+                        const eResp = await fetch(
+                            `https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
+                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                            });
+                        const eData = await eResp.json();
+                        events = eData.response || [];
+                    } catch (e) {}
+
+                    let h2h = [];
+                    try {
+                        const hResp = await fetch(
+                            `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${fixture.teams.home.id}-${fixture.teams.away.id}`, {
+                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                            });
+                        const hData = await hResp.json();
+                        h2h = hData.response || [];
+                    } catch (e) {}
+
+                    let lineups = [];
+                    try {
+                        const lResp = await fetch(
+                            `https://v3.football.api-sports.io/fixtures/lineups?fixture=${fixtureId}`, {
+                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
+                            });
+                        const lData = await lResp.json();
+                        lineups = lData.response || [];
+                    } catch (e) {}
+
+                    updateCamelOverlay(fixture, stats);
+                    renderMatchDetail(fixture, stats, events, h2h, lineups);
+
+                } catch (error) {
+                    matchDetailContentAiScore.innerHTML =
+                        `<div class="error-msg">⚠️ Failed to load details: ${error.message}</div>`;
+                    camelOverlay.style.display = 'none';
+                }
+            }
+
+            // ==================== RENDER MATCH DETAIL (API-Sports) ====================
+            function renderMatchDetail(fixture, stats, events, h2h, lineups) {
+                const home = fixture.teams?.home?.name || 'Home';
+                const away = fixture.teams?.away?.name || 'Away';
+                const homeLogo = fixture.teams?.home?.logo || '';
+                const awayLogo = fixture.teams?.away?.logo || '';
+                const homeScore = fixture.goals?.home ?? '-';
+                const awayScore = fixture.goals?.away ?? '-';
+                const league = fixture.league?.name || '';
+                const status = fixture.fixture?.status?.short || '';
+                const elapsed = fixture.fixture?.status?.elapsed || 0;
+                const venue = fixture.fixture?.venue?.name || 'N/A';
+                const referee = fixture.fixture?.referee || 'N/A';
+                const date = fixture.fixture?.date ? new Date(fixture.fixture.date).toLocaleDateString() : 'N/A';
+                const time = fixture.fixture?.date ? new Date(fixture.fixture.date).toLocaleTimeString([], { hour: '2-digit',
+                    minute: '2-digit' }) : 'N/A';
+                const isLive = ['1H', '2H', 'ET', 'HT', 'BT'].includes(status);
+                const isFinished = status === 'FT' || status === 'PEN' || status === 'AET';
+                const percent = Math.min((elapsed / 90) * 100, 100);
+
+                let statusText = status;
+                if (status === '1H' || status === '2H' || status === 'ET') statusText = elapsed + "'";
+                else if (status === 'HT') statusText = 'Half Time';
+                else if (status === 'FT') statusText = 'Full Time';
+                else if (status === 'PST') statusText = 'Postponed';
+                else if (status === 'NS') statusText = 'Not Started';
+
+                let headerHtml = `
+                    <div class="match-header-aiscore">
+                        <div class="league-name">${league}</div>
+                        <div class="match-teams-score">
+                            <div class="team-block">
+                                ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                <span class="name">${home}</span>
+                            </div>
+                            <div class="score-block">
+                                <div class="score ${isLive ? 'live-score' : ''}">${homeScore} - ${awayScore}</div>
+                                <div class="status">${statusText}</div>
+                                <div class="ht-score">HT ${fixture.score?.halftime?.home ?? '-'} - ${fixture.score?.halftime?.away ?? '-'}</div>
+                            </div>
+                            <div class="team-block">
+                                ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                                <span class="name">${away}</span>
+                            </div>
+                        </div>
+                        <div class="match-meta-info">
+                            <span><span class="label">📅</span> <span class="value">${date}</span></span>
+                            <span><span class="label">🕐</span> <span class="value">${time}</span></span>
+                            <span><span class="label">🏟️</span> <span class="value">${venue}</span></span>
+                            <span><span class="label">👨‍⚖️</span> <span class="value">${referee}</span></span>
+                            ${elapsed > 0 ? `<span><span class="label">⏱️</span> <span class="value">${elapsed}'</span></span>` : ''}
+                        </div>
+                        <div class="progress-bar"><div class="fill" style="width:${percent}%;"></div><div class="time-label">${elapsed > 0 ? elapsed + "'" : ''}</div></div>
+                    </div>
+                `;
+
+                let overviewHtml =
+                    `
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0;">
+                        <div><strong>🏟️ Venue:</strong> ${venue}</div>
+                        <div><strong>👨‍⚖️ Referee:</strong> ${referee}</div>
+                        <div><strong>📅 Date:</strong> ${date}</div>
+                        <div><strong>🕐 Time:</strong> ${time}</div>
+                        <div><strong>📊 Status:</strong> ${statusText}</div>
+                        <div><strong>⏱️ Elapsed:</strong> ${elapsed > 0 ? elapsed + "'" : 'N/A'}</div>
+                        <div><strong>🏆 League:</strong> ${league}</div>
+                        <div><strong>⚽ Score:</strong> ${homeScore} - ${awayScore}</div>
+                    </div>
+                `;
+
+                let statsHtml = '';
+                if (stats && stats.length > 0) {
+                    const homeStats = stats.find(s => s.team?.name === home) || stats[0];
+                    const awayStats = stats.find(s => s.team?.name === away) || stats[1] || stats[0];
+                    const statKeys = {};
+                    if (homeStats && homeStats.statistics) {
+                        homeStats.statistics.forEach(stat => {
+                            if (!statKeys[stat.type]) statKeys[stat.type] = {};
+                            statKeys[stat.type].home = stat.value;
+                        });
+                    }
+                    if (awayStats && awayStats.statistics) {
+                        awayStats.statistics.forEach(stat => {
+                            if (!statKeys[stat.type]) statKeys[stat.type] = {};
+                            statKeys[stat.type].away = stat.value;
+                        });
+                    }
+                    const order = ['Ball Possession', 'Total Shots', 'Shots on Goal', 'Shots off Goal', 'Fouls',
+                        'Corner Kicks', 'Offsides', 'Goalkeeper Saves'
+                    ];
+                    let items = '';
+                    order.forEach(key => {
+                        const hv = statKeys[key]?.home ?? '-';
+                        const av = statKeys[key]?.away ?? '-';
+                        if (hv === '-' && av === '-') return;
+                        const total = (parseFloat(hv) + parseFloat(av)) || 1;
+                        const hp = Math.round((parseFloat(hv) / total) * 100) || 50;
+                        const ap = 100 - hp;
+                        items += `
+                            <div class="stat-item">
+                                <div class="stat-value-home">${hv}</div>
+                                <div style="display:flex;flex-direction:column;align-items:center;width:40px;">
+                                    <div class="stat-bar"><div class="fill-home" style="width:${hp}%;"></div><div class="fill-away" style="width:${ap}%;"></div></div>
+                                </div>
+                                <div class="stat-value-away">${av}</div>
+                                <div class="stat-label">${key}</div>
+                            </div>
+                        `;
+                    });
+                    statsHtml = items ? `<div class="stats-grid-aiscore">${items}</div>` :
+                        '<div class="empty-state">No statistics</div>';
+                } else {
+                    statsHtml = '<div class="empty-state">No statistics</div>';
+                }
+
+                let lineupsHtml = '';
+                if (lineups && lineups.length > 0) {
+                    const hl = lineups.find(l => l.team?.name === home) || lineups[0];
+                    const al = lineups.find(l => l.team?.name === away) || lineups[1] || lineups[0];
+                    const hp = hl?.players || [];
+                    const ap = al?.players || [];
+
+                    // Helper to get player image
+                    const getPlayerImg = (p) => {
+                        if (!p) return '';
+                        const img = p.photo || '';
+                        if (img.startsWith('http')) return img;
+                        return '';
+                    };
+
+                    // Build lineups with formation style
+                    lineupsHtml = `
+                        <div class="lineup-container">
+                            <div class="lineup-team-card">
+                                <div class="lineup-header">
+                                    <div class="team-info">
+                                        ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
+                                        <span class="name">${home}</span>
+                                    </div>
+                                    <span class="formation-badge">${hl?.formation || '4-2-3-1'}</span>
+                                </div>
+                                <div class="lineup-pitch">
+                                    ${hp.length > 0 ? hp.slice(0, 11).map(p => `
+                                        <div class="position-row">
+                                            <span class="pos-label">${p.pos || '?'}</span>
+                                            <div class="players-row">
+                                                <div class="player-badge" data-player-id="${p.player?.id || ''}">
+                                                    ${p.player?.photo ? `<img src="${p.player.photo}" onerror="this.style.display='none'">` : ''}
+                                                    <span class="player-number">${p.number || ''}</span>
+                                                    <span class="player-name">${p.player?.name || ''}</span>
+                                                    ${p.rating ? `<span class="player-rating">${p.rating}</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<div class="empty-state" style="padding:10px;">No lineup available</div>'}
+                                </div>
+                            </div>
+                            <div class="lineup-team-card">
+                                <div class="lineup-header">
+                                    <div class="team-info">
+                                        ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
+                                        <span class="name">${away}</span>
+                                    </div>
+                                    <span class="formation-badge">${al?.formation || '4-4-2'}</span>
+                                </div>
+                                <div class="lineup-pitch">
+                                    ${ap.length > 0 ? ap.slice(0, 11).map(p => `
+                                        <div class="position-row">
+                                            <span class="pos-label">${p.pos || '?'}</span>
+                                            <div class="players-row">
+                                                <div class="player-badge" data-player-id="${p.player?.id || ''}">
+                                                    ${p.player?.photo ? `<img src="${p.player.photo}" onerror="this.style.display='none'">` : ''}
+                                                    <span class="player-number">${p.number || ''}</span>
+                                                    <span class="player-name">${p.player?.name || ''}</span>
+                                                    ${p.rating ? `<span class="player-rating">${p.rating}</span>` : ''}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `).join('') : '<div class="empty-state" style="padding:10px;">No lineup available</div>'}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+
+                    setTimeout(() => {
+                        document.querySelectorAll('.player-badge[data-player-id]').forEach(badge => {
+                            const playerId = badge.dataset.playerId;
+                            if (playerId && playerId !== '' && playerId !== 'null') {
+                                badge.style.cursor = 'pointer';
+                                badge.addEventListener('click', function(e) {
+                                    e.stopPropagation();
+                                    showPlayerDetail(playerId);
+                                });
+                            }
+                        });
+                    }, 100);
+                } else {
+                    lineupsHtml = '<div class="empty-state">No lineups available</div>';
+                }
+
+                let eventsHtml = '';
+                if (events && events.length > 0) {
+                    const sorted = events.sort((a, b) => (a.time?.elapsed || 0) - (b.time?.elapsed || 0));
+                    let items = '';
+                    sorted.forEach(e => {
+                        const t = e.time?.elapsed ? e.time.elapsed + "'" : '';
+                        const player = e.player?.name || '';
+                        const team = e.team?.name || '';
+                        let icon = '⚽';
+                        let label = '';
+                        if (e.type === 'Goal') { label = '<span class="goal-label">GOAL</span>'; } else if (e
+                            .type === 'Penalty') { label = '<span class="goal-label">PEN</span>'; } else if (e
+                            .type === 'Card') { icon = e.detail?.includes('Yellow') ? '🟨' : '🟥'; } else if (e
+                            .type === 'subst') { icon = '🔄'; } else if (e.type === 'Var') { icon = '📺'; }
+                        items +=
+                            `<div class="event-row"><span class="time">${t}</span><span class="icon">${icon}</span><span class="desc">${player} ${label}</span><span class="team">${team}</span></div>`;
+                    });
+                    eventsHtml = items ? `<div class="events-aiscore">${items}</div>` :
+                        '<div class="empty-state">No events</div>';
+                } else {
+                    eventsHtml = '<div class="empty-state">No events</div>';
+                }
+
+                let h2hHtml = '';
+                if (h2h && h2h.length > 0) {
+                    let items = '';
+                    h2h.slice(0, 10).forEach(m => {
+                        const hn = m.teams?.home?.name || '?';
+                        const an = m.teams?.away?.name || '?';
+                        const hs = m.goals?.home ?? '-';
+                        const as = m.goals?.away ?? '-';
+                        const d = m.fixture?.date ? new Date(m.fixture.date).toLocaleDateString() : '';
+                        items +=
+                            `<div class="h2h-row"><span class="teams">${hn} vs ${an}</span><span class="result">${hs} - ${as}</span><span class="date">${d}</span></div>`;
+                    });
+                    h2hHtml = items ? `<div class="h2h-aiscore">${items}</div>` :
+                        '<div class="empty-state">No previous matches</div>';
+                } else {
+                    h2hHtml = '<div class="empty-state">No previous matches</div>';
+                }
+
+                matchDetailContentAiScore.innerHTML = headerHtml +
+                    `
+                    <div class="match-tabs-aiscore" id="matchTabsAiScore">
+                        <button class="active" data-tab="overview">📋 Overview</button>
+                        <button data-tab="stats">📊 Stats</button>
+                        <button data-tab="lineups">👥 Lineups</button>
+                        <button data-tab="h2h">⚔️ H2H</button>
+                        <button data-tab="events">⚡ Events</button>
+                    </div>
+                    <div id="tab-overview" class="match-tab-content-aiscore active">${overviewHtml}</div>
+                    <div id="tab-stats" class="match-tab-content-aiscore">${statsHtml}</div>
+                    <div id="tab-lineups" class="match-tab-content-aiscore">${lineupsHtml}</div>
+                    <div id="tab-h2h" class="match-tab-content-aiscore">${h2hHtml}</div>
+                    <div id="tab-events" class="match-tab-content-aiscore">${eventsHtml}</div>
+                `;
+
+                document.querySelectorAll('#matchTabsAiScore button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#matchTabsAiScore button').forEach(b => b.classList
+                            .remove('active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        document.querySelectorAll('.match-tab-content-aiscore').forEach(el => el.classList
+                            .remove('active'));
+                        const target = document.getElementById('tab-' + tab);
+                        if (target) target.classList.add('active');
+                    });
+                });
+
+                document.querySelectorAll('.camel-btn').forEach(btn => {
+                    btn.removeEventListener('click', camelBtnHandler);
+                    btn.addEventListener('click', camelBtnHandler);
+                });
             }
 
             // ==================== TV CHANNELS ====================
@@ -3203,8 +4277,7 @@
                 return html;
             }
 
-            // ==================== TRANSFERS (Enhanced with all major leagues) ====================
-            // قائمة البطولات الكبرى مع المعرفات الصحيحة (تم تحديثها من البيانات المقدمة)
+            // ==================== TRANSFERS ====================
             const POPULAR_LEAGUES = [
                 { id: '6811', name: 'Premier League', img: '3411694791422.png' },
                 { id: '1933', name: 'LaLiga', img: '8641690196626.png' },
@@ -3216,7 +4289,6 @@
                 { id: '47037', name: 'Belgian Pro League', img: '6291755056529.png' },
                 { id: '76040', name: 'Tunisian Ligue 1', img: '5641693174914.png' },
                 { id: '573139', name: 'Scottish Premiership', img: '8331722958055.png' },
-                // يمكن إضافة المزيد حسب الحاجة
             ];
 
             function getLeagueImage(id) {
@@ -3233,7 +4305,6 @@
                 try {
                     let data;
                     if (leagueId === 'all') {
-                        // نستخدم الدوري الإنجليزي كمصدر لـ All لأنه يحتوي على انتقالات كثيرة
                         const resp = await fetchViaProxy(YS_BASE + `info/transfer_info_page/6811?page=${page}`);
                         data = resp;
                     } else {
@@ -3252,7 +4323,6 @@
                         allTransfers = allTransfers.concat(transferData.all);
                     }
 
-                    // إزالة المكررات
                     const seen = new Set();
                     const unique = allTransfers.filter(item => {
                         const id = item.player_name?.row_id || item.player_name?.id;
@@ -3261,7 +4331,6 @@
                         return true;
                     });
 
-                    // ترتيب حسب التاريخ (الأحدث أولاً)
                     unique.sort((a, b) => {
                         const dateA = a.date_from || '';
                         const dateB = b.date_from || '';
@@ -3919,294 +4988,6 @@
                     seriesContainer.innerHTML = `<div class="error-msg">Failed to load series</div>`;
                 }
             }
-
-            // ==================== MATCH DETAIL (API-Sports) ====================
-            async function showMatchDetailAiScore(fixtureId) {
-                matchDetailAiScore.classList.add('visible');
-                matchDetailContentAiScore.innerHTML =
-                    '<div class="loading"><div class="spinner"></div><div>Loading details...</div></div>';
-                matchDetailTitleAiScore.textContent = 'Match Details';
-
-                try {
-                    const resp = await fetch(
-                        `https://v3.football.api-sports.io/fixtures?id=${fixtureId}`, {
-                            headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
-                        });
-                    const data = await resp.json();
-                    const fixture = data.response?.[0];
-                    if (!fixture) throw new Error('Match not found');
-
-                    let stats = [];
-                    try {
-                        const sResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/statistics?fixture=${fixtureId}`, {
-                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
-                            });
-                        const sData = await sResp.json();
-                        stats = sData.response || [];
-                    } catch (e) {}
-
-                    let events = [];
-                    try {
-                        const eResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/events?fixture=${fixtureId}`, {
-                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
-                            });
-                        const eData = await eResp.json();
-                        events = eData.response || [];
-                    } catch (e) {}
-
-                    let h2h = [];
-                    try {
-                        const hResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/headtohead?h2h=${fixture.teams.home.id}-${fixture.teams.away.id}`, {
-                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
-                            });
-                        const hData = await hResp.json();
-                        h2h = hData.response || [];
-                    } catch (e) {}
-
-                    let lineups = [];
-                    try {
-                        const lResp = await fetch(
-                            `https://v3.football.api-sports.io/fixtures/lineups?fixture=${fixtureId}`, {
-                                headers: { 'x-apisports-key': API_SPORTS_KEY, 'Content-Type': 'application/json' }
-                            });
-                        const lData = await lResp.json();
-                        lineups = lData.response || [];
-                    } catch (e) {}
-
-                    updateCamelOverlay(fixture, stats);
-                    renderMatchDetail(fixture, stats, events, h2h, lineups);
-
-                } catch (error) {
-                    matchDetailContentAiScore.innerHTML =
-                        `<div class="error-msg">⚠️ Failed to load details: ${error.message}</div>`;
-                    camelOverlay.style.display = 'none';
-                }
-            }
-
-            function renderMatchDetail(fixture, stats, events, h2h, lineups) {
-                const home = fixture.teams?.home?.name || 'Home';
-                const away = fixture.teams?.away?.name || 'Away';
-                const homeLogo = fixture.teams?.home?.logo || '';
-                const awayLogo = fixture.teams?.away?.logo || '';
-                const homeScore = fixture.goals?.home ?? '-';
-                const awayScore = fixture.goals?.away ?? '-';
-                const league = fixture.league?.name || '';
-                const status = fixture.fixture?.status?.short || '';
-                const elapsed = fixture.fixture?.status?.elapsed || 0;
-                const venue = fixture.fixture?.venue?.name || 'N/A';
-                const referee = fixture.fixture?.referee || 'N/A';
-                const date = fixture.fixture?.date ? new Date(fixture.fixture.date).toLocaleDateString() : 'N/A';
-                const time = fixture.fixture?.date ? new Date(fixture.fixture.date).toLocaleTimeString([], { hour: '2-digit',
-                    minute: '2-digit' }) : 'N/A';
-                const isLive = ['1H', '2H', 'ET', 'HT', 'BT'].includes(status);
-                const percent = Math.min((elapsed / 90) * 100, 100);
-
-                let statusText = status;
-                if (status === '1H' || status === '2H' || status === 'ET') statusText = elapsed + "'";
-                else if (status === 'HT') statusText = 'Half Time';
-                else if (status === 'FT') statusText = 'Full Time';
-                else if (status === 'PST') statusText = 'Postponed';
-                else if (status === 'NS') statusText = 'Not Started';
-
-                let headerHtml = `
-                    <div class="match-header-aiscore">
-                        <div class="league-name">${league}</div>
-                        <div class="match-teams-score">
-                            <div class="team-block">
-                                ${homeLogo ? `<img src="${homeLogo}" onerror="this.style.display='none'">` : ''}
-                                <span class="name">${home}</span>
-                            </div>
-                            <div class="score-block">
-                                <div class="score ${isLive ? 'live-score' : ''}">${homeScore} - ${awayScore}</div>
-                                <div class="status">${statusText}</div>
-                                <div class="ht-score">HT ${fixture.score?.halftime?.home ?? '-'} - ${fixture.score?.halftime?.away ?? '-'}</div>
-                            </div>
-                            <div class="team-block">
-                                ${awayLogo ? `<img src="${awayLogo}" onerror="this.style.display='none'">` : ''}
-                                <span class="name">${away}</span>
-                            </div>
-                        </div>
-                        <div class="match-meta-info">
-                            <span><span class="label">📅</span> <span class="value">${date}</span></span>
-                            <span><span class="label">🕐</span> <span class="value">${time}</span></span>
-                            <span><span class="label">🏟️</span> <span class="value">${venue}</span></span>
-                            <span><span class="label">👨‍⚖️</span> <span class="value">${referee}</span></span>
-                            ${elapsed > 0 ? `<span><span class="label">⏱️</span> <span class="value">${elapsed}'</span></span>` : ''}
-                        </div>
-                        <div class="progress-bar"><div class="fill" style="width:${percent}%;"></div><div class="time-label">${elapsed > 0 ? elapsed + "'" : ''}</div></div>
-                    </div>
-                `;
-
-                let overviewHtml =
-                    `
-                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:6px 0;">
-                        <div><strong>🏟️ Venue:</strong> ${venue}</div>
-                        <div><strong>👨‍⚖️ Referee:</strong> ${referee}</div>
-                        <div><strong>📅 Date:</strong> ${date}</div>
-                        <div><strong>🕐 Time:</strong> ${time}</div>
-                        <div><strong>📊 Status:</strong> ${statusText}</div>
-                        <div><strong>⏱️ Elapsed:</strong> ${elapsed > 0 ? elapsed + "'" : 'N/A'}</div>
-                        <div><strong>🏆 League:</strong> ${league}</div>
-                        <div><strong>⚽ Score:</strong> ${homeScore} - ${awayScore}</div>
-                    </div>
-                `;
-
-                let statsHtml = '';
-                if (stats && stats.length > 0) {
-                    const homeStats = stats.find(s => s.team?.name === home) || stats[0];
-                    const awayStats = stats.find(s => s.team?.name === away) || stats[1] || stats[0];
-                    const statKeys = {};
-                    if (homeStats && homeStats.statistics) {
-                        homeStats.statistics.forEach(stat => {
-                            if (!statKeys[stat.type]) statKeys[stat.type] = {};
-                            statKeys[stat.type].home = stat.value;
-                        });
-                    }
-                    if (awayStats && awayStats.statistics) {
-                        awayStats.statistics.forEach(stat => {
-                            if (!statKeys[stat.type]) statKeys[stat.type] = {};
-                            statKeys[stat.type].away = stat.value;
-                        });
-                    }
-                    const order = ['Ball Possession', 'Total Shots', 'Shots on Goal', 'Shots off Goal', 'Fouls',
-                        'Corner Kicks', 'Offsides', 'Goalkeeper Saves'
-                    ];
-                    let items = '';
-                    order.forEach(key => {
-                        const hv = statKeys[key]?.home ?? '-';
-                        const av = statKeys[key]?.away ?? '-';
-                        if (hv === '-' && av === '-') return;
-                        const total = (parseFloat(hv) + parseFloat(av)) || 1;
-                        const hp = Math.round((parseFloat(hv) / total) * 100) || 50;
-                        const ap = 100 - hp;
-                        items += `
-                            <div class="stat-item">
-                                <div class="stat-value-home">${hv}</div>
-                                <div style="display:flex;flex-direction:column;align-items:center;width:40px;">
-                                    <div class="stat-bar"><div class="fill-home" style="width:${hp}%;"></div><div class="fill-away" style="width:${ap}%;"></div></div>
-                                </div>
-                                <div class="stat-value-away">${av}</div>
-                                <div class="stat-label">${key}</div>
-                            </div>
-                        `;
-                    });
-                    statsHtml = items ? `<div class="stats-grid-aiscore">${items}</div>` :
-                        '<div class="empty-state">No statistics</div>';
-                } else {
-                    statsHtml = '<div class="empty-state">No statistics</div>';
-                }
-
-                let lineupsHtml = '';
-                if (lineups && lineups.length > 0) {
-                    const hl = lineups.find(l => l.team?.name === home) || lineups[0];
-                    const al = lineups.find(l => l.team?.name === away) || lineups[1] || lineups[0];
-                    const hp = hl?.players || [];
-                    const ap = al?.players || [];
-                    lineupsHtml = `
-                        <div class="lineup-aiscore">
-                            <div class="team-lineup"><div class="title">${homeLogo ? `<img src="${homeLogo}" style="width:18px;height:18px;vertical-align:middle;">` : ''} ${home}</div>
-                                ${hp.length > 0 ? hp.slice(0, 11).map(p => `<div class="player"><span class="number">${p.number || ''}</span><span class="name">${p.name || ''}</span></div>`).join('') : '<div class="empty-state">No lineup</div>'}
-                            </div>
-                            <div class="team-lineup"><div class="title">${awayLogo ? `<img src="${awayLogo}" style="width:18px;height:18px;vertical-align:middle;">` : ''} ${away}</div>
-                                ${ap.length > 0 ? ap.slice(0, 11).map(p => `<div class="player"><span class="number">${p.number || ''}</span><span class="name">${p.name || ''}</span></div>`).join('') : '<div class="empty-state">No lineup</div>'}
-                            </div>
-                        </div>
-                    `;
-                } else {
-                    lineupsHtml = '<div class="empty-state">No lineups</div>';
-                }
-
-                let eventsHtml = '';
-                if (events && events.length > 0) {
-                    const sorted = events.sort((a, b) => (a.time?.elapsed || 0) - (b.time?.elapsed || 0));
-                    let items = '';
-                    sorted.forEach(e => {
-                        const t = e.time?.elapsed ? e.time.elapsed + "'" : '';
-                        const player = e.player?.name || '';
-                        const team = e.team?.name || '';
-                        let icon = '⚽';
-                        let label = '';
-                        if (e.type === 'Goal') { label = '<span class="goal-label">GOAL</span>'; } else if (e
-                            .type === 'Penalty') { label = '<span class="goal-label">PEN</span>'; } else if (e
-                            .type === 'Card') { icon = e.detail?.includes('Yellow') ? '🟨' : '🟥'; } else if (e
-                            .type === 'subst') { icon = '🔄'; } else if (e.type === 'Var') { icon = '📺'; }
-                        items +=
-                            `<div class="event-row"><span class="time">${t}</span><span class="icon">${icon}</span><span class="desc">${player} ${label}</span><span class="team">${team}</span></div>`;
-                    });
-                    eventsHtml = items ? `<div class="events-aiscore">${items}</div>` :
-                        '<div class="empty-state">No events</div>';
-                } else {
-                    eventsHtml = '<div class="empty-state">No events</div>';
-                }
-
-                let h2hHtml = '';
-                if (h2h && h2h.length > 0) {
-                    let items = '';
-                    h2h.slice(0, 10).forEach(m => {
-                        const hn = m.teams?.home?.name || '?';
-                        const an = m.teams?.away?.name || '?';
-                        const hs = m.goals?.home ?? '-';
-                        const as = m.goals?.away ?? '-';
-                        const d = m.fixture?.date ? new Date(m.fixture.date).toLocaleDateString() : '';
-                        items +=
-                            `<div class="h2h-row"><span class="teams">${hn} vs ${an}</span><span class="result">${hs} - ${as}</span><span class="date">${d}</span></div>`;
-                    });
-                    h2hHtml = items ? `<div class="h2h-aiscore">${items}</div>` :
-                        '<div class="empty-state">No previous matches</div>';
-                } else {
-                    h2hHtml = '<div class="empty-state">No previous matches</div>';
-                }
-
-                matchDetailContentAiScore.innerHTML = headerHtml +
-                    `
-                    <div class="match-tabs-aiscore" id="matchTabsAiScore">
-                        <button class="active" data-tab="overview">📋 Overview</button>
-                        <button data-tab="stats">📊 Stats</button>
-                        <button data-tab="lineups">👥 Lineup</button>
-                        <button data-tab="h2h">⚔️ H2H</button>
-                        <button data-tab="knockout">⚡ Events</button>
-                    </div>
-                    <div id="tab-overview" class="match-tab-content-aiscore active">${overviewHtml}</div>
-                    <div id="tab-stats" class="match-tab-content-aiscore">${statsHtml}</div>
-                    <div id="tab-lineups" class="match-tab-content-aiscore">${lineupsHtml}</div>
-                    <div id="tab-h2h" class="match-tab-content-aiscore">${h2hHtml}</div>
-                    <div id="tab-knockout" class="match-tab-content-aiscore">${eventsHtml}</div>
-                `;
-
-                document.querySelectorAll('#matchTabsAiScore button').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        document.querySelectorAll('#matchTabsAiScore button').forEach(b => b.classList
-                            .remove('active'));
-                        this.classList.add('active');
-                        const tab = this.dataset.tab;
-                        document.querySelectorAll('.match-tab-content-aiscore').forEach(el => el.classList
-                            .remove('active'));
-                        const target = document.getElementById('tab-' + tab);
-                        if (target) target.classList.add('active');
-                    });
-                });
-
-                document.querySelectorAll('.camel-btn').forEach(btn => {
-                    btn.removeEventListener('click', camelBtnHandler);
-                    btn.addEventListener('click', camelBtnHandler);
-                });
-            }
-
-            function camelBtnHandler(e) {
-                e.stopPropagation();
-                const tab = this.dataset.tab;
-                const btns = document.querySelectorAll('#matchTabsAiScore button');
-                btns.forEach(b => { if (b.dataset.tab === tab) b.click(); });
-                matchDetailAiScore.scrollIntoView({ behavior: 'smooth' });
-            }
-
-            closeMatchDetailAiScore.addEventListener('click', () => {
-                matchDetailAiScore.classList.remove('visible');
-                camelOverlay.style.display = 'none';
-            });
 
             // ==================== GLOBAL SEARCH ====================
             toggleSearchBtnMain.addEventListener('click', () => {
