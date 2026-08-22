@@ -32,21 +32,18 @@
     </div>
 
     <script>
-        // ========== الإعدادات ==========
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
-        // ✅ الرابط الصحيح لترتيب الدوري (غيّر الرقم حسب البطولة)
         const CHAMPIONSHIP_ID = 937599; // الدوري الإنجليزي الممتاز
         const STANDINGS_API_URL = `https://api-en.ysscores.com/api/matches/league_standing_stage/${CHAMPIONSHIP_ID}`;
         const TEAM_IMG_BASE = 'https://imgs.ysscores.com/teams/150/';
 
         const FINAL_URL = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(STANDINGS_API_URL);
 
-        // ========== عرض الترتيب ==========
         function renderStandings(data) {
             const container = document.getElementById('standingsContainer');
             container.innerHTML = '';
 
-            // استخراج مصفوفة الفرق من data.league.stage0
+            // ✅ الآن data هو الكائن الداخلي (يحتوي على league)
             const league = data.league;
             if (!league || !league.stage0 || !Array.isArray(league.stage0) || league.stage0.length === 0) {
                 container.innerHTML = '<p class="text-center text-muted">لا توجد بيانات ترتيب.</p>';
@@ -122,9 +119,15 @@
             try {
                 const response = await fetch(FINAL_URL);
                 if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-                const data = await response.json();
-                console.log('استجابة الترتيب:', data); // للتحقق من البنية
-                renderStandings(data);
+                const json = await response.json();
+                console.log('الاستجابة الكاملة:', json);
+
+                // ✅ استخراج البيانات الداخلية وتمريرها
+                if (json.data && json.data.league) {
+                    renderStandings(json.data);
+                } else {
+                    throw new Error('البنية غير متوقعة');
+                }
             } catch (error) {
                 console.error('فشل الجلب:', error);
                 errorMsg.style.display = 'block';
