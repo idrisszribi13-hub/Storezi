@@ -1609,7 +1609,7 @@
             color: var(--text-secondary);
         }
 
-        /* ===== TRANSFERS (Enhanced with League filter & pagination) ===== */
+        /* ===== TRANSFERS (Enhanced) ===== */
         .transfer-leagues-bar {
             display: flex;
             flex-wrap: wrap;
@@ -2385,7 +2385,7 @@
                 <div id="standingsContainer"><div class="loading"><div class="spinner"></div><div>Loading leagues...</div></div></div>
             </div>
 
-            <!-- ===== TRANSFERS (Enhanced with League filter & pagination) ===== -->
+            <!-- ===== TRANSFERS ===== -->
             <div class="zs-tab-content" id="tab-transfers">
                 <div class="zs-section-title">🔄 Transfer Market</div>
                 <div id="transfersContainer"><div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div></div>
@@ -3062,29 +3062,35 @@
             }
 
             // ==================== IMAGE HELPERS ====================
-            function getImageUrl(path, type, size = '64') {
-                if (!path) return '';
-                if (path.startsWith('http')) return path;
-                const maps = {
-                    'team': 'teams/' + size + '/',
-                    'player': 'players/' + size + '/',
-                    'news': 'news/150/',
-                    'country': 'countries/',
-                    'championship': 'championship/cups/'
-                };
-                return YS_IMG + (maps[type] || '') + path;
-            }
-
+            // المسار الصحيح للصور: player (بدون s)
             function getPlayerImage(path) {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
-                return 'https://imgs.ysscores.com/players/64/' + path;
+                return 'https://imgs.ysscores.com/player/64/' + path;
             }
 
             function getTeamImage(path) {
                 if (!path) return '';
                 if (path.startsWith('http')) return path;
                 return 'https://imgs.ysscores.com/teams/64/' + path;
+            }
+
+            function getImageUrl(path, type) {
+                if (!path) return '';
+                if (path.startsWith('http')) return path;
+                if (type === 'player') {
+                    return 'https://imgs.ysscores.com/player/64/' + path;
+                }
+                if (type === 'team') {
+                    return 'https://imgs.ysscores.com/teams/64/' + path;
+                }
+                if (type === 'news') {
+                    return 'https://imgs.ysscores.com/news/150/' + path;
+                }
+                if (type === 'championship') {
+                    return 'https://imgs.ysscores.com/championship/cups/' + path;
+                }
+                return path;
             }
 
             function getFlagEmoji(countryCode) {
@@ -3187,7 +3193,7 @@
                         <tbody>`;
                 teams.slice(0, 16).forEach((t, idx) => {
                     const team = t.team_name || {};
-                    const logo = getImageUrl(team.image, 'team');
+                    const logo = getTeamImage(team.image);
                     const teamId = team.row_id || null;
                     html += `<tr>
                         <td>${idx+1}</td>
@@ -3219,11 +3225,8 @@
             }
 
             // ==================== TRANSFERS (Enhanced) ====================
-            // List of popular leagues for the filter bar
+            // قائمة البطولات مع المعرفات الصحيحة (تم تحديثها)
             const POPULAR_LEAGUES = [
-                { id: '47037', name: 'Belgian Pro League', img: '6291755056529.png' },
-                { id: '76040', name: 'Tunisian Ligue 1', img: '5641693174914.png' },
-                { id: '573139', name: 'Scottish Premiership', img: '8331722958055.png' },
                 { id: '937599', name: 'Premier League', img: '3411694791422.png' },
                 { id: '938652', name: 'LaLiga', img: '8641690196626.png' },
                 { id: '938769', name: 'Bundesliga', img: '6171690288722.png' },
@@ -3231,18 +3234,17 @@
                 { id: '937873', name: 'Ligue 1', img: '9551719862665.png' },
                 { id: '941825', name: 'Saudi Pro League', img: '5111703719091.png' },
                 { id: '943009', name: 'Egyptian League', img: '17860128653611.png' },
+                { id: '47037', name: 'Belgian Pro League', img: '6291755056529.png' },
+                { id: '76040', name: 'Tunisian Ligue 1', img: '5641693174914.png' },
+                { id: '573139', name: 'Scottish Premiership', img: '8331722958055.png' },
             ];
-
-            function getLeagueName(id) {
-                const found = POPULAR_LEAGUES.find(l => l.id === id);
-                return found ? found.name : 'League ' + id;
-            }
 
             function getLeagueImage(id) {
                 const found = POPULAR_LEAGUES.find(l => l.id === id);
                 return found ? getImageUrl(found.img, 'championship') : '';
             }
 
+            // وظيفة تحميل الانتقالات مع التعامل مع البطولات التي قد لا تحتوي على بيانات
             async function loadTransfers(leagueId = 'all', page = 1) {
                 transfersContainer.innerHTML =
                     '<div class="loading"><div class="spinner"></div><div>Loading transfers...</div></div>';
@@ -3252,23 +3254,7 @@
                 try {
                     let data;
                     if (leagueId === 'all') {
-                        // For "all" leagues, we fetch from a few popular leagues and combine
-                        // but since we need pagination, we'll just show from a single source or
-                        // simulate by using the first league's data with all=true flag?
-                        // Actually the API doesn't support all leagues, so we'll show from the first popular league
-                        // but we can create a combined view by fetching from multiple leagues and merging.
-                        // For simplicity, we will fetch from the first 3 popular leagues and merge.
-                        // But to keep pagination, we will just use the first league as default.
-                        // Better: we will fetch from '47037' (Belgian) and show that as "All" for now.
-                        // We could also fetch from all and merge, but pagination becomes complex.
-                        // Instead, we implement "All" as a combination of the first 5 leagues on page 1.
-                        // Since we want it to work with pagination, we'll use a simple approach:
-                        // We'll call the API for each league and merge the results.
-                        // But pagination won't work properly. So we'll show just the first league for "All" with pagination.
-                        // To make it better, we'll fetch from multiple leagues and merge, then paginate manually (client-side).
-                        // That could be heavy. Let's just use the first league (Belgian) as default for "All".
-                        // But we can add a special "All" that fetches from multiple pages and merges.
-                        // For the demo, we'll just use Belgian league for "All".
+                        // نستخدم الدوري البلجيكي كمصدر لـ All لأنه يحتوي على انتقالات
                         const resp = await fetchViaProxy(YS_BASE + `info/transfer_info_page/47037?page=${page}`);
                         data = resp;
                     } else {
@@ -3287,7 +3273,7 @@
                         allTransfers = allTransfers.concat(transferData.all);
                     }
 
-                    // Remove duplicates by player id
+                    // إزالة المكررات
                     const seen = new Set();
                     const unique = allTransfers.filter(item => {
                         const id = item.player_name?.row_id || item.player_name?.id;
@@ -3296,7 +3282,7 @@
                         return true;
                     });
 
-                    // Sort by date (newest first)
+                    // ترتيب حسب التاريخ
                     unique.sort((a, b) => {
                         const dateA = a.date_from || '';
                         const dateB = b.date_from || '';
@@ -3304,17 +3290,27 @@
                     });
 
                     if (unique.length === 0) {
-                        transfersContainer.innerHTML = '<div class="empty-state">No transfers available</div>';
+                        transfersContainer.innerHTML = '<div class="empty-state">No transfers available for this league.</div>';
+                        // نضيف شريط الفلاتر أيضاً إذا لم يكن موجوداً
+                        renderLeagueFilter(leagueId);
                         return;
                     }
 
                     totalPages = transferData.pagination?.last_page || 1;
 
+                    // عرض البطاقات
                     renderTransfersEnhanced(unique);
+                    // عرض شريط الفلاتر
+                    renderLeagueFilter(leagueId);
+                    // عرض الترقيم
                     renderPagination(totalPages, page);
 
                 } catch (error) {
-                    transfersContainer.innerHTML = `<div class="error-msg">⚠️ ${error.message}</div>`;
+                    console.error('Transfer load error:', error);
+                    transfersContainer.innerHTML =
+                        `<div class="error-msg">⚠️ Failed to load transfers: ${error.message}</div>`;
+                    // نحاول عرض الفلاتر حتى في حالة الخطأ
+                    renderLeagueFilter(leagueId);
                 }
             }
 
@@ -3328,6 +3324,7 @@
                     const outId = teamOut.row_id || teamOut.id || null;
                     const inId = teamIn.row_id || teamIn.id || null;
 
+                    // استخدام المسار الصحيح للصور
                     const playerImg = getPlayerImage(player.image) ||
                         'https://ui-avatars.com/api/?name=' + encodeURIComponent(player.title || 'P') +
                         '&background=4c8bf5&color=fff&size=48';
@@ -3367,10 +3364,18 @@
                     `;
                 });
                 html += '</div>';
-                transfersContainer.innerHTML = html;
+                // إدراج البطاقات داخل الحاوية
+                const container = document.getElementById('transfersContainer');
+                // نحذف أي محتوى سابق باستثناء شريط الفلاتر
+                const filterBar = container.querySelector('.transfer-leagues-bar');
+                const pagination = container.querySelector('.transfer-pagination');
+                container.innerHTML = '';
+                if (filterBar) container.appendChild(filterBar);
+                container.insertAdjacentHTML('beforeend', html);
+                if (pagination) container.appendChild(pagination);
 
-                // Click events for player detail
-                document.querySelectorAll('.transfer-card-enhanced[data-player-id]').forEach(card => {
+                // ربط الأحداث
+                container.querySelectorAll('.transfer-card-enhanced[data-player-id]').forEach(card => {
                     const playerId = card.dataset.playerId;
                     if (playerId && playerId !== 'null') {
                         card.addEventListener('click', function(e) {
@@ -3380,8 +3385,7 @@
                     }
                 });
 
-                // Click events for team detail (on club names)
-                document.querySelectorAll('.clubs-row').forEach(row => {
+                container.querySelectorAll('.clubs-row').forEach(row => {
                     row.addEventListener('click', function(e) {
                         e.stopPropagation();
                         const card = this.closest('.transfer-card-enhanced');
@@ -3397,8 +3401,52 @@
                 });
             }
 
+            function renderLeagueFilter(activeLeague) {
+                const container = document.getElementById('transfersContainer');
+                // إزالة الفلتر القديم إذا كان موجوداً
+                const oldFilter = container.querySelector('.transfer-leagues-bar');
+                if (oldFilter) oldFilter.remove();
+
+                let filterHtml = `<div class="transfer-leagues-bar">
+                    <button class="league-btn ${activeLeague === 'all' ? 'active' : ''}" data-league="all">
+                        🌍 All
+                    </button>`;
+                POPULAR_LEAGUES.forEach(league => {
+                    const img = getLeagueImage(league.id);
+                    filterHtml += `
+                        <button class="league-btn ${activeLeague === league.id ? 'active' : ''}" data-league="${league.id}">
+                            ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
+                            ${league.name}
+                        </button>
+                    `;
+                });
+                filterHtml += `</div>`;
+
+                // إدراج الفلتر في بداية الحاوية
+                container.insertAdjacentHTML('afterbegin', filterHtml);
+
+                // ربط الأحداث
+                container.querySelectorAll('.league-btn').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const lid = this.dataset.league;
+                        currentLeagueId = lid;
+                        currentPage = 1;
+                        // تحديث الحالة النشطة
+                        document.querySelectorAll('.transfer-leagues-bar .league-btn').forEach(b =>
+                            b.classList.remove('active'));
+                        this.classList.add('active');
+                        // إعادة تحميل البيانات
+                        loadTransfers(lid, 1);
+                    });
+                });
+            }
+
             function renderPagination(total, current) {
                 const container = document.getElementById('transfersContainer');
+                // إزالة الترقيم القديم
+                const oldPagination = container.querySelector('.transfer-pagination');
+                if (oldPagination) oldPagination.remove();
+
                 const paginationHtml = `
                     <div class="transfer-pagination">
                         <button onclick="window.goToTransferPage(${current - 1})" ${current <= 1 ? 'disabled' : ''}>← Previous</button>
@@ -3406,46 +3454,7 @@
                         <button onclick="window.goToTransferPage(${current + 1})" ${current >= total ? 'disabled' : ''}>Next →</button>
                     </div>
                 `;
-                // Append pagination after the grid
-                const grid = container.querySelector('.transfer-grid');
-                if (grid) {
-                    const paginationDiv = document.createElement('div');
-                    paginationDiv.innerHTML = paginationHtml;
-                    container.appendChild(paginationDiv.firstElementChild);
-                } else {
-                    // If no grid, just append
-                    container.insertAdjacentHTML('beforeend', paginationHtml);
-                }
-            }
-
-            function renderLeagueFilter() {
-                const container = document.getElementById('transfersContainer');
-                let filterHtml = `<div class="transfer-leagues-bar">
-                    <button class="league-btn ${currentLeagueId === 'all' ? 'active' : ''}" data-league="all">
-                        🌍 All
-                    </button>`;
-                POPULAR_LEAGUES.forEach(league => {
-                    const img = getLeagueImage(league.id);
-                    filterHtml += `
-                        <button class="league-btn ${currentLeagueId === league.id ? 'active' : ''}" data-league="${league.id}">
-                            ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
-                            ${league.name}
-                        </button>
-                    `;
-                });
-                filterHtml += `</div>`;
-                container.insertAdjacentHTML('afterbegin', filterHtml);
-
-                // Add event listeners
-                container.querySelectorAll('.league-btn').forEach(btn => {
-                    btn.addEventListener('click', function() {
-                        const leagueId = this.dataset.league;
-                        currentLeagueId = leagueId;
-                        currentPage = 1;
-                        // Clear and reload
-                        loadTransfers(leagueId, 1);
-                    });
-                });
+                container.insertAdjacentHTML('beforeend', paginationHtml);
             }
 
             // ==================== NEWS ====================
@@ -3693,7 +3702,7 @@
                                             `<table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr></thead><tbody>`;
                                         firstGroup.slice(0, 16).forEach((t, idx) => {
                                             const teamObj = t.team_name || {};
-                                            const logo = getImageUrl(teamObj.image, 'team');
+                                            const logo = getTeamImage(teamObj.image);
                                             const tid = teamObj.row_id || null;
                                             sHtml += `<tr>
                                                 <td>${idx+1}</td>
@@ -3727,8 +3736,8 @@
                                 matches.coming.data.slice(0, 5).forEach(m => {
                                     const home = m.home_team || {};
                                     const away = m.away_team || {};
-                                    const homeLogo = getImageUrl(home.image, 'team');
-                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    const homeLogo = getTeamImage(home.image);
+                                    const awayLogo = getTeamImage(away.image);
                                     mHtml += `
                                         <div class="team-match-item" data-match-id="${m.match_id}">
                                             <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
@@ -3745,8 +3754,8 @@
                                 matches.end.data.slice(0, 5).forEach(m => {
                                     const home = m.home_team || {};
                                     const away = m.away_team || {};
-                                    const homeLogo = getImageUrl(home.image, 'team');
-                                    const awayLogo = getImageUrl(away.image, 'team');
+                                    const homeLogo = getTeamImage(home.image);
+                                    const awayLogo = getTeamImage(away.image);
                                     mHtml += `
                                         <div class="team-match-item" data-match-id="${m.match_id}">
                                             <div class="teams"><img src="${homeLogo}" onerror="this.style.display='none'"> ${home.title || 'Home'} vs ${away.title || 'Away'} <img src="${awayLogo}" onerror="this.style.display='none'"></div>
@@ -4340,7 +4349,6 @@
                 } else if (tabId === 'standings') {
                     loadStandings();
                 } else if (tabId === 'transfers') {
-                    // Render filter bar and load transfers
                     loadTransfers(currentLeagueId, 1);
                 } else if (tabId === 'news') {
                     loadNews(1);
@@ -4410,129 +4418,12 @@
             // ==================== INIT ====================
             function init() {
                 switchTab('home');
-                // Preload transfer leagues
                 setTimeout(() => {
                     loadStandings();
                     loadTransfers('all', 1);
                     loadNews(1);
                 }, 1500);
             }
-
-            // Override loadTransfers to also render league filter
-            const originalLoadTransfers = loadTransfers;
-            loadTransfers = function(leagueId, page) {
-                // We need to clear and re-render
-                // We'll handle rendering the filter in the function itself
-                // We'll call the original function after rendering the filter
-                // But we need to ensure the filter is rendered only once.
-                // We'll render the filter inside this function before loading data.
-                // We'll use a flag to avoid duplicate filter rendering.
-                if (!document.querySelector('.transfer-leagues-bar')) {
-                    // Render filter bar
-                    const container = document.getElementById('transfersContainer');
-                    let filterHtml = `<div class="transfer-leagues-bar">
-                        <button class="league-btn ${leagueId === 'all' ? 'active' : ''}" data-league="all">
-                            🌍 All
-                        </button>`;
-                    POPULAR_LEAGUES.forEach(league => {
-                        const img = getLeagueImage(league.id);
-                        filterHtml += `
-                            <button class="league-btn ${leagueId === league.id ? 'active' : ''}" data-league="${league.id}">
-                                ${img ? `<img src="${img}" onerror="this.style.display='none'">` : ''}
-                                ${league.name}
-                            </button>
-                        `;
-                    });
-                    filterHtml += `</div>`;
-                    // Insert after the section title
-                    const title = container.previousElementSibling;
-                    if (title && title.classList.contains('zs-section-title')) {
-                        title.insertAdjacentHTML('afterend', filterHtml);
-                    } else {
-                        container.insertAdjacentHTML('beforebegin', filterHtml);
-                    }
-
-                    // Add event listeners
-                    document.querySelectorAll('.transfer-leagues-bar .league-btn').forEach(btn => {
-                        btn.addEventListener('click', function() {
-                            const lid = this.dataset.league;
-                            currentLeagueId = lid;
-                            currentPage = 1;
-                            // Update active class
-                            document.querySelectorAll('.transfer-leagues-bar .league-btn').forEach(b =>
-                                b.classList.remove('active'));
-                            this.classList.add('active');
-                            // Reload
-                            loadTransfers(lid, 1);
-                        });
-                    });
-                }
-                // Now call the original function
-                originalLoadTransfers(leagueId, page);
-            };
-
-            // Override renderTransfersEnhanced to include pagination after grid
-            const originalRenderTransfersEnhanced = renderTransfersEnhanced;
-            renderTransfersEnhanced = function(transfers) {
-                originalRenderTransfersEnhanced(transfers);
-                // Pagination will be added by renderPagination called from loadTransfers
-            };
-
-            // Override loadTransfers to call renderPagination after rendering
-            const originalLoadTransfers2 = loadTransfers;
-            loadTransfers = async function(leagueId, page) {
-                currentLeagueId = leagueId;
-                currentPage = page;
-                // Remove old pagination if exists
-                const oldPagination = document.querySelector('.transfer-pagination');
-                if (oldPagination) oldPagination.remove();
-
-                // Call original implementation (which sets innerHTML)
-                // We need to re-implement the logic here to avoid recursion
-                // Actually we'll just call the original function but we need to add pagination after.
-                // We'll re-define the function to include pagination.
-                // Let's just use a simpler approach: call the original but then add pagination.
-                // But we need to ensure we don't double-render.
-                // We'll just use a different approach: we'll implement the whole function here.
-                // Let's just keep the original and add pagination after.
-                // We'll call originalLoadTransfers2 which now points to the last defined.
-                // But we need to keep track.
-                // Simpler: we'll just call the original function and then add pagination.
-                // We'll set a flag to avoid recursion.
-                if (window._loadingTransfers) return;
-                window._loadingTransfers = true;
-                try {
-                    await originalLoadTransfers2(leagueId, page);
-                    // Pagination is now handled inside originalLoadTransfers2 via renderPagination
-                } finally {
-                    window._loadingTransfers = false;
-                }
-            };
-
-            // Actually we need to modify the original loadTransfers to include pagination.
-            // We'll just override it completely.
-            // We'll keep the new loadTransfers defined above and ensure it calls the right functions.
-            // Since we already defined loadTransfers with the filter rendering, we'll just make sure it works.
-            // We'll re-define loadTransfers to include pagination properly.
-
-            // Let's just re-write the loadTransfers function completely here.
-            // We'll keep it simple and robust.
-
-            // We'll use a different name for the inner function.
-
-            // Actually we'll just keep the code as is and ensure everything works.
-            // The key points:
-            // - Filter bar is rendered when switching to transfers tab.
-            // - loadTransfers fetches data and renders cards + pagination.
-
-            // We'll also need to handle the case when "All" is selected.
-            // For "All", we'll just use the first league (Belgian) as the source,
-            // but we'll change the title to "All Leagues".
-            // We'll modify the fetch URL based on leagueId.
-
-            // We'll just keep the original implementation but with the filter bar.
-
-            // I'll finalize the code.
 
             init();
 
