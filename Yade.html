@@ -3,140 +3,486 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ترتيب الدوري</title>
+    <title>مركز البطولات - YSScores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Cairo', sans-serif; background-color: #f8f9fa; }
-        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px; }
+        .container { max-width: 1200px; }
+        .champ-select { margin: 30px 0; }
+        .nav-tabs .nav-link { font-weight: 600; }
+        .tab-content { background: #fff; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px; }
         .team-img { width: 30px; height: 30px; object-fit: contain; }
-        .loader { text-align: center; padding: 40px; display: none; }
-        .error-message { text-align: center; padding: 30px; color: #dc3545; display: none; background: #f8d7da; border-radius: 8px; margin: 20px 0; }
+        .player-img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
+        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+        .table { margin-bottom: 0; }
+        .pagination { justify-content: center; margin-top: 20px; }
+        .bracket-match { border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; margin: 10px 0; background: #f8f9fa; }
+        .winner { background-color: #d4edda; }
+        .loader { text-align: center; padding: 30px; }
+        .error-message { text-align: center; padding: 30px; color: #dc3545; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
     <div class="container py-5">
-        <h1 class="text-center mb-5 fw-bold">📊 ترتيب الدوري</h1>
+        <h1 class="text-center mb-4 fw-bold">🏆 مركز البطولات</h1>
 
-        <div id="loader" class="loader">
-            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>
-            <p class="mt-3">جاري تحميل الترتيب...</p>
+        <!-- اختيار البطولة -->
+        <div class="champ-select">
+            <label for="championshipSelect" class="form-label fw-bold">اختر البطولة:</label>
+            <select id="championshipSelect" class="form-select form-select-lg">
+                <option value="">-- اختر بطولة --</option>
+            </select>
         </div>
 
-        <div id="errorMessage" class="error-message">
-            <p><strong>تعذر جلب البيانات أو البيانات غير متوقعة.</strong></p>
-            <p>يرجى التحقق من الرابط أو المحاولة لاحقًا.</p>
+        <!-- التبويبات -->
+        <ul class="nav nav-tabs" id="mainTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab">المباريات</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab">الترتيب</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="scorers-tab" data-bs-toggle="tab" data-bs-target="#scorers" type="button" role="tab">الهدافون</button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="assists-tab" data-bs-toggle="tab" data-bs-target="#assists" type="button" role="tab">الصناع</button>
+            </li>
+            <!-- تبويبات إضافية ستظهر حسب نوع البطولة -->
+            <li class="nav-item" id="bracketTabItem" style="display:none;">
+                <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab">خريطة المواجهات</button>
+            </li>
+        </ul>
+
+        <!-- محتوى التبويبات -->
+        <div class="tab-content" id="mainTabsContent">
+            <div class="tab-pane fade show active" id="matches" role="tabpanel">
+                <div id="matchesContent" class="mt-3"></div>
+            </div>
+            <div class="tab-pane fade" id="standings" role="tabpanel">
+                <div id="standingsContent" class="mt-3"></div>
+            </div>
+            <div class="tab-pane fade" id="scorers" role="tabpanel">
+                <div id="scorersContent" class="mt-3"></div>
+                <nav id="scorersPagination" aria-label="Page navigation"></nav>
+            </div>
+            <div class="tab-pane fade" id="assists" role="tabpanel">
+                <div id="assistsContent" class="mt-3"></div>
+                <nav id="assistsPagination" aria-label="Page navigation"></nav>
+            </div>
+            <div class="tab-pane fade" id="bracket" role="tabpanel">
+                <div id="bracketContent" class="mt-3"></div>
+            </div>
         </div>
 
-        <div id="standingsContainer" class="table-container"></div>
+        <!-- مؤشر التحميل -->
+        <div id="loadingIndicator" class="loader hidden">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">جاري التحميل...</p>
+        </div>
+        <!-- رسالة خطأ -->
+        <div id="errorIndicator" class="error-message hidden"></div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // ========== الإعدادات ==========
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
-        const CHAMPIONSHIP_ID = 937599; // الدوري الإنجليزي الممتاز
-        const STANDINGS_API_URL = `https://api-en.ysscores.com/api/matches/league_standing_stage/${CHAMPIONSHIP_ID}`;
-        const TEAM_IMG_BASE = 'https://imgs.ysscores.com/teams/150/';
+        const API_BASE = 'https://api-en.ysscores.com/api';
+        const IMG_BASE_TEAM = 'https://imgs.ysscores.com/teams/150/';
+        const IMG_BASE_PLAYER = 'https://imgs.ysscores.com/player/150/';
 
-        const FINAL_URL = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(STANDINGS_API_URL);
+        // قوائم عامة
+        let championshipsList = [];
+        let currentChampionship = null; // يحمل بيانات البطولة المختارة
+        let currentTab = 'matches';
 
-        function renderStandings(data) {
-            const container = document.getElementById('standingsContainer');
-            container.innerHTML = '';
+        // دوال مساعدة
+        function showLoading() {
+            document.getElementById('loadingIndicator').classList.remove('hidden');
+            document.getElementById('errorIndicator').classList.add('hidden');
+        }
+        function hideLoading() {
+            document.getElementById('loadingIndicator').classList.add('hidden');
+        }
+        function showError(msg) {
+            document.getElementById('errorIndicator').textContent = msg;
+            document.getElementById('errorIndicator').classList.remove('hidden');
+        }
 
-            // ✅ الآن data هو الكائن الداخلي (يحتوي على league)
-            const league = data.league;
-            if (!league || !league.stage0 || !Array.isArray(league.stage0) || league.stage0.length === 0) {
-                container.innerHTML = '<p class="text-center text-muted">لا توجد بيانات ترتيب.</p>';
+        // جلب البيانات عبر الوسيط
+        async function fetchFromProxy(url) {
+            const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(url)}`;
+            const response = await fetch(proxied);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return await response.json();
+        }
+
+        // جلب قائمة البطولات
+        async function loadChampionships() {
+            try {
+                showLoading();
+                const url = `${API_BASE}/info/championship_ranking/L/60`;
+                const data = await fetchFromProxy(url);
+                if (data.status && data.data) {
+                    championshipsList = data.data;
+                    populateSelect(championshipsList);
+                } else {
+                    showError('فشل تحميل قائمة البطولات');
+                }
+            } catch (err) {
+                console.error(err);
+                showError('تعذر الاتصال بالخادم');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function populateSelect(list) {
+            const select = document.getElementById('championshipSelect');
+            list.forEach(champ => {
+                const opt = document.createElement('option');
+                opt.value = champ.url_id; // سنستخدم url_id في الـ API
+                opt.textContent = champ.title;
+                opt.dataset.type = champ.type || 1;
+                opt.dataset.title = champ.title;
+                select.appendChild(opt);
+            });
+        }
+
+        // عند تغيير البطولة
+        document.getElementById('championshipSelect').addEventListener('change', async function() {
+            const selectedUrlId = this.value;
+            if (!selectedUrlId) {
+                // إخفاء التبويبات والمحتوى
+                document.getElementById('mainTabs').style.display = 'none';
+                document.getElementById('mainTabsContent').style.display = 'none';
                 return;
             }
+            document.getElementById('mainTabs').style.display = '';
+            document.getElementById('mainTabsContent').style.display = '';
 
-            const teams = league.stage0;
+            const selectedOption = this.options[this.selectedIndex];
+            const type = parseInt(selectedOption.dataset.type);
+            const title = selectedOption.dataset.title;
+            currentChampionship = {
+                url_id: selectedUrlId,
+                type: type,
+                title: title
+            };
 
-            let tableHTML = `
-                <table class="table table-striped table-hover align-middle">
+            // إعادة تعيين التبويبات
+            resetTabs();
+            // إظهار تبويب خريطة المواجهات إذا كانت البطولة كأس (type=4 مثلاً)
+            if (type === 4) {
+                document.getElementById('bracketTabItem').style.display = '';
+            } else {
+                document.getElementById('bracketTabItem').style.display = 'none';
+            }
+
+            // تحميل التبويب الافتراضي (المباريات)
+            switchTab('matches');
+        });
+
+        function resetTabs() {
+            // إعادة تعيين التبويبات النشطة
+            document.querySelectorAll('#mainTabs .nav-link').forEach(link => link.classList.remove('active'));
+            document.querySelectorAll('#mainTabsContent .tab-pane').forEach(pane => pane.classList.remove('show', 'active'));
+            document.getElementById('matches-tab').classList.add('active');
+            document.getElementById('matches').classList.add('show', 'active');
+            currentTab = 'matches';
+            // تفريغ المحتوى السابق
+            ['matchesContent', 'standingsContent', 'scorersContent', 'assistsContent', 'bracketContent'].forEach(id => {
+                document.getElementById(id).innerHTML = '';
+            });
+            document.getElementById('scorersPagination').innerHTML = '';
+            document.getElementById('assistsPagination').innerHTML = '';
+        }
+
+        // التبديل بين التبويبات
+        function switchTab(tabName) {
+            currentTab = tabName;
+            // تفعيل التبويب
+            document.querySelectorAll('#mainTabs .nav-link').forEach(link => {
+                link.classList.remove('active');
+                if (link.id === tabName + '-tab') link.classList.add('active');
+            });
+            document.querySelectorAll('#mainTabsContent .tab-pane').forEach(pane => {
+                pane.classList.remove('show', 'active');
+                if (pane.id === tabName) pane.classList.add('show', 'active');
+            });
+
+            // تحميل البيانات حسب التبويب
+            if (tabName === 'matches') loadMatches();
+            else if (tabName === 'standings') loadStandings();
+            else if (tabName === 'scorers') loadScorers(1);
+            else if (tabName === 'assists') loadAssists(1);
+            else if (tabName === 'bracket') loadBracket();
+        }
+
+        // ربط أحداث التبويبات
+        document.querySelectorAll('#mainTabs button[data-bs-toggle="tab"]').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                const target = this.getAttribute('data-bs-target').substring(1);
+                switchTab(target);
+            });
+        });
+
+        // ========== تحميل المباريات ==========
+        async function loadMatches() {
+            if (!currentChampionship) return;
+            showLoading();
+            try {
+                const url = `${API_BASE}/matches/championship_matches/${currentChampionship.url_id}/L/60`;
+                const data = await fetchFromProxy(url);
+                const matchesContent = document.getElementById('matchesContent');
+                let html = '';
+                if (data.data) {
+                    const { online, coming, end } = data.data;
+                    html += '<h5>المباريات المباشرة</h5>';
+                    if (online.data.length === 0) html += '<p>لا توجد مباريات مباشرة</p>';
+                    else html += renderMatchesList(online.data);
+                    html += '<h5>المباريات القادمة</h5>';
+                    if (coming.data.length === 0) html += '<p>لا توجد مباريات قادمة</p>';
+                    else html += renderMatchesList(coming.data);
+                    html += '<h5>المباريات المنتهية</h5>';
+                    if (end.data.length === 0) html += '<p>لا توجد مباريات منتهية</p>';
+                    else html += renderMatchesList(end.data);
+                } else {
+                    html = '<p>لا توجد بيانات</p>';
+                }
+                matchesContent.innerHTML = html;
+            } catch (err) {
+                console.error(err);
+                document.getElementById('matchesContent').innerHTML = '<div class="alert alert-danger">فشل تحميل المباريات</div>';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderMatchesList(matches) {
+            let html = '<div class="row">';
+            matches.forEach(match => {
+                const home = match.home_team;
+                const away = match.away_team;
+                const date = match.match_date + ' ' + match.match_time;
+                html += `
+                    <div class="col-md-6 col-lg-4 mb-3">
+                        <div class="card p-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div class="text-center">
+                                    <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}">
+                                    <div>${home.title}</div>
+                                </div>
+                                <div class="fs-5 fw-bold">${match.home_scores} - ${match.away_scores}</div>
+                                <div class="text-center">
+                                    <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}">
+                                    <div>${away.title}</div>
+                                </div>
+                            </div>
+                            <div class="text-center text-muted small mt-2">${date} | ${match.round || ''}</div>
+                        </div>
+                    </div>
+                `;
+            });
+            html += '</div>';
+            return html;
+        }
+
+        // ========== تحميل الترتيب ==========
+        async function loadStandings() {
+            if (!currentChampionship) return;
+            showLoading();
+            try {
+                let url;
+                if (currentChampionship.type === 1) {
+                    url = `${API_BASE}/matches/league_standing_stage/${currentChampionship.url_id}`;
+                } else {
+                    url = `${API_BASE}/matches/cups_teams_standings/${currentChampionship.url_id}/L/60`;
+                }
+                const data = await fetchFromProxy(url);
+                const standingsContent = document.getElementById('standingsContent');
+                if (data.data && data.data.league && data.data.league.stage0) {
+                    standingsContent.innerHTML = renderStandingsTable(data.data.league.stage0);
+                } else if (data.data && data.data.standings && data.data.standings.groups) {
+                    // للبطولات ذات المجموعات
+                    standingsContent.innerHTML = renderGroupStandings(data.data.standings.groups);
+                } else {
+                    standingsContent.innerHTML = '<p>لا توجد بيانات ترتيب</p>';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('standingsContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الترتيب</div>';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderStandingsTable(teams) {
+            let html = `
+                <table class="table table-striped table-hover">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>الفريق</th>
-                            <th>لعب</th>
-                            <th>فاز</th>
-                            <th>تعادل</th>
-                            <th>خسر</th>
-                            <th>له</th>
-                            <th>عليه</th>
-                            <th>الفرق</th>
-                            <th>نقاط</th>
+                            <th>#</th><th>الفريق</th><th>لعب</th><th>فاز</th><th>تعادل</th><th>خسر</th><th>له</th><th>عليه</th><th>الفرق</th><th>نقاط</th>
                         </tr>
                     </thead>
                     <tbody>
             `;
-
-            teams.forEach((team, index) => {
-                const teamInfo = team.team_name || {};
-                const teamName = teamInfo.title || 'غير معروف';
-                const teamImage = teamInfo.image || '';
-                const played = team.play || 0;
-                const won = team.wins || 0;
-                const drawn = team.draw || 0;
-                const lost = team.lose || 0;
-                const goalsFor = team.for || 0;
-                const goalsAgainst = team.against || 0;
-                const goalDiff = team.diff || 0;
-                const points = team.points || 0;
-
-                tableHTML += `
+            teams.forEach((team, idx) => {
+                const info = team.team_name;
+                html += `
                     <tr>
-                        <td>${index + 1}</td>
-                        <td>
-                            <img src="${TEAM_IMG_BASE + teamImage}" class="team-img" alt="${teamName}" onerror="this.style.display='none'">
-                            ${teamName}
-                        </td>
-                        <td>${played}</td>
-                        <td>${won}</td>
-                        <td>${drawn}</td>
-                        <td>${lost}</td>
-                        <td>${goalsFor}</td>
-                        <td>${goalsAgainst}</td>
-                        <td>${goalDiff}</td>
-                        <td>${points}</td>
+                        <td>${idx+1}</td>
+                        <td><img src="${IMG_BASE_TEAM + info.image}" class="team-img" alt="${info.title}"> ${info.title}</td>
+                        <td>${team.play}</td><td>${team.wins}</td><td>${team.draw}</td><td>${team.lose}</td>
+                        <td>${team.for}</td><td>${team.against}</td><td>${team.diff}</td><td>${team.points}</td>
                     </tr>
                 `;
             });
-
-            tableHTML += '</tbody></table>';
-            container.innerHTML = tableHTML;
+            html += '</tbody></table>';
+            return html;
         }
 
-        async function fetchStandings() {
-            const loader = document.getElementById('loader');
-            const errorMsg = document.getElementById('errorMessage');
-            const container = document.getElementById('standingsContainer');
+        function renderGroupStandings(groups) {
+            let html = '';
+            for (const groupName in groups) {
+                html += `<h5>المجموعة ${groupName}</h5>`;
+                html += renderStandingsTable(groups[groupName]);
+            }
+            return html;
+        }
 
-            loader.style.display = 'block';
-            errorMsg.style.display = 'none';
-            container.innerHTML = '';
-
+        // ========== تحميل الهدافين ==========
+        async function loadScorers(page = 1) {
+            if (!currentChampionship) return;
+            showLoading();
             try {
-                const response = await fetch(FINAL_URL);
-                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
-                const json = await response.json();
-                console.log('الاستجابة الكاملة:', json);
-
-                // ✅ استخراج البيانات الداخلية وتمريرها
-                if (json.data && json.data.league) {
-                    renderStandings(json.data);
+                const url = `${API_BASE}/matches/league_scorers_map/${currentChampionship.url_id}?page=${page}`;
+                const data = await fetchFromProxy(url);
+                const scorersContent = document.getElementById('scorersContent');
+                if (data.data && Array.isArray(data.data.data)) {
+                    scorersContent.innerHTML = renderPlayersList(data.data.data, 'goals');
+                    renderPagination('scorersPagination', data.data, loadScorers);
                 } else {
-                    throw new Error('البنية غير متوقعة');
+                    scorersContent.innerHTML = '<p>لا توجد بيانات</p>';
                 }
-            } catch (error) {
-                console.error('فشل الجلب:', error);
-                errorMsg.style.display = 'block';
+            } catch (err) {
+                console.error(err);
+                document.getElementById('scorersContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الهدافين</div>';
             } finally {
-                loader.style.display = 'none';
+                hideLoading();
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchStandings);
+        // ========== تحميل الصناع ==========
+        async function loadAssists(page = 1) {
+            if (!currentChampionship) return;
+            showLoading();
+            try {
+                const url = `${API_BASE}/matches/league_assists_map/${currentChampionship.url_id}?page=${page}`;
+                const data = await fetchFromProxy(url);
+                const assistsContent = document.getElementById('assistsContent');
+                if (data.data && Array.isArray(data.data.data)) {
+                    assistsContent.innerHTML = renderPlayersList(data.data.data, 'assist');
+                    renderPagination('assistsPagination', data.data, loadAssists);
+                } else {
+                    assistsContent.innerHTML = '<p>لا توجد بيانات</p>';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('assistsContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الصناع</div>';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderPlayersList(players, type) {
+            let html = '<ul class="list-group">';
+            players.forEach(p => {
+                const info = p.player_info;
+                const value = type === 'goals' ? p.goals : p.assist;
+                html += `
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <img src="${IMG_BASE_PLAYER + info.image}" class="player-img me-2" alt="${info.title}">
+                            <span>${info.title}</span> <small class="text-muted">(${info.team_name})</small>
+                        </div>
+                        <span class="badge bg-primary rounded-pill">${value}</span>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        function renderPagination(elementId, pagination, loadFunction) {
+            const container = document.getElementById(elementId);
+            container.innerHTML = '';
+            if (!pagination || !pagination.links) return;
+            const ul = document.createElement('ul');
+            ul.className = 'pagination';
+            pagination.links.forEach(link => {
+                const li = document.createElement('li');
+                li.className = 'page-item' + (link.active ? ' active' : '') + (link.url ? '' : ' disabled');
+                const a = document.createElement('a');
+                a.className = 'page-link';
+                a.href = '#';
+                a.textContent = link.label;
+                if (link.url) {
+                    a.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const page = new URL(link.url).searchParams.get('page');
+                        loadFunction(parseInt(page));
+                    });
+                }
+                li.appendChild(a);
+                ul.appendChild(li);
+            });
+            container.appendChild(ul);
+        }
+
+        // ========== تحميل خريطة المواجهات (للكؤوس) ==========
+        async function loadBracket() {
+            if (!currentChampionship) return;
+            showLoading();
+            try {
+                const url = `${API_BASE}/matches/cups_teams_standings/${currentChampionship.url_id}/L/60`;
+                const data = await fetchFromProxy(url);
+                const bracketContent = document.getElementById('bracketContent');
+                if (data.data && (data.data.map || data.data.lot)) {
+                    bracketContent.innerHTML = renderBracket(data.data.map, data.data.lot);
+                } else {
+                    bracketContent.innerHTML = '<p>لا توجد بيانات للمواجهات</p>';
+                }
+            } catch (err) {
+                console.error(err);
+                document.getElementById('bracketContent').innerHTML = '<div class="alert alert-danger">فشل تحميل المواجهات</div>';
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderBracket(map, lot) {
+            let html = '';
+            if (lot && lot.length > 0) {
+                html += '<h5>الملحق (Playoffs)</h5>';
+                lot.forEach(match => {
+                    html += `<div class="bracket-match"><strong>${match.teamA.title}</strong> vs <strong>${match.teamB.title}</strong> (الفائز: ${match.winTeam ? match.winTeam : 'غير محدد'})</div>`;
+                });
+            }
+            if (map && map.length > 0) {
+                html += '<h5>خريطة الأدوار الإقصائية</h5>';
+                map.forEach(match => {
+                    html += `<div class="bracket-match ${match.winTeam ? 'winner' : ''}"><strong>${match.teamA.title}</strong> (${match.teamA_score}) - (${match.teamB_score}) <strong>${match.teamB.title}</strong><br><small>${match.round_name}</small></div>`;
+                });
+            }
+            return html;
+        }
+
+        // بدء التحميل
+        loadChampionships();
     </script>
 </body>
-</html>
+    </html>
