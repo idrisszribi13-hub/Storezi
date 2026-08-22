@@ -3,353 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yacine TV - البث المباشر</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <title>ترتيب الدوري</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        body {
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-            background: #0b0e14;
-            color: #fff;
-            padding: 15px;
-            display: flex;
-            justify-content: center;
-        }
-        .container { max-width: 800px; width: 100%; }
-        .header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 14px 16px 10px;
-            border-bottom: 2px solid #1e2a3a;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .header h1 {
-            font-size: 20px;
-            font-weight: 700;
-            color: #ff3b30;
-        }
-        .header h1 i { margin-left: 8px; }
-        .badge {
-            background: #1e2a3a;
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 12px;
-            color: #8e9aaf;
-        }
-        .badge i { color: #4caf50; font-size: 10px; }
-        .event-card {
-            background: #141a24;
-            border-radius: 12px;
-            padding: 14px 18px;
-            margin-bottom: 12px;
-            border: 1px solid #1e2a3a;
-            position: relative;
-            overflow: hidden;
-            transition: background 0.2s;
-        }
-        .event-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            right: 0;
-            width: 4px;
-            height: 100%;
-            background: #ff3b30;
-        }
-        .event-card:hover { background: #1a2230; }
-        .event-main {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-        }
-        .event-time {
-            font-size: 14px;
-            font-weight: 600;
-            color: #8e9aaf;
-            background: #0b0e14;
-            padding: 2px 10px;
-            border-radius: 6px;
-            border: 1px solid #1e2a3a;
-            min-width: 70px;
-            text-align: center;
-        }
-        .event-teams {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-        }
-        .event-teams .team {
-            font-size: 15px;
-            font-weight: 600;
-            color: #f0f4fa;
-        }
-        .event-teams .team.away { color: #b0c4de; font-weight: 500; }
-        .event-teams .vs { color: #5a6a7e; font-weight: 700; font-size: 12px; }
-        .live-badge {
-            background: #ff3b30;
-            color: #fff;
-            font-size: 9px;
-            font-weight: 700;
-            padding: 1px 8px;
-            border-radius: 10px;
-            text-transform: uppercase;
-            margin-right: 4px;
-        }
-        .event-meta {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-            padding-top: 8px;
-            border-top: 1px solid #1e2a3a;
-        }
-        .event-meta .league {
-            font-size: 12px;
-            color: #8e9aaf;
-            background: #0b0e14;
-            padding: 2px 10px;
-            border-radius: 12px;
-            border: 1px solid #1e2a3a;
-        }
-        .event-meta .commentator {
-            font-size: 12px;
-            color: #b0c4de;
-            display: flex;
-            align-items: center;
-            gap: 4px;
-        }
-        .event-meta .commentator i { color: #f5c842; font-size: 11px; }
-        .event-meta .channel {
-            font-size: 12px;
-            font-weight: 600;
-            color: #4fc3f7;
-            background: #0b1a2a;
-            padding: 2px 12px;
-            border-radius: 12px;
-            border: 1px solid #1a3a5a;
-        }
-        .note {
-            background: #1e2a3a;
-            padding: 10px 14px;
-            border-radius: 8px;
-            font-size: 13px;
-            color: #b0c4de;
-            margin-bottom: 16px;
-            border-right: 4px solid #f5c842;
-        }
-        .note.success { border-right-color: #4caf50; }
-        .note.error { border-right-color: #ff3b30; }
-        .key-input {
-            background: #141a24;
-            border: 1px solid #1e2a3a;
-            border-radius: 8px;
-            padding: 10px 14px;
-            margin-bottom: 16px;
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-        }
-        .key-input input, .key-input textarea {
-            width: 100%;
-            background: #0b0e14;
-            border: 1px solid #2a3a50;
-            border-radius: 6px;
-            padding: 6px 12px;
-            color: #fff;
-            font-size: 13px;
-            font-family: monospace;
-        }
-        .key-input textarea { height: 80px; }
-        button {
-            background: #4fc3f7;
-            border: none;
-            border-radius: 6px;
-            padding: 8px 20px;
-            color: #0b0e14;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        button.danger { background: #ff3b30; color: #fff; }
-        .flex-row { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
-        @media (max-width: 600px) {
-            .event-main { gap: 8px; }
-            .event-time { font-size: 12px; min-width: 60px; }
-            .event-teams .team { font-size: 13px; }
-            .event-meta .league, .event-meta .channel { font-size: 11px; padding: 2px 8px; }
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #f8f9fa; }
+        .table-container { background: #fff; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px; }
+        .team-img { width: 30px; height: 30px; object-fit: contain; }
+        .loader { text-align: center; padding: 40px; display: none; }
+        .error-message { text-align: center; padding: 30px; color: #dc3545; display: none; background: #f8d7da; border-radius: 8px; margin: 20px 0; }
+        .section-title { font-size: 1.5rem; font-weight: 700; margin: 30px 0 15px; color: #212529; border-right: 4px solid #0d6efd; padding-right: 10px; }
     </style>
 </head>
 <body>
-<div class="container">
-    <div class="header">
-        <h1><i class="fas fa-broadcast-tower"></i> LIVE EVENT</h1>
-        <span class="badge"><i class="fas fa-circle"></i> <span id="liveCount">0</span> مباراة</span>
+    <div class="container py-5">
+        <h1 class="text-center mb-5 fw-bold">📊 ترتيب الدوري</h1>
+
+        <div id="loader" class="loader">
+            <div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div>
+            <p class="mt-3">جاري تحميل الترتيب...</p>
+        </div>
+
+        <div id="errorMessage" class="error-message">
+            <p><strong>تعذر جلب البيانات أو البيانات غير متوقعة.</strong></p>
+            <p>يرجى التحقق من الرابط أو المحاولة لاحقًا.</p>
+        </div>
+
+        <div id="standingsContainer" class="table-container"></div>
     </div>
 
-    <div class="key-input">
-        <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <div style="flex:1; min-width:150px;">
-                <label style="color:#8e9aaf;font-size:12px;">🔑 المفتاح الأساسي</label>
-                <input type="text" id="baseKey" value="c!xZj+N9&G@Ev@vw">
-            </div>
-            <div style="flex:1; min-width:150px;">
-                <label style="color:#8e9aaf;font-size:12px;">⏱️ الطابع (t)</label>
-                <input type="text" id="timestamp" value="1787328166">
-            </div>
-        </div>
-        <div>
-            <label style="color:#8e9aaf;font-size:12px;">📦 البيانات المشفّرة (Base64 من /api/events)</label>
-            <textarea id="encryptedData">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</textarea>
-        </div>
-        <div class="flex-row">
-            <button onclick="decryptAndDisplay()"><i class="fas fa-unlock"></i> فك التشفير وعرض المباريات</button>
-            <button class="danger" onclick="clearAll()"><i class="fas fa-undo-alt"></i> مسح</button>
-        </div>
-    </div>
+    <script>
+        // ========== الإعدادات ==========
+        const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
+        // ✅ غيّر رقم البطولة هنا (مثال: 6811 للدوري الإنجليزي، 1933 للدوري الإسباني)
+        const CHAMPIONSHIP_ID = 6811; // الدوري الإنجليزي
+        const STANDINGS_API_URL = `https://api-en.ysscores.com/api/matches/cups_teams_standings/${CHAMPIONSHIP_ID}/L/60`;
+        const TEAM_IMG_BASE = 'https://imgs.ysscores.com/teams/150/';
 
-    <div id="noteArea"></div>
-    <div id="eventsList"></div>
-</div>
+        const FINAL_URL = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(STANDINGS_API_URL);
 
-<script>
-    // خوارزمية فك التشفير (XOR)
-    function xorDecrypt(encodedBase64, key) {
-        try {
-            const binary = atob(encodedBase64);
-            const keyBytes = new TextEncoder().encode(key);
-            const bytes = new Uint8Array(binary.length);
-            for (let i = 0; i < binary.length; i++) {
-                bytes[i] = binary.charCodeAt(i) ^ keyBytes[i % keyBytes.length];
+        // ========== دوال مساعدة ==========
+        function renderStandings(data) {
+            const container = document.getElementById('standingsContainer');
+            container.innerHTML = '';
+
+            // استخراج مصفوفة الترتيب من data.league.stage0
+            const league = data.league;
+            if (!league || !league.stage0 || !Array.isArray(league.stage0) || league.stage0.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">لا توجد بيانات ترتيب.</p>';
+                return;
             }
-            return new TextDecoder('utf-8').decode(bytes);
-        } catch (e) {
-            return null;
-        }
-    }
 
-    // استخراج المباريات من JSON
-    function extractEvents(json) {
-        // إذا كان json مصفوفة مباشرة
-        if (Array.isArray(json)) return json;
+            const teams = league.stage0;
 
-        // إذا كان يحتوي على حقل "events"
-        if (json.events && Array.isArray(json.events)) return json.events;
-
-        // محاولة العثور على أول مصفوفة في الكائن
-        for (const key of Object.keys(json)) {
-            if (Array.isArray(json[key]) && json[key].length > 0) {
-                return json[key];
-            }
-        }
-        return [];
-    }
-
-    // تحويل الطابع الزمني إلى وقت readable
-    function formatTime(timestamp) {
-        const date = new Date(timestamp * 1000);
-        return date.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit', hour12: true });
-    }
-
-    // عرض المباريات كبطاقات
-    function renderEvents(events) {
-        const list = document.getElementById('eventsList');
-        const count = document.getElementById('liveCount');
-        const note = document.getElementById('noteArea');
-
-        if (!events || events.length === 0) {
-            list.innerHTML = '<div style="text-align:center;padding:40px;color:#8e9aaf;">لا توجد مباريات</div>';
-            count.textContent = '0';
-            return;
-        }
-
-        count.textContent = events.length;
-        let html = '';
-
-        events.forEach((ev, idx) => {
-            // استخراج أسماء الفرق من مفاتيح "logos/..."
-            const logosKeys = Object.keys(ev).filter(k => k.startsWith('logos/'));
-            const team1Name = logosKeys.length >= 1 ? ev[logosKeys[0]] : '??';
-            const team2Name = logosKeys.length >= 2 ? ev[logosKeys[1]] : '??';
-
-            // استخراج باقي البيانات
-            const league = ev.champions || 'دوري غير معروف';
-            const channel = ev.channel || 'قناة غير معروفة';
-            const commentator = ev.commentary || 'غير محدد';
-            const startTime = ev.start_time ? formatTime(ev.start_time) : '--:--';
-
-            const isLive = idx === 0; // أول مباراة تحصل على علامة LIVE
-
-            html += `
-                <div class="event-card">
-                    <div class="event-main">
-                        <div class="event-time">${startTime}</div>
-                        <div class="event-teams">
-                            <span class="team">${team1Name}</span>
-                            <span class="vs">vs</span>
-                            <span class="team away">${team2Name}</span>
-                            ${isLive ? '<span class="live-badge">LIVE</span>' : ''}
-                        </div>
-                    </div>
-                    <div class="event-meta">
-                        <span class="league">${league}</span>
-                        <span class="commentator"><i class="fas fa-microphone"></i> ${commentator}</span>
-                        <span class="channel">${channel}</span>
-                    </div>
-                </div>
+            let tableHTML = `
+                <table class="table table-striped table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>الفريق</th>
+                            <th>لعب</th>
+                            <th>فاز</th>
+                            <th>تعادل</th>
+                            <th>خسر</th>
+                            <th>له</th>
+                            <th>عليه</th>
+                            <th>الفرق</th>
+                            <th>نقاط</th>
+                        </tr>
+                    </thead>
+                    <tbody>
             `;
-        });
 
-        list.innerHTML = html;
-        note.innerHTML = `<div class="note success"><i class="fas fa-check-circle" style="margin-left:8px;"></i> ✅ تم عرض ${events.length} مباراة من البيانات الحقيقية!</div>`;
-    }
+            teams.forEach((team, index) => {
+                const teamInfo = team.team_name || {};
+                const teamName = teamInfo.title || 'غير معروف';
+                const teamImage = teamInfo.image || '';
+                const played = team.play || 0;
+                const won = team.wins || 0;
+                const drawn = team.draw || 0;
+                const lost = team.lose || 0;
+                const goalsFor = team.for || 0;
+                const goalsAgainst = team.against || 0;
+                const goalDiff = team.diff || 0;
+                const points = team.points || 0;
 
-    // فك التشفير وعرض النتائج
-    function decryptAndDisplay() {
-        const baseKey = document.getElementById('baseKey').value.trim();
-        const timestamp = document.getElementById('timestamp').value.trim();
-        const encrypted = document.getElementById('encryptedData').value.trim();
-        const note = document.getElementById('noteArea');
-        const list = document.getElementById('eventsList');
+                tableHTML += `
+                    <tr>
+                        <td>${index + 1}</td>
+                        <td>
+                            <img src="${TEAM_IMG_BASE + teamImage}" class="team-img" alt="${teamName}" onerror="this.style.display='none'">
+                            ${teamName}
+                        </td>
+                        <td>${played}</td>
+                        <td>${won}</td>
+                        <td>${drawn}</td>
+                        <td>${lost}</td>
+                        <td>${goalsFor}</td>
+                        <td>${goalsAgainst}</td>
+                        <td>${goalDiff}</td>
+                        <td>${points}</td>
+                    </tr>
+                `;
+            });
 
-        if (!encrypted) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال البيانات المشفّرة.</div>`; return; }
-        if (!timestamp) { note.innerHTML = `<div class="note error">⚠️ يرجى إدخال الطابع الزمني (رأس t).</div>`; return; }
-
-        const fullKey = baseKey + timestamp;
-        const result = xorDecrypt(encrypted, fullKey);
-
-        if (!result) {
-            note.innerHTML = `<div class="note error">❌ فشل فك التشفير. تأكد من المفتاح والطابع الزمني.</div>`;
-            return;
+            tableHTML += '</tbody></table>';
+            container.innerHTML = tableHTML;
         }
 
-        try {
-            const json = JSON.parse(result);
-            // عرض JSON الخام في وحدة التحكم للتصحيح
-            console.log('JSON مفكوك:', json);
+        async function fetchStandings() {
+            const loader = document.getElementById('loader');
+            const errorMsg = document.getElementById('errorMessage');
+            const container = document.getElementById('standingsContainer');
 
-            const events = extractEvents(json);
-            renderEvents(events);
-        } catch (e) {
-            note.innerHTML = `<div class="note error">⚠️ النص مفكوك لكن ليس بصيغة JSON صالحة. عرض النص الخام:</div>`;
-            const pre = document.createElement('pre');
-            pre.textContent = result;
-            pre.style.cssText = 'background:#141a24;padding:15px;border-radius:8px;overflow:auto;white-space:pre-wrap;word-break:break-all;';
-            list.innerHTML = '';
-            list.appendChild(pre);
+            loader.style.display = 'block';
+            errorMsg.style.display = 'none';
+            container.innerHTML = '';
+
+            try {
+                const response = await fetch(FINAL_URL);
+                if (!response.ok) throw new Error(`HTTP error ${response.status}`);
+                const data = await response.json();
+                console.log('استجابة الترتيب:', data); // للتحقق من البنية
+                renderStandings(data);
+            } catch (error) {
+                console.error('فشل الجلب:', error);
+                errorMsg.style.display = 'block';
+            } finally {
+                loader.style.display = 'none';
+            }
         }
-    }
 
-    function clearAll() {
-        document.getElementById('eventsList').innerHTML = '';
-        document.getElementById('noteArea').innerHTML = '';
-        document.getElementById('liveCount').textContent = '0';
-    }
-</script>
+        document.addEventListener('DOMContentLoaded', fetchStandings);
+    </script>
 </body>
 </html>
