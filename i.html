@@ -63,28 +63,39 @@
         .section-title .icon { width: 28px; height: 28px; border-radius: var(--radius-sm); display: flex; align-items: center; justify-content: center; font-size: 0.9rem; background: var(--accent-orange-bg); color: var(--accent-orange); }
         .section-count { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; background: var(--bg-card); padding: 4px 12px; border-radius: 16px; border: 1px solid var(--border); }
 
-        .important-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 16px; margin-bottom: 40px; }
-        .important-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 18px 20px; cursor: pointer; position: relative; overflow: hidden; transition: var(--transition); }
-        .important-card::before { content:''; position: absolute; top:0; left:0; right:0; height:3px; }
-        .important-card.type-0::before { background: var(--accent-green); }
-        .important-card.type-1::before, .important-card.type-4::before { background: var(--accent-blue); }
-        .important-card:hover { background: var(--bg-card-hover); border-color: var(--border-light); transform: translateY(-2px); box-shadow: var(--shadow); }
-        .transfer-top { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
-        .player-photo-sm { width: 48px; height: 48px; border-radius: 50%; object-fit: cover; border: 2px solid var(--border-light); background: var(--bg-secondary); flex-shrink: 0; }
-        .player-info-sm { flex: 1; min-width: 0; }
-        .player-name-sm { font-weight: 700; font-size: 1rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .player-position-sm { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
-        .transfer-type-badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
-        .badge-transfer { background: var(--accent-green-bg); color: var(--accent-green); }
-        .badge-loan { background: var(--accent-blue-bg); color: var(--accent-blue); }
-        .transfer-teams { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .team-chip { display: flex; align-items: center; gap: 8px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 20px; padding: 5px 12px 5px 6px; font-size: 0.82rem; font-weight: 600; max-width: 45%; }
-        .team-chip .team-badge-sm { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; background: var(--bg-primary); }
-        .team-chip .team-name-sm { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.78rem; }
-        .arrow-icon { color: var(--text-muted); font-size: 1rem; flex-shrink: 0; }
-        .transfer-meta { display: flex; align-items: center; gap: 12px; margin-top: 12px; font-size: 0.78rem; color: var(--text-muted); }
-        .transfer-meta .value { font-weight: 700; color: var(--accent-orange); font-size: 0.85rem; }
-        .transfer-meta .date { display: flex; align-items: center; gap: 4px; }
+        /* ================== بداية تعديل قسم Important ================== */
+        .important-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            margin-bottom: 40px;
+        }
+        .important-card {
+            /* تحويله لنفس ستايل الصفوف لكن بألوان مميزة (أزرق) */
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 16px 20px;
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            transition: var(--transition);
+            border-radius: var(--radius);
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.1) 0%, var(--bg-card) 60%);
+            border: 1px solid var(--accent-blue);
+            border-left: 4px solid var(--accent-blue);
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.15);
+        }
+        .important-card::before {
+            display: none; /* إلغاء الخط العلوي القديم */
+        }
+        .important-card:hover {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.2) 0%, var(--bg-card-hover) 60%);
+            border-color: #60a5fa;
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+        /* ================== نهاية تعديل قسم Important ================== */
 
         .transfers-list { display: flex; flex-direction: column; gap: 12px; }
         .transfer-row { background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px 20px; display: flex; align-items: center; gap: 16px; cursor: pointer; transition: var(--transition); }
@@ -100,6 +111,10 @@
         .transfer-row .value-display { font-weight: 700; font-size: 0.85rem; color: var(--accent-orange); }
         .transfer-row .date-display { font-size: 0.72rem; color: var(--text-muted); display: flex; align-items: center; gap: 4px; }
 
+        .transfer-type-badge { font-size: 0.7rem; font-weight: 700; padding: 4px 10px; border-radius: 20px; text-transform: uppercase; letter-spacing: 0.5px; flex-shrink: 0; }
+        .badge-transfer { background: var(--accent-green-bg); color: var(--accent-green); }
+        .badge-loan { background: var(--accent-blue-bg); color: var(--accent-blue); }
+
         .loading-sentinel { display: flex; align-items: center; justify-content: center; padding: 30px 0; gap: 12px; color: var(--text-muted); font-size: 0.9rem; }
         .spinner { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--accent-green); border-radius: 50%; animation: spin 0.8s linear infinite; }
         @keyframes spin { to { transform: rotate(360deg); } }
@@ -112,9 +127,30 @@
         .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
         .modal-close { position: absolute; top:14px; right:14px; z-index:10; width:36px; height:36px; border-radius: 50%; background: rgba(0,0,0,0.5); border:1px solid var(--border); color: var(--text-primary); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .modal-close:hover { background: rgba(255,255,255,0.1); }
-        .modal-cover { position: relative; height: 200px; border-radius: 16px 16px 0 0; overflow: hidden; background: var(--bg-secondary); }
-        .modal-cover img { width:100%; height:100%; object-fit: cover; opacity:0.85; }
-        .modal-cover .cover-overlay { position:absolute; bottom:0; left:0; right:0; height:60%; background: linear-gradient(to top, var(--bg-modal) 20%, transparent 100%); }
+
+        /* ================== تعديل الـ Cover ليكون مثل التطبيق ================== */
+        .modal-cover {
+            position: relative;
+            height: 280px; /* رفع الارتفاع ليصبح أطول مثل التطبيق */
+            border-radius: 16px 16px 0 0;
+            overflow: hidden;
+            background: linear-gradient(135deg, #1e3a5f, #0c1220);
+        }
+        .modal-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: top center; /* جعل الصورة تتركز في الأعلى لإظهار الجسم كاملاً */
+            opacity: 0.9;
+        }
+        .modal-cover .cover-overlay {
+            position:absolute;
+            bottom:0; left:0; right:0;
+            height: 60%;
+            background: linear-gradient(to top, var(--bg-modal) 20%, transparent 100%);
+        }
+        /* =============================================================== */
+
         .modal-body { padding: 0 24px 24px; position: relative; }
         .modal-player-avatar { width:110px; height:110px; border-radius:50%; border:4px solid var(--bg-modal); object-fit:cover; background: var(--bg-secondary); margin-top:-55px; position:relative; z-index:5; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
         .modal-player-name { font-size:1.5rem; font-weight:800; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:8px; }
@@ -148,25 +184,21 @@
             .site-header .logo { font-size:1.05rem; }
             .site-header .logo-icon { width:30px; height:30px; font-size:0.9rem; }
             .section-title { font-size:1.15rem; }
-            .important-grid { grid-template-columns:1fr; }
-            .transfer-row { padding:12px 14px; gap:12px; }
-            .transfer-row .player-photo { width:44px; height:44px; }
-            .transfer-row .player-name { font-size:0.92rem; }
-            .transfer-row .teams-line { font-size:0.78rem; }
+            .transfer-row, .important-card { padding:12px 14px; gap:12px; }
+            .transfer-row .player-photo, .important-card .player-photo { width:44px; height:44px; }
+            .transfer-row .player-name, .important-card .player-name { font-size:0.92rem; }
+            .transfer-row .teams-line, .important-card .teams-line { font-size:0.78rem; }
             .modal-container { max-height:90vh; border-radius:12px; }
-            .modal-cover { height:150px; border-radius:12px 12px 0 0; }
+            .modal-cover { height: 180px; border-radius:12px 12px 0 0; }
             .modal-player-avatar { width:80px; height:80px; margin-top:-40px; border-width:3px; }
             .modal-body { padding:0 16px 16px; }
             .modal-player-name { font-size:1.2rem; }
             .modal-stats { grid-template-columns: repeat(3,1fr); padding:12px; gap:8px; }
         }
         @media (max-width: 480px) {
-            .transfer-row { flex-wrap:wrap; align-items:flex-start; }
-            .transfer-row .right-side { flex-direction:row; align-items:center; gap:8px; width:100%; justify-content:space-between; margin-top:4px; }
+            .transfer-row, .important-card { flex-wrap:wrap; align-items:flex-start; }
+            .transfer-row .right-side, .important-card .right-side { flex-direction:row; align-items:center; gap:8px; width:100%; justify-content:space-between; margin-top:4px; }
             .modal-stats { grid-template-columns: repeat(2,1fr); }
-            .team-chip { max-width:40%; padding:4px 8px 4px 4px; font-size:0.7rem; }
-            .team-chip .team-badge-sm { width:18px; height:18px; }
-            .team-chip .team-name-sm { font-size:0.68rem; }
         }
     </style>
 </head>
@@ -212,10 +244,7 @@
 
     <script>
         // ===== إعدادات =====
-        // 👇 ضع هنا رابط دالة Supabase الخاصة بك (بدون بروكسي خارجي)
-        const SUPABASE_FUNCTION_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy'; // مثال
-        // إذا كانت الدالة تستقبل رابط API كـ query parameter، استخدم الشكل التالي:
-        // const SUPABASE_FUNCTION_URL = 'https://xxxx.supabase.co/functions/v1/transfer-proxy?url=';
+        const SUPABASE_FUNCTION_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy'; 
 
         const API_BASE = 'https://api-en.ysscores.com/api/info';
         const IMG_PLAYER = 'https://imgs.ysscores.com/player/150/';
@@ -296,9 +325,8 @@
             return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
         }
 
-        // ===== دالة الجلب عبر Supabase (دون تغيير) =====
+        // ===== دالة الجلب عبر Supabase =====
         async function fetchFromAPI(url) {
-            // إذا كانت دالة Supabase تستقبل الرابط كـ query parameter، استخدم الشكل التالي:
             const fetchUrl = SUPABASE_FUNCTION_URL.includes('?') 
                 ? SUPABASE_FUNCTION_URL + encodeURIComponent(url)
                 : SUPABASE_FUNCTION_URL + '?url=' + encodeURIComponent(url);
@@ -322,6 +350,7 @@
         }
 
         // ===== عرض البيانات =====
+        // تعديل دالة عرض الـ Important لتشبه الـ List تماماً
         function renderImportantTransfers(transfers) {
             if (!transfers || transfers.length === 0) {
                 importantGrid.innerHTML = '<div class="error-message" style="grid-column:1/-1;">No important transfers found.</div>';
@@ -330,28 +359,21 @@
             importantCount.textContent = transfers.length + ' transfers';
             importantGrid.innerHTML = transfers.map(t => {
                 const typeInfo = getTransferType(t.type);
-                const playerImg = getImageUrl(t.player_name?.image, 'player');
-                const teamOutImg = getImageUrl(t.team_out?.image, 'team-sm');
-                const teamInImg = getImageUrl(t.team_in?.image, 'team-sm');
                 return `
-                <div class="important-card type-${t.type}" onclick="openPlayerModal(${t.player_name?.row_id})">
-                    <div class="transfer-top">
-                        <img class="player-photo-sm" src="${playerImg}" alt="${t.player_name?.title || 'Player'}" onerror="this.style.display='none'">
-                        <div class="player-info-sm">
-                            <div class="player-name-sm">${t.player_name?.title || 'Unknown'}</div>
-                            <div class="player-position-sm">${t.player_name?.position || '—'}</div>
+                <div class="transfer-row important-card" onclick="openPlayerModal(${t.player_name?.row_id})">
+                    <img class="player-photo" src="${getImageUrl(t.player_name?.image, 'player')}" alt="${t.player_name?.title || 'Player'}" onerror="this.style.display='none'">
+                    <div class="main-info">
+                        <div class="player-name">${t.player_name?.title || 'Unknown'} <span class="pos-tag">${t.player_name?.position || '—'}</span></div>
+                        <div class="teams-line">
+                            <img class="team-badge-inline" src="${getImageUrl(t.team_out?.image, 'team-sm')}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_out?.title || 'Unknown', 20)}</span>
+                            <span class="arrow">➜</span>
+                            <img class="team-badge-inline" src="${getImageUrl(t.team_in?.image, 'team-sm')}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_in?.title || 'Unknown', 20)}</span>
                         </div>
-                        <span class="transfer-type-badge ${typeInfo.badgeClass}">${typeInfo.label}</span>
                     </div>
-                    <div class="transfer-teams">
-                        <span class="team-chip"><img class="team-badge-sm" src="${teamOutImg}" alt="" onerror="this.style.display='none'"><span class="team-name-sm">${truncateText(t.team_out?.title || 'Unknown', 18)}</span></span>
-                        <span class="arrow-icon">➜</span>
-                        <span class="team-chip"><img class="team-badge-sm" src="${teamInImg}" alt="" onerror="this.style.display='none'"><span class="team-name-sm">${truncateText(t.team_in?.title || 'Unknown', 18)}</span></span>
-                    </div>
-                    <div class="transfer-meta">
-                        <span class="value">${formatValue(t.value)}</span>
-                        <span class="date">📅 ${formatDateShort(t.date_from)}</span>
-                        ${t.date_to ? `<span class="date">→ ${formatDateShort(t.date_to)}</span>` : ''}
+                    <div class="right-side">
+                        <span class="transfer-type-badge ${typeInfo.badgeClass}" style="font-size:0.65rem;">${typeInfo.label}</span>
+                        <span class="value-display">${formatValue(t.value)}</span>
+                        <span class="date-display">${formatDateShort(t.date_from)}${t.date_to ? ' → ' + formatDateShort(t.date_to) : ''}</span>
                     </div>
                 </div>`;
             }).join('');
@@ -359,18 +381,15 @@
 
         function renderTransferRow(t) {
             const typeInfo = getTransferType(t.type);
-            const playerImg = getImageUrl(t.player_name?.image, 'player');
-            const teamOutImg = getImageUrl(t.team_out?.image, 'team-sm');
-            const teamInImg = getImageUrl(t.team_in?.image, 'team-sm');
             return `
             <div class="transfer-row" onclick="openPlayerModal(${t.player_name?.row_id})">
-                <img class="player-photo" src="${playerImg}" alt="${t.player_name?.title || 'Player'}" onerror="this.style.display='none'">
+                <img class="player-photo" src="${getImageUrl(t.player_name?.image, 'player')}" alt="${t.player_name?.title || 'Player'}" onerror="this.style.display='none'">
                 <div class="main-info">
                     <div class="player-name">${t.player_name?.title || 'Unknown'} <span class="pos-tag">${t.player_name?.position || '—'}</span></div>
                     <div class="teams-line">
-                        <img class="team-badge-inline" src="${teamOutImg}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_out?.title || 'Unknown', 20)}</span>
+                        <img class="team-badge-inline" src="${getImageUrl(t.team_out?.image, 'team-sm')}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_out?.title || 'Unknown', 20)}</span>
                         <span class="arrow">➜</span>
-                        <img class="team-badge-inline" src="${teamInImg}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_in?.title || 'Unknown', 20)}</span>
+                        <img class="team-badge-inline" src="${getImageUrl(t.team_in?.image, 'team-sm')}" alt="" onerror="this.style.display='none'"><span>${truncateText(t.team_in?.title || 'Unknown', 20)}</span>
                     </div>
                 </div>
                 <div class="right-side">
@@ -449,7 +468,7 @@
             loadMoreTransfers();
         }
 
-        // Intersection Observer للتمرير اللانهائي
+        // Intersection Observer
         const observer = new IntersectionObserver((entries) => {
             if (entries[0].isIntersecting && !isLoading && !allLoaded) loadMoreTransfers();
         }, { rootMargin: '200px', threshold: 0.1 });
