@@ -134,7 +134,6 @@
         .match-header .champ-badge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: center; font-size: 12px; color: #666; }
         .match-header .champ-badge img { width: 20px; height: 20px; }
 
-        /* تنسيقات الأحداث المشابهة للتطبيق */
         .events-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .event-box { background: #fff; border-radius: 12px; padding: 10px 0; }
         .event-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
@@ -143,27 +142,22 @@
         .event-time-circle { display: flex; justify-content: center; align-items: center; width: 45px; height: 45px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; font-weight: bold; position: relative; font-size: 14px; }
         .event-time-circle small { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #dc3545; font-weight: normal; }
         
-        /* تنسيق قسم الفريقين */
         .event-side { display: flex; align-items: center; width: 40px; }
         .event-side-right { justify-content: flex-end; }
         .event-side-left { justify-content: flex-start; }
         .event-side img { width: 24px; height: 24px; object-fit: contain; }
 
-        /* تنسيق الوسط (المعلومات) */
         .event-info-center { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 0 10px; }
         .event-player { font-size: 14px; font-weight: 600; color: #111; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .event-sub { font-size: 13px; color: #777; margin-top: 2px; }
         .event-icon { width: 16px; height: 16px; object-fit: contain; }
 
-        /* أسهم التبديل */
         .in-arrow { color: #28a745; font-weight: bold; }
         .out-arrow { color: #dc3545; font-weight: bold; }
 
-        /* تنسيقات النصف (Half Time) */
         .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
         .kickoff-divider, .fulltime-divider { text-align: center; padding: 12px; color: #666; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
 
-        /* تنسيقات Lineup */
         .lineup-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
         .lineup-tab { border: none; background: #f1f3f5; color: #666; padding: 8px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
         .lineup-tab.active { background: #27ae60; color: white; }
@@ -226,7 +220,6 @@
         .stat-line-home { height: 100%; position: absolute; left: 0; background: #0984e3; }
         .stat-line-away { height: 100%; position: absolute; right: 0; background: #6c5ce7; }
 
-        /* إصلاح تنسيق المشغل */
         .stream-teams { display: flex; align-items: center; gap: 10px; }
         .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
         .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
@@ -345,9 +338,16 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // دمج الأيقونات الجديدة والقديمة
         const ICON_BASE = 'https://zi-store.online/ico/';
         const ICONS = {
             chronometer: ICON_BASE + 'chronometer.png',
+            clock: ICON_BASE + 'clock.png',
+            arena: ICON_BASE + 'arena.png',
+            schedule: ICON_BASE + 'schedule.png',
+            play: ICON_BASE + 'play.png',
+            penaltyKick: ICON_BASE + 'penalty-kick.png',
+            substitutePlayer: ICON_BASE + 'substitute-player.png',
             firstAid: ICON_BASE + 'first-aid-kit.png',
             cup: ICON_BASE + 'football-cup.png',
             flag: ICON_BASE + 'football-flag.png',
@@ -681,11 +681,10 @@
             return 0;
         }
 
-        // دالة حساب تقدم الدائرة التي تعتمد على الوقت الفعلي
         function getMatchProgress(seconds, status) {
             if (status === 0) return 0;
             if (status === 4) return 100;
-            if (status === 2) return 50; // نصف المباراة
+            if (status === 2) return 50;
             const mins = seconds / 60;
             return Math.min(100, Math.max(0, (mins / 90) * 100));
         }
@@ -702,7 +701,7 @@
                 const extraMinutes = Math.floor(extraSeconds / 60);
                 const remainingSeconds = extraSeconds % 60;
                 const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
-                return `<div class="clock-main">90'</div><div class="clock-sub"><img src="${ICONS.chronometer}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
+                return `<div class="clock-main">90'</div><div class="clock-sub"><img src="${ICONS.clock}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
             }
             
             return `<div class="clock-main">${totalMinutes}'</div>`;
@@ -724,7 +723,7 @@
             const homeLogoUrl = IMG_BASE_TEAM + home.image;
             const awayLogoUrl = IMG_BASE_TEAM + away.image;
             
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
             
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
@@ -771,7 +770,7 @@
             const homeLogoUrl = IMG_BASE_TEAM + home.image;
             const awayLogoUrl = IMG_BASE_TEAM + away.image;
             
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
             
             let statusBadge = '';
             if (match.status === 4) statusBadge = '<span class="badge bg-secondary">FT</span>';
@@ -1041,7 +1040,7 @@
                 const homeLogoUrl = IMG_BASE_TEAM + home.image;
                 const awayLogoUrl = IMG_BASE_TEAM + away.image;
                 
-                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
                 
                 html += `<div class="col-12 col-md-6 col-lg-4 mb-3">
                     <div class="card p-3 match-card" data-match-id="${match.match_id}">
@@ -1167,8 +1166,8 @@
 
             infoBlock += '<h5 class="mt-4 mb-3 fw-bold">Match Details</h5>';
             infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.cup}" class="icon-16"> Competition</strong><span>${info.championship ? info.championship.title : 'N/A'} ></span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.flag}" class="icon-16"> Round</strong><span>${info.round || 'N/A'} ></span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.flag}" class="icon-16"> Stadium</strong><span>${info.Stadium || 'N/A'} ></span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.schedule}" class="icon-16"> Round</strong><span>${info.round || 'N/A'} ></span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.arena}" class="icon-16"> Stadium</strong><span>${info.Stadium || 'N/A'} ></span></div></div>`;
             if (info.channel_commm && info.channel_commm.length > 0) {
                 info.channel_commm.forEach(c => {
                     infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.video}" class="icon-16"> Channel</strong><span>${c.channel_name} ></span></div></div>`;
@@ -1179,8 +1178,8 @@
                 const ref = info.referees;
                 infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" class="icon-16"> Referee</strong><span class="link-item" onclick="openRefereeModal(${ref.id})">${ref.title} ></span></div></div>`;
             }
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.chronometer}" class="icon-16"> Time</strong><span>${timeZonePart(info.match_time)}</span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.chronometer}" class="icon-16"> Date</strong><span>${formatDatePart(info.match_date)}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Time</strong><span>${timeZonePart(info.match_time)}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.schedule}" class="icon-16"> Date</strong><span>${formatDatePart(info.match_date)}</span></div></div>`;
 
             infoBlock += '<div class="last5-title">Last 5 Matches for each team</div>';
             infoBlock += '<div class="last5-container">';
@@ -1264,7 +1263,7 @@
             return html;
         }
 
-        // دالة الأحداث المطابقة للتطبيق
+        // دالة الأحداث
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             
@@ -1278,7 +1277,6 @@
             html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
 
             events.forEach(ev => {
-                // الحالات الخاصة (بداية، نهاية، استراحة)
                 if (ev.type === 100) {
                     if (ev.status === 2) {
                         let homeScore = info.home_scores || 0;
@@ -1287,14 +1285,13 @@
                             homeScore = info.fh_scores[0]?.home_scores || homeScore;
                             awayScore = info.fh_scores[0]?.away_scores || awayScore;
                         }
-                        html += `<div class="halftime-divider"><img src="${ICONS.flag}" class="icon-16"> ${homeScore} - ${awayScore}<br>Half Time</div>`;
+                        html += `<div class="halftime-divider"><img src="${ICONS.clock}" class="icon-16"> ${homeScore} - ${awayScore}<br>Half Time</div>`;
                     } else if (ev.status === 3) {
                         html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
                     }
                     return;
                 }
 
-                // تحديد الفريق
                 let isHome = ev.team_id == homeId;
                 let isAway = ev.team_id == awayId;
                 
@@ -1306,7 +1303,6 @@
                     teamRightHtml = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}"></div>`;
                 }
 
-                // استخراج الأيقونات والنصوص
                 let icon = ICONS.flag;
                 let typeText = '';
                 let videoBtn = '';
@@ -1315,7 +1311,6 @@
                     videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
                 }
 
-                // أنواع الأحداث
                 if (ev.type === 1) {
                     icon = ICONS.goal;
                     typeText = ev.status_name || 'Goal';
@@ -1327,10 +1322,10 @@
                     icon = ICONS.redCard;
                     typeText = 'Red Card';
                 } else if (ev.type === 5) {
-                    icon = ICONS.goal;
+                    icon = ICONS.penaltyKick; // أيقونة ركلة الجزاء الجديدة
                     typeText = 'Penalty Scored';
                 } else if (ev.type === 8) {
-                    icon = ICONS.shirt;
+                    icon = ICONS.substitutePlayer; // أيقونة التبديل الجديدة
                     typeText = 'Substitution';
                 } else if (ev.type === 21) {
                     icon = ICONS.flag;
@@ -1340,11 +1335,9 @@
                     typeText = 'Crossbar';
                 }
 
-                // أسماء اللاعبين
                 let playerName = ev.player_name ? ev.player_name.title : '';
                 let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
 
-                // تبديل منطق اللاعبين للـ Substitutions
                 let finalPlayerHtml = '';
                 let finalSubHtml = '';
 
@@ -1451,7 +1444,7 @@
             return html;
         }
 
-        // إعادة بناء دالة التشكيلات لإصلاح التبويب
+        // دالة التشكيلات
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -1463,7 +1456,6 @@
             
             if (!homeLineup || !awayLineup) return '<p>Lineups not available</p>';
 
-            // توليد HTML الفريقين
             const homeHtml = renderPitchNew(info.home_team, homeLineup, info.home_formation, homeCoach, homeInjured);
             const awayHtml = renderPitchNew(info.away_team, awayLineup, info.away_formation, awayCoach, awayInjured);
 
@@ -1483,7 +1475,6 @@
             return html;
         }
         
-        // إضافة مستمعي الأحداث خارجياً بعد عرض الـ HTML ليعمل التبويب بشكل صحيح
         setTimeout(() => {
             const tabs = document.querySelectorAll('.lineup-tab');
             if (tabs.length > 0) {
@@ -1496,11 +1487,7 @@
                         const target = this.dataset.target;
                         const content = document.getElementById('lineup-content');
                         
-                        // إعادة توليد HTML حسب الفريق المختار
-                        // نستخدم البيانات المخزنة في المتغيرات لإعادة البناء بدون مشاكل
-                        // (يتم استدعاء هذا من داخل الدالة التي تستقبل بيانات المباراة)
                         if (target === 'away') {
-                            // الوصول لمتغيرات خارجية - نتجاوز بطريقة سهلة
                             content.innerHTML = window.currentAwayLineupHtml || '';
                         } else {
                             content.innerHTML = window.currentHomeLineupHtml || '';
@@ -1511,15 +1498,6 @@
         }, 100);
 
         function renderPitchNew(team, lineupData, formation, coach, injured) {
-            // حفظ نسخة HTML في المتغيرات العامة للتبديل
-            if (team.row_id) {
-                window.currentHomeLineupHtml = '';
-                window.currentAwayLineupHtml = '';
-                if (team.row_id === window.currentMatchHomeId) {
-                    window.currentHomeLineupHtml = '';
-                }
-            }
-            
             const players = lineupData.lineup || [];
             const subs = lineupData.substitutions || [];
             const formationText = formation || '4-3-3';
@@ -1565,7 +1543,7 @@
 
             if (subs.length > 0) {
                 html += `<div class="lineup-subs">
-                    <h6><img src="${ICONS.shirt}" class="icon-16"> Substitutions</h6>
+                    <h6><img src="${ICONS.substitutePlayer}" class="icon-16"> Substitutions</h6>
                     ${subs.map(sub => `
                     <div class="sub-item">
                         <img src="${IMG_BASE_PLAYER + sub.player.image}" class="player-img" onclick="openPlayerModal(${sub.player.row_id})">
@@ -1575,7 +1553,6 @@
                 </div>`;
             }
 
-            // إعداد حفظ القوالب للتبويبات
             if (team.title === window.currentTeamInfo?.home_team?.title) {
                 window.currentHomeLineupHtml = html;
             } else {
@@ -2047,4 +2024,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                               </html>
+        </html>
