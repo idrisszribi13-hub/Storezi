@@ -152,6 +152,31 @@
 
         .pagination { justify-content: center; margin-top: 20px; }
 
+        /* Loader styles */
+        .loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background: rgba(255,255,255,0.8);
+            z-index: 9999;
+            pointer-events: none; /* allow clicks through when not visible */
+        }
+        .loader.hidden {
+            display: none;
+        }
+        .loader .spinner-border {
+            pointer-events: auto;
+        }
+
+        .scroll-sentinel {
+            height: 1px;
+        }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -217,15 +242,15 @@
             </div>
             <div class="tab-pane fade" id="scorers" role="tabpanel">
                 <div id="scorersContent" class="mt-3"></div>
-                <nav id="scorersPagination" aria-label="Page navigation"></nav>
+                <div id="scorersSentinel" class="scroll-sentinel"></div>
             </div>
             <div class="tab-pane fade" id="assists" role="tabpanel">
                 <div id="assistsContent" class="mt-3"></div>
-                <nav id="assistsPagination" aria-label="Page navigation"></nav>
+                <div id="assistsSentinel" class="scroll-sentinel"></div>
             </div>
             <div class="tab-pane fade" id="news" role="tabpanel">
                 <div id="newsContent" class="mt-3"></div>
-                <nav id="newsPagination" aria-label="Page navigation"></nav>
+                <div id="newsSentinel" class="scroll-sentinel"></div>
             </div>
             <div class="tab-pane fade" id="bracket" role="tabpanel">
                 <div id="bracketContent" class="mt-3"></div>
@@ -319,16 +344,47 @@
         const IMG_BASE_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
         const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
 
+        // State
         let championshipsList = [];
         let currentChampionship = null;
         let currentTab = 'matches';
+        let loadingCount = 0;
 
+        // Infinite scroll states
+        let scorersPage = 1;
+        let scorersNextUrl = null;
+        let scorersLoading = false;
+        let assistsPage = 1;
+        let assistsNextUrl = null;
+        let assistsLoading = false;
+        let newsPage = 1;
+        let newsNextUrl = null;
+        let newsLoading = false;
+
+        // Intersection Observers
+        let scorersObserver = null;
+        let assistsObserver = null;
+        let newsObserver = null;
+
+        // Helpers
         function showLoading() {
-            document.getElementById('loadingIndicator').classList.remove('hidden');
+            loadingCount++;
+            const loader = document.getElementById('loadingIndicator');
+            loader.classList.remove('hidden');
             document.getElementById('errorIndicator').classList.add('hidden');
+            clearTimeout(window.loaderTimeout);
+            window.loaderTimeout = setTimeout(() => {
+                if (loadingCount > 0) {
+                    loadingCount = 0;
+                    loader.classList.add('hidden');
+                }
+            }, 10000);
         }
         function hideLoading() {
-            document.getElementById('loadingIndicator').classList.add('hidden');
+            loadingCount = Math.max(0, loadingCount - 1);
+            if (loadingCount === 0) {
+                document.getElementById('loadingIndicator').classList.add('hidden');
+            }
         }
         function showError(msg) {
             document.getElementById('errorIndicator').textContent = msg;
@@ -339,6 +395,33 @@
             const response = await fetch(proxied);
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return await response.json();
+        }
+        function getPositionFullName(pos) {
+            const mapping = {
+                'G': 'Goalkeeper',
+                'D': 'Defender',
+                'M': 'Midfielder',
+                'F': 'Forward',
+                'GK': 'Goalkeeper',
+                'CB': 'Centre Back',
+                'LB': 'Left Back',
+                'RB': 'Right Back',
+                'CDM': 'Defensive Midfielder',
+                'CM': 'Central Midfielder',
+                'CAM': 'Attacking Midfielder',
+                'LM': 'Left Midfielder',
+                'RM': 'Right Midfielder',
+                'LW': 'Left Winger',
+                'RW': 'Right Winger',
+                'CF': 'Centre Forward',
+                'SS': 'Second Striker',
+                'AM': 'Attacking Midfielder',
+                'DM': 'Defensive Midfielder'
+            };
+            return mapping[pos] || pos || 'Unknown';
+        }
+        function hideModalBackdrops() {
+            document.querySelectorAll('.modal-backdrop').forEach(el => el.remove());
         }
 
         // ========== Load Championships ==========
@@ -434,9 +517,24 @@
             ['matchesContent', 'standingsContent', 'scorersContent', 'assistsContent', 'newsContent', 'bracketContent'].forEach(id => {
                 document.getElementById(id).innerHTML = '';
             });
-            document.getElementById('scorersPagination').innerHTML = '';
-            document.getElementById('assistsPagination').innerHTML = '';
-            document.getElementById('newsPagination').innerHTML = '';
+
+            // Reset infinite scroll states
+            scorersPage = 1;
+            scorersNextUrl = null;
+            scorersLoading = false;
+            assistsPage = 1;
+            assistsNextUrl = null;
+            assistsLoading = false;
+            newsPage = 1;
+            newsNextUrl = null;
+            newsLoading = false;
+
+            if (scorersObserver) scorersObserver.disconnect();
+            if (assistsObserver) assistsObserver.disconnect();
+            if (newsObserver) newsObserver.disconnect();
+            scorersObserver = null;
+            assistsObserver = null;
+            newsObserver = null;
         }
 
         function switchTab(tabName) {
@@ -456,6 +554,8 @@
             else if (tabName === 'assists') loadAssists(1);
             else if (tabName === 'news') loadNews(1);
             else if (tabName === 'bracket') loadBracket();
+
+            hideModalBackdrops();
         }
 
         document.querySelectorAll('#mainTabs button[data-bs-toggle="tab"]').forEach(btn => {
@@ -660,31 +760,6 @@
             body.innerHTML = html;
         }
 
-        function getPositionFullName(pos) {
-            const mapping = {
-                'G': 'Goalkeeper',
-                'D': 'Defender',
-                'M': 'Midfielder',
-                'F': 'Forward',
-                'GK': 'Goalkeeper',
-                'CB': 'Centre Back',
-                'LB': 'Left Back',
-                'RB': 'Right Back',
-                'CDM': 'Defensive Midfielder',
-                'CM': 'Central Midfielder',
-                'CAM': 'Attacking Midfielder',
-                'LM': 'Left Midfielder',
-                'RM': 'Right Midfielder',
-                'LW': 'Left Winger',
-                'RW': 'Right Winger',
-                'CF': 'Centre Forward',
-                'SS': 'Second Striker',
-                'AM': 'Attacking Midfielder',
-                'DM': 'Defensive Midfielder'
-            };
-            return mapping[pos] || pos || 'Unknown';
-        }
-
         function renderPitch(team, lineupData, formation, coach, injuredPlayers) {
             const players = lineupData.lineup || [];
             const formationText = formation || '4-3-3';
@@ -810,47 +885,145 @@
             return html;
         }
 
-        // ========== Load Scorers ==========
+        // ========== Infinite Scroll for Scorers, Assists, News ==========
+        function setupInfiniteScroll(sentinelId, loadMoreFunction) {
+            const sentinel = document.getElementById(sentinelId);
+            if (!sentinel) return;
+            if (window.IntersectionObserver) {
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            loadMoreFunction();
+                        }
+                    });
+                }, { rootMargin: '200px' });
+                observer.observe(sentinel);
+                return observer;
+            } else {
+                // Fallback to scroll event
+                window.addEventListener('scroll', () => {
+                    const rect = sentinel.getBoundingClientRect();
+                    if (rect.top < window.innerHeight) {
+                        loadMoreFunction();
+                    }
+                });
+                return null;
+            }
+        }
+
+        // Scorers
         async function loadScorers(page = 1) {
             if (!currentChampionship) return;
-            showLoading();
+            if (scorersLoading) return;
+            scorersLoading = true;
+            if (page === 1) showLoading();
             try {
                 const url = `${API_BASE}/matches/league_scorers_map/${currentChampionship.url_id}?page=${page}`;
                 const data = await fetchFromProxy(url);
                 const scorersContent = document.getElementById('scorersContent');
-                if (data.data && Array.isArray(data.data.data)) {
-                    scorersContent.innerHTML = renderPlayersList(data.data.data, 'goals');
-                    renderPagination('scorersPagination', data.data, loadScorers);
+                const scorersData = data.data.data || [];
+                if (page === 1) {
+                    scorersContent.innerHTML = renderPlayersList(scorersData, 'goals');
                 } else {
-                    scorersContent.innerHTML = '<p>No data</p>';
+                    // Append new players
+                    const existing = scorersContent.querySelector('ul');
+                    if (existing) {
+                        existing.insertAdjacentHTML('beforeend', renderPlayersList(scorersData, 'goals').replace('<ul class="list-group">', '').replace('</ul>', ''));
+                    } else {
+                        scorersContent.innerHTML = renderPlayersList(scorersData, 'goals');
+                    }
+                }
+                // Update pagination state
+                scorersNextUrl = data.data.next_page_url || null;
+                // Setup observer if not already
+                if (!scorersObserver) {
+                    scorersObserver = setupInfiniteScroll('scorersSentinel', () => {
+                        if (scorersNextUrl && !scorersLoading) {
+                            const nextPage = new URL(scorersNextUrl).searchParams.get('page');
+                            loadScorers(parseInt(nextPage));
+                        }
+                    });
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('scorersContent').innerHTML = '<div class="alert alert-danger">Failed to load top scorers</div>';
+                if (page === 1) document.getElementById('scorersContent').innerHTML = '<div class="alert alert-danger">Failed to load top scorers</div>';
             } finally {
-                hideLoading();
+                scorersLoading = false;
+                if (page === 1) hideLoading();
             }
         }
 
-        // ========== Load Assists ==========
+        // Assists
         async function loadAssists(page = 1) {
             if (!currentChampionship) return;
-            showLoading();
+            if (assistsLoading) return;
+            assistsLoading = true;
+            if (page === 1) showLoading();
             try {
                 const url = `${API_BASE}/matches/league_assists_map/${currentChampionship.url_id}?page=${page}`;
                 const data = await fetchFromProxy(url);
                 const assistsContent = document.getElementById('assistsContent');
-                if (data.data && Array.isArray(data.data.data)) {
-                    assistsContent.innerHTML = renderPlayersList(data.data.data, 'assist');
-                    renderPagination('assistsPagination', data.data, loadAssists);
+                const assistsData = data.data.data || [];
+                if (page === 1) {
+                    assistsContent.innerHTML = renderPlayersList(assistsData, 'assist');
                 } else {
-                    assistsContent.innerHTML = '<p>No data</p>';
+                    const existing = assistsContent.querySelector('ul');
+                    if (existing) {
+                        existing.insertAdjacentHTML('beforeend', renderPlayersList(assistsData, 'assist').replace('<ul class="list-group">', '').replace('</ul>', ''));
+                    } else {
+                        assistsContent.innerHTML = renderPlayersList(assistsData, 'assist');
+                    }
+                }
+                assistsNextUrl = data.data.next_page_url || null;
+                if (!assistsObserver) {
+                    assistsObserver = setupInfiniteScroll('assistsSentinel', () => {
+                        if (assistsNextUrl && !assistsLoading) {
+                            const nextPage = new URL(assistsNextUrl).searchParams.get('page');
+                            loadAssists(parseInt(nextPage));
+                        }
+                    });
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('assistsContent').innerHTML = '<div class="alert alert-danger">Failed to load assists</div>';
+                if (page === 1) document.getElementById('assistsContent').innerHTML = '<div class="alert alert-danger">Failed to load assists</div>';
             } finally {
-                hideLoading();
+                assistsLoading = false;
+                if (page === 1) hideLoading();
+            }
+        }
+
+        // News
+        async function loadNews(page = 1) {
+            if (!currentChampionship) return;
+            if (newsLoading) return;
+            newsLoading = true;
+            if (page === 1) showLoading();
+            try {
+                const url = `${NEWS_BASE}/News/news_league/${currentChampionship.url_id}?page=${page}`;
+                const data = await fetchFromProxy(url);
+                const newsContent = document.getElementById('newsContent');
+                const newsData = data.data.data || [];
+                if (page === 1) {
+                    newsContent.innerHTML = renderNewsList(newsData);
+                } else {
+                    // Append new news cards
+                    newsContent.insertAdjacentHTML('beforeend', renderNewsList(newsData));
+                }
+                newsNextUrl = data.data.next_page_url || null;
+                if (!newsObserver) {
+                    newsObserver = setupInfiniteScroll('newsSentinel', () => {
+                        if (newsNextUrl && !newsLoading) {
+                            const nextPage = new URL(newsNextUrl).searchParams.get('page');
+                            loadNews(parseInt(nextPage));
+                        }
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                if (page === 1) document.getElementById('newsContent').innerHTML = '<div class="alert alert-danger">Failed to load news</div>';
+            } finally {
+                newsLoading = false;
+                if (page === 1) hideLoading();
             }
         }
 
@@ -872,54 +1045,6 @@
             });
             html += '</ul>';
             return html;
-        }
-
-        function renderPagination(elementId, pagination, loadFunction) {
-            const container = document.getElementById(elementId);
-            container.innerHTML = '';
-            if (!pagination || !pagination.links) return;
-            const ul = document.createElement('ul');
-            ul.className = 'pagination';
-            pagination.links.forEach(link => {
-                const li = document.createElement('li');
-                li.className = 'page-item' + (link.active ? ' active' : '') + (link.url ? '' : ' disabled');
-                const a = document.createElement('a');
-                a.className = 'page-link';
-                a.href = '#';
-                a.textContent = link.label;
-                if (link.url) {
-                    a.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        const page = new URL(link.url).searchParams.get('page');
-                        loadFunction(parseInt(page));
-                    });
-                }
-                li.appendChild(a);
-                ul.appendChild(li);
-            });
-            container.appendChild(ul);
-        }
-
-        // ========== Load News ==========
-        async function loadNews(page = 1) {
-            if (!currentChampionship) return;
-            showLoading();
-            try {
-                const url = `${NEWS_BASE}/News/news_league/${currentChampionship.url_id}?page=${page}`;
-                const data = await fetchFromProxy(url);
-                const newsContent = document.getElementById('newsContent');
-                if (data.data && Array.isArray(data.data.data)) {
-                    newsContent.innerHTML = renderNewsList(data.data.data);
-                    renderPagination('newsPagination', data.data, loadNews);
-                } else {
-                    newsContent.innerHTML = '<p>No news</p>';
-                }
-            } catch (err) {
-                console.error(err);
-                document.getElementById('newsContent').innerHTML = '<div class="alert alert-danger">Failed to load news</div>';
-            } finally {
-                hideLoading();
-            }
         }
 
         function renderNewsList(newsArray) {
@@ -1414,4 +1539,4 @@
         loadChampionships();
     </script>
 </body>
-    </html>
+        </html>
