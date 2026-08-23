@@ -46,12 +46,7 @@
         .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
         .pitch {
             background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            min-height: 420px;
-            color: white;
-            margin: 10px 0;
+            border-radius: 12px; padding: 20px; position: relative; min-height: 420px; color: white; margin: 10px 0;
         }
         .pitch .team-name { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .pitch-row { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; }
@@ -77,7 +72,6 @@
         .match-info-block { background: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
         .match-info-block .row > div { padding: 5px 0; }
         .channel-badge { display: inline-block; background: #e9ecef; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.8rem; }
-
         .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
         .lang-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .lang-btn:hover { transform: scale(1.1); }
@@ -86,7 +80,6 @@
         .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: none; background: transparent; cursor: pointer; width: 100%; font-size: 1rem; transition: background 0.2s; }
         .lang-option:hover { background: #f0f0f0; }
         .lang-option img { width: 24px; height: 18px; object-fit: cover; border-radius: 2px; }
-
         .time-float { position: fixed; bottom: 30px; right: 100px; z-index: 2000; }
         .time-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .time-btn:hover { transform: scale(1.1); }
@@ -96,21 +89,17 @@
         .time-option:hover { background: #f0f0f0; }
         .time-submenu { display: none; padding-left: 20px; }
         .time-submenu.open { display: block; }
-
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .goal-alert { position: absolute; top: 5px; right: 5px; background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 10; animation: fadeOut 5s forwards; }
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
         .penalty-alert { background-color: #fd7e14; }
-
         .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
         .play-stream-btn:hover { background-color: #146c43; }
-
         .video-player-modal .modal-content { background-color: #000; }
         .video-player-modal .modal-body { padding: 0; height: 80vh; }
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
-
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -219,26 +208,15 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // ========== SETTINGS ==========
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
 
         const LANG_API_BASE = {
-            ar: 'https://api-ar.ysscores.com/api',
-            en: 'https://api-en.ysscores.com/api',
-            fr: 'https://api-fr.ysscores.com/api',
-            es: 'https://api-es.ysscores.com/api',
-            it: 'https://api-it.ysscores.com/api',
-            pt: 'https://api-pt.ysscores.com/api',
-            br: 'https://api-br.ysscores.com/api'
+            ar: 'https://api-ar.ysscores.com/api', en: 'https://api-en.ysscores.com/api', fr: 'https://api-fr.ysscores.com/api', es: 'https://api-es.ysscores.com/api', it: 'https://api-it.ysscores.com/api', pt: 'https://api-pt.ysscores.com/api', br: 'https://api-br.ysscores.com/api'
         };
         const LANG_NEWS_BASE = {
-            ar: 'https://news-ar.ysscores.com/api',
-            en: 'https://news-en.ysscores.com/api',
-            fr: 'https://news-fr.ysscores.com/api',
-            es: 'https://news-es.ysscores.com/api',
-            it: 'https://news-it.ysscores.com/api',
-            pt: 'https://news-pt.ysscores.com/api',
-            br: 'https://news-br.ysscores.com/api'
+            ar: 'https://news-ar.ysscores.com/api', en: 'https://news-en.ysscores.com/api', fr: 'https://news-fr.ysscores.com/api', es: 'https://news-es.ysscores.com/api', it: 'https://news-it.ysscores.com/api', pt: 'https://news-pt.ysscores.com/api', br: 'https://news-br.ysscores.com/api'
         };
 
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
@@ -432,6 +410,7 @@
             return mapping[pos] || pos || 'Unknown';
         }
 
+        // ========== STREAMING SERVICE ==========
         async function loadStreamEvents() {
             try {
                 const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
@@ -439,6 +418,7 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 streamEvents = data || [];
+                console.log('Stream events loaded:', streamEvents.length);
             } catch (err) {
                 console.error('Stream API error:', err);
                 streamEvents = [];
@@ -456,7 +436,213 @@
             'aston villa': ['aston villa fc'],
             'brighton': ['brighton and hove albion', 'brighton & hove albion'],
             'leeds': ['leeds united', 'leeds utd'],
-            'manchester': ['man utd', 'man united']
+            'manchester': ['man utd', 'man united'],
+            'bayern münich': ['bayern munich', 'bayern'],
+            'eintracht frankfurt': ['frankfurt'],
+            'borussia dortmund': ['dortmund'],
+            'paris saint germain': ['psg', 'paris-sg'],
+            'inter milan': ['inter'],
+            'ac milan': ['milan'],
+            'real madrid': ['real'],
+            'barcelona': ['barca'],
+            'atletico madrid': ['atletico', 'atl tico'],
+            'sevilla': ['sevilla fc'],
+            'valencia': ['valencia cf'],
+            'villarreal': ['villarreal cf'],
+            'atalanta': ['atalanta bc'],
+            'juventus': ['juve'],
+            'napoli': ['ssc napoli'],
+            'roma': ['as roma'],
+            'lazio': ['ss lazio'],
+            'fiorentina': ['acf fiorentina'],
+            'bayer leverkusen': ['leverkusen'],
+            'rb leipzig': ['leipzig'],
+            'monaco': ['as monaco'],
+            'lille': ['lille osc'],
+            'lyon': ['olympique lyonnais'],
+            'marseille': ['olympique marseille'],
+            'ajax': ['ajax amsterdam'],
+            'psv eindhoven': ['psv'],
+            'feyenoord': ['feyenoord rotterdam'],
+            'benfica': ['sl benfica'],
+            'porto': ['fc porto'],
+            'sporting cp': ['sporting'],
+            'celtic': ['celtic fc'],
+            'rangers': ['rangers fc'],
+            'galatasaray': ['galatasaray sk'],
+            'fenerbahce': ['fenerbah e'],
+            'besiktas': ['be ikta '],
+            'shakhtar donetsk': ['shakhtar'],
+            'dinamo zagreb': ['dinamo'],
+            'crvena zvezda': ['red star belgrade'],
+            'olympiacos': ['olympiacos piraeus'],
+            'club brugge': ['club brugge kv'],
+            'anderlecht': ['rsc anderlecht'],
+            'basel': ['fc basel'],
+            'young boys': ['bsc young boys'],
+            'salzburg': ['rb salzburg'],
+            'slavia prague': ['sk slavia prague'],
+            'sparta prague': ['ac sparta prague'],
+            'bodo/glimt': ['fk bodø/glimt'],
+            'copenhagen': ['fc copenhagen'],
+            'malmo': ['mff'],
+            'ferencvaros': ['ferencv rosi tc'],
+            'qarabag': ['qarabağ fk'],
+            'maccabi tel aviv': ['maccabi ta'],
+            'maccabi haifa': ['maccabi haifa fc'],
+            'hapoel beer sheva': ['hapoel be er sheva'],
+            'paok': ['paok fc'],
+            'aek athens': ['aek'],
+            'panathinaikos': ['panathinaikos fc'],
+            'olympiacos': ['olympiacos fc'],
+            'molde': ['molde fk'],
+            'rosenborg': ['rbk'],
+            'viktoria plzen': ['fc viktoria plzeň'],
+            'ludogorets': ['pfc ludogorets'],
+            'cfr cluj': ['cfr 1907 cluj'],
+            'fcsb': ['fcsb'],
+            'legia warsaw': ['legia warszawa'],
+            'lech poznan': ['kks lech poznan'],
+            'jagiellonia': ['jagiellonia bialystok'],
+            'slovan bratislava': ['sk slovan bratislava'],
+            'zalgiris': ['fk žalgiris'],
+            'lincoln red imps': ['lincoln red imps fc'],
+            'the new saints': ['tns'],
+            'hjk': ['hjk helsinki'],
+            'shamrock rovers': ['shamrock rovers fc'],
+            'linfield': ['linfield fc'],
+            'dynamo kyiv': ['dynamo kyiv'],
+            'shakhtar': ['shakhtar donetsk'],
+            'partizan': ['fk partizan'],
+            'red star': ['red star belgrade'],
+            'ferencvaros': ['ferencv ros'],
+            'slovan': ['slovan bratislava'],
+            'ludogorets': ['ludogorets razgrad'],
+            'astana': ['fc astana'],
+            'karabakh': ['qarabağ'],
+            'bate': ['fc bate borisov'],
+            'molde': ['molde fk'],
+            'rosenborg': ['rosenborg bk'],
+            'copenhagen': ['fc københavn'],
+            'malmo': ['malmö ff'],
+            'aik': ['aik solna'],
+            'djurgarden': ['djurgårdens if'],
+            'hammarby': ['hammarby if'],
+            'elfsborg': ['if elfsborg'],
+            'norrkoping': ['ifk norrköping'],
+            'goteborg': ['ifk göteborg'],
+            'hacken': ['bk häcken'],
+            'sirius': ['ik sirius'],
+            'kalmar': ['kalmar ff'],
+            'varberg': ['varbergs bois'],
+            'halmstad': ['halmstads bk'],
+            'degerfors': ['degerfors if'],
+            'mjallby': ['mjällby aif'],
+            'orebro': ['örebro sk'],
+            'gif sundsvall': ['gif sundsvall'],
+            'helsingborg': ['helsingborgs if'],
+            'orgryte': ['örgryte is'],
+            'vasteras': ['västerås sk'],
+            'gif': ['gif sundsvall'],
+            'trelleborg': ['trelleborgs ff'],
+            'landskrona': ['landskrona bois'],
+            'brage': ['ik brage'],
+            'dalkurd': ['dalkurd ff'],
+            'afc eskilstuna': ['afc eskilstuna'],
+            'vasalund': ['vasalunds if'],
+            'sollentuna': ['sollentuna fk'],
+            'fredrikstad': ['fredrikstad fk'],
+            'sandefjord': ['sandefjord fotball'],
+            'stromsgodset': ['strømsgodset if'],
+            'odd': ['odds bk'],
+            'haugesund': ['fk haugesund'],
+            'viking': ['viking fk'],
+            'brann': ['sk brann'],
+            'molde': ['molde fk'],
+            'lillestrom': ['lillestrøm sk'],
+            'tromso': ['tromsø il'],
+            'sarpsborg': ['sarpsborg 08 ff'],
+            'stabaek': ['stabæk fotball'],
+            'valerenga': ['vålerenga fotball'],
+            'hamkam': ['hamkam'],
+            'ranheim': ['ranheim fotball'],
+            'sogndal': ['sogndal fotball'],
+            'start': ['ik start'],
+            'jerv': ['fk jerv'],
+            'kfum': ['kfum-kameratene oslo'],
+            'sandnes': ['sandnes ulf'],
+            'asane': ['åsane fotball'],
+            'bryne': ['bryne fk'],
+            'eik': ['eik-tonsberg'],
+            'flekkeroy': ['flekkerøy il'],
+            'floro': ['florø sk'],
+            'follo': ['follo fk'],
+            'frigg': ['frigg oslo fk'],
+            'fyllingsdalen': ['fyllingsdalen'],
+            'grorud': ['grorud il'],
+            'halden': ['kvik halden fk'],
+            'harstad': ['harstad il'],
+            'he rad': ['he rad'],
+            'hinna': ['hinna fotball'],
+            'honefoss': ['hønefoss bk'],
+            'junkeren': ['junkeren il'],
+            'kjelsas': ['kjelsås fotball'],
+            'kongsvinger': ['kongsvinger il'],
+            'krakeroy': ['kråkerøy il'],
+            'levanger': ['levanger fk'],
+            'lorenskog': ['lørenskog if'],
+            'lyn': ['lyn fotball'],
+            'mandalskameratene': ['mandalskameratene'],
+            'moss': ['moss fk'],
+            'nardo': ['nardo fk'],
+            'notodden': ['notodden fk'],
+            'nybergsund': ['nybergsund il'],
+            'oppsal': ['oppsal if'],
+            'oslo city': ['oslo city fc'],
+            'oslojuvelene': ['oslojuvelene'],
+            'radel': ['råde il'],
+            'raufoss': ['raufoss fotball'],
+            'ready': ['ready'],
+            'rolf': ['rolf'],
+            'rommen': ['rommen sk'],
+            'royken': ['røyken og spikkestad'],
+            'salangen': ['salangen if'],
+            'sandviken': ['sandviken il'],
+            'senja': ['senja fk'],
+            'skarp': ['skarp if'],
+            'skedsmo': ['skedsmo fk'],
+            'ski': ['ski il'],
+            'skjetten': ['skjetten sk'],
+            'sola': ['sola fk'],
+            'sotra': ['sotra sk'],
+            'sparta': ['sparta sarpsborg'],
+            'stabaek2': ['stabaek 2'],
+            'stjordals': ['stjørdals-blink'],
+            'storm': ['storm bk'],
+            'strindheim': ['strindheim il'],
+            'sunndal': ['sunndal fotball'],
+            'sverresborg': ['sverresborg fk'],
+            'sykkylven': ['sykkylven il'],
+            'tertnes': ['tertnes il'],
+            'tiller': ['tiller il'],
+            'trane': ['trane sk'],
+            'trauma': ['trauma if'],
+            'trosvik': ['trosvik if'],
+            'trygg/lade': ['trygg/lade'],
+            'tverlandet': ['tverlandet il'],
+            'ul': ['ul fk'],
+            'ull/kisa': ['ull/kisa fotball'],
+            'ullern': ['ullern if'],
+            'vardeneset': ['vardeneset bk'],
+            'vard': ['vard haugesund'],
+            'vegakameratene': ['vegakameratene'],
+            'vestfossen': ['vestfossen if'],
+            'vigor': ['vigor'],
+            'vikersund': ['vikerund if'],
+            'volda': ['volda ti'],
+            'ålgård': ['ålgård fk'],
+            'årvoll': ['årvoll il'],
+            'åssiden': ['åssiden if']
         };
 
         function normalizeTeamName(name) {
@@ -465,6 +651,11 @@
             for (const key in teamAliases) {
                 const aliases = teamAliases[key];
                 if (n === key || aliases.includes(n)) {
+                    return key;
+                }
+            }
+            for (const key in teamAliases) {
+                if (n.includes(key) || key.includes(n)) {
                     return key;
                 }
             }
@@ -508,7 +699,6 @@
                 streamMatchInfo.textContent = '';
             }
 
-            // ✅ الإصلاح: عدم استخدام Worker للبث، استخدم الرابط مباشرة
             let finalStreamUrl = streamUrl;
             if (finalStreamUrl.startsWith('http://')) {
                 finalStreamUrl = finalStreamUrl.replace('http://', 'https://');
@@ -516,7 +706,7 @@
 
             if (Hls.isSupported()) {
                 const hls = new Hls();
-                hls.loadSource(finalStreamUrl); // استخدم finalStreamUrl
+                hls.loadSource(finalStreamUrl);
                 hls.attachMedia(videoElement);
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
@@ -544,15 +734,18 @@
             }, { once: true });
         }
 
+        // ========== LIVE & TODAY MATCHES ==========
         function getLiveSeconds(match) {
             const now = Math.floor(Date.now() / 1000);
             if (liveSecondsBase[match.match_id]) {
-                const { baseSeconds, lastFetchTime, status, ex_time } = liveSecondsBase[match.match_id];
-                if (status === 2) return baseSeconds; // HT: توقف
-                if (status === 1 || status === 3) {
-                    let elapsed = baseSeconds + (now - lastFetchTime);
-                    if (ex_time && elapsed > (elapsed > 2700 ? 5400 : 2700)) {
-                        elapsed += ex_time * 60;
+                const base = liveSecondsBase[match.match_id];
+                if (base.status === 2) return base.baseSeconds; // HT: توقف
+                if (base.status === 1 || base.status === 3) {
+                    let elapsed = base.baseSeconds + (now - base.lastFetchTime);
+                    // إضافة الوقت الإضافي إذا تجاوزنا 45 دقيقة (الشوط الأول) أو 90 دقيقة (الشوط الثاني)
+                    if (base.ex_time && !base.extraAdded && elapsed > (base.status === 1 ? 2700 : 5400)) {
+                        elapsed += base.ex_time * 60;
+                        base.extraAdded = true;
                     }
                     return elapsed;
                 }
@@ -716,7 +909,8 @@
                         baseSeconds: m.minutes ? m.minutes : Math.floor(nowTs/1000 - m.match_timestamp),
                         lastFetchTime: nowTs,
                         status: m.status,
-                        ex_time: m.ex_time || 0
+                        ex_time: m.ex_time || 0,
+                        extraAdded: false
                     };
                 });
 
@@ -744,22 +938,28 @@
                     liveMatches = newLiveMatches;
                     const nowTs2 = Date.now();
                     liveMatches.forEach(m => {
+                        const prev = liveSecondsBase[m.match_id];
+                        const localSeconds = prev ? prev.baseSeconds + (Math.floor(nowTs2/1000) - prev.lastFetchTime) : 0;
+                        const serverSeconds = m.minutes ? m.minutes : Math.floor(nowTs2/1000 - m.match_timestamp);
+                        const newBase = Math.max(localSeconds, serverSeconds);
                         liveSecondsBase[m.match_id] = {
-                            baseSeconds: m.minutes ? m.minutes : Math.floor(nowTs2/1000 - m.match_timestamp),
+                            baseSeconds: newBase,
                             lastFetchTime: nowTs2,
                             status: m.status,
-                            ex_time: m.ex_time || 0
+                            ex_time: m.ex_time || 0,
+                            extraAdded: false
                         };
                     });
                     await loadStreamEvents();
                     renderLiveAndToday();
-                }, 10000); // التحديث من المصدر كل 10 ثوانٍ
+                }, 10000);
 
             } catch (err) {
                 console.error('Failed to load live/today matches:', err);
             }
         }
 
+        // ========== LOAD CHAMPIONSHIPS ==========
         async function loadChampionships() {
             try {
                 showLoading();
@@ -1805,4 +2005,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                              </html>
+    </html>
