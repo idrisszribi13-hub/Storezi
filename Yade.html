@@ -95,6 +95,7 @@
         .team-img { width: 30px; height: 30px; object-fit: contain; }
         .player-img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
         .champ-img { width: 24px; height: 24px; object-fit: contain; }
+        .referee-img { width: 30px; height: 30px; object-fit: cover; border-radius: 50%; }
         .table { margin-bottom: 0; font-size: 0.9rem; }
         .table th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
         .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
@@ -189,6 +190,29 @@
         }
         .match-modal-tab-content {
             padding: 15px 0;
+        }
+        .video-link {
+            color: var(--danger);
+            text-decoration: none;
+            margin-left: 5px;
+        }
+        .video-link:hover { color: #a00; }
+        .match-info-block {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .match-info-block .row > div {
+            padding: 5px 0;
+        }
+        .channel-badge {
+            display: inline-block;
+            background: #e9ecef;
+            border-radius: 4px;
+            padding: 2px 8px;
+            margin: 2px;
+            font-size: 0.8rem;
         }
 
         /* زر اللغة */
@@ -437,6 +461,18 @@
             </div>
         </div>
     </div>
+    <!-- Referee Modal -->
+    <div class="modal fade" id="refereeModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="refereeModalTitle">Referee Info</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body" id="refereeModalBody"></div>
+            </div>
+        </div>
+    </div>
 
     <!-- زر اللغة العائم -->
     <div class="lang-float">
@@ -458,12 +494,8 @@
         <div class="time-menu" id="timeMenu">
             <button class="time-option" id="timeZoneOption">Time Zone</button>
             <button class="time-option" id="timeFormatOption">Time Format</button>
-            <div class="time-submenu" id="timeZoneSubmenu">
-                <!-- سيتم ملؤه ديناميكيًا -->
-            </div>
-            <div class="time-submenu" id="timeFormatSubmenu">
-                <!-- سيتم ملؤه ديناميكيًا -->
-            </div>
+            <div class="time-submenu" id="timeZoneSubmenu"></div>
+            <div class="time-submenu" id="timeFormatSubmenu"></div>
         </div>
     </div>
 
@@ -499,6 +531,7 @@
         const IMG_BASE_COACH = 'https://imgs.ysscores.com/coach/150/';
         const IMG_BASE_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
         const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
+        const IMG_BASE_REFEREE = 'https://imgs.ysscores.com/referee/150/';
 
         // State
         let championshipsList = [];
@@ -611,7 +644,6 @@
             const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
             const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
 
-            // Populate timezone options
             const zones = [-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7];
             zones.forEach(offset => {
                 const btn = document.createElement('button');
@@ -626,7 +658,6 @@
                 timeZoneSubmenu.appendChild(btn);
             });
 
-            // Populate time format options
             const formats = [
                 { label: '24h', value: '24' },
                 { label: '12h AM/PM', value: '12' }
@@ -644,7 +675,6 @@
                 timeFormatSubmenu.appendChild(btn);
             });
 
-            // Toggle submenus
             timeZoneOption.addEventListener('click', () => {
                 timeZoneSubmenu.classList.toggle('open');
                 timeFormatSubmenu.classList.remove('open');
@@ -654,11 +684,9 @@
                 timeZoneSubmenu.classList.remove('open');
             });
 
-            // Toggle main menu
             toggle.addEventListener('click', (e) => {
                 e.stopPropagation();
                 menu.classList.toggle('open');
-                // Reset submenus when opening
                 timeZoneSubmenu.classList.remove('open');
                 timeFormatSubmenu.classList.remove('open');
             });
@@ -670,7 +698,6 @@
                 }
             });
 
-            // Load saved settings
             const savedOffset = localStorage.getItem('timezone_offset');
             if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
             const savedFormat = localStorage.getItem('time_format');
@@ -684,12 +711,10 @@
         }
 
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
-            // Use timestamp if available
             if (timestamp) {
                 const date = new Date(timestamp * 1000 + timezoneOffset * 60000);
                 return formatDate(date) + ' ' + formatTime(date);
             }
-            // Fallback to date and time strings (assume UTC)
             const date = new Date(dateStr + 'T' + timeStr + 'Z');
             date.setMinutes(date.getMinutes() + timezoneOffset);
             return formatDate(date) + ' ' + formatTime(date);
@@ -1045,6 +1070,33 @@
             const t = translations[lang];
             const dateTime = formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp);
 
+            // بناء بلوك المعلومات
+            let infoBlock = '<div class="match-info-block">';
+            infoBlock += '<div class="row">';
+            infoBlock += `<div class="col-12 col-md-4"><strong>Competition:</strong> ${info.championship ? info.championship.title : 'N/A'}</div>`;
+            infoBlock += `<div class="col-12 col-md-4"><strong>Round:</strong> ${info.round || 'N/A'}</div>`;
+            infoBlock += `<div class="col-12 col-md-4"><strong>Stadium:</strong> ${info.Stadium || 'N/A'}</div>`;
+            infoBlock += '</div>';
+            infoBlock += `<div class="mt-2"><strong>Date:</strong> ${dateTime}</div>`;
+
+            // قنوات البث
+            if (info.channel_commm && info.channel_commm.length > 0) {
+                infoBlock += '<div class="mt-2"><strong>Channels:</strong> ';
+                const channels = info.channel_commm.map(c => `${c.channel_name} (${c.commentator_name || 'Unknown'})`);
+                infoBlock += channels.join('، ');
+                infoBlock += '</div>';
+            }
+
+            // الحكام
+            if (info.referees) {
+                const ref = info.referees;
+                infoBlock += `<div class="mt-2"><strong>Referee:</strong> 
+                    <span class="link-item" onclick="openRefereeModal(${ref.id})">${ref.title}</span>
+                    ${ref.referee_type ? `(${ref.referee_type})` : ''}
+                </div>`;
+            }
+            infoBlock += '</div>';
+
             let html = `
                 <div class="text-center mb-3">
                     <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}" style="width:50px;height:50px;" onclick="openTeamModal(${info.home_team.row_id})">
@@ -1057,6 +1109,7 @@
                         <button class="btn btn-sm btn-outline-primary mx-2" onclick="openTeamModal(${info.away_team.row_id})">${info.away_team.title}</button>
                     </div>
                 </div>
+                ${infoBlock}
             `;
 
             html += `
@@ -1100,10 +1153,21 @@
             events.forEach(ev => {
                 const player = ev.player_name ? ev.player_name.title : 'Unknown';
                 const playerImg = ev.player_name && ev.player_name.image ? `<img src="${IMG_BASE_PLAYER + ev.player_name.image}" class="player-img me-2" style="width:25px;height:25px;" onclick="openPlayerModal(${ev.player_name.id})">` : '';
-                const type = ev.type === 1 ? 'Goal' : ev.type === 2 ? 'Yellow Card' : ev.type === 5 ? 'Goal' : ev.type === 8 ? 'Substitution' : ev.type === 21 ? 'Chance' : ev.type === 22 ? 'Missed Chance' : 'Other';
+                const type = ev.type === 1 ? 'Goal' : ev.type === 2 ? 'Yellow Card' : ev.type === 5 ? 'Goal' : ev.type === 8 ? 'Substitution' : ev.type === 21 ? 'Chance' : ev.type === 22 ? 'Missed Chance' : ev.type === 6 ? 'Red Card' : 'Other';
+                let assistHtml = '';
+                if (ev.assist_player_name) {
+                    assistHtml = ` <small class="text-muted">(Assist: ${ev.assist_player_name.title})</small>`;
+                }
+                let videoHtml = '';
+                if (ev.event_video) {
+                    videoHtml = `<a href="${ev.event_video}" target="_blank" class="video-link" title="Video">🎥</a>`;
+                }
                 html += `<li class="list-group-item d-flex justify-content-between align-items-center">
-                    <span>${playerImg}${player}</span>
-                    <span class="badge bg-secondary">${type}</span>
+                    <span>${playerImg}${player}${assistHtml}</span>
+                    <span>
+                        ${videoHtml}
+                        <span class="badge bg-secondary">${type}</span>
+                    </span>
                     <span class="text-muted">${ev.time_minute}'</span>
                 </li>`;
             });
@@ -1910,10 +1974,48 @@
             body.innerHTML = html;
         }
 
+        // ========== Referee Modal ==========
+        async function openRefereeModal(refereeId) {
+            showLoading();
+            try {
+                const url = `${API_BASE}/info/referee_info/${refereeId}/L/60`;
+                const data = await fetchFromProxy(url);
+                renderRefereeModal(data.data);
+                document.getElementById('refereeModalTitle').textContent = data.data.title;
+                const modal = new bootstrap.Modal(document.getElementById('refereeModal'));
+                modal.show();
+            } catch (err) {
+                console.error(err);
+                showError('Failed to load referee info');
+            } finally {
+                hideLoading();
+            }
+        }
+
+        function renderRefereeModal(refInfo) {
+            const body = document.getElementById('refereeModalBody');
+            let html = `
+                <div class="d-flex align-items-center mb-3">
+                    <img src="${IMG_BASE_REFEREE + refInfo.image}" class="referee-img me-2" style="width:60px;height:60px;">
+                    <h4>${refInfo.title}</h4>
+                </div>
+                <p><strong>Country:</strong> ${refInfo.country ? refInfo.country.title : ''}</p>
+                <p><strong>Gender:</strong> ${refInfo.gender || 'Unknown'}</p>
+                <p><strong>Type:</strong> ${refInfo.referee_type || 'Unknown'}</p>
+                ${refInfo.birth_date ? `<p><strong>Birth Date:</strong> ${refInfo.birth_date}</p>` : ''}
+                <hr>
+                <h6>Coming Matches</h6>
+                ${refInfo.matches && refInfo.matches.coming && refInfo.matches.coming.data.length > 0 ? renderMatchesList(refInfo.matches.coming.data) : '<p>No upcoming matches</p>'}
+                <h6 class="mt-3">Finished Matches</h6>
+                ${refInfo.matches && refInfo.matches.end && refInfo.matches.end.data.length > 0 ? renderMatchesList(refInfo.matches.end.data) : '<p>No finished matches</p>'}
+            `;
+            body.innerHTML = html;
+        }
+
         // ========== Initialize ==========
         initLanguageSystem();
         initTimeSystem();
         loadChampionships();
     </script>
 </body>
-                    </html>
+        </html>
