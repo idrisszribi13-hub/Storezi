@@ -1,10 +1,10 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en" dir="ltr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مركز البطولات الشامل - YSScores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <title>Football Center - YSScores</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -52,7 +52,7 @@
             padding: 8px 15px;
             font-size: 0.95rem;
         }
-        .dropdown-item img { margin-left: 10px; }
+        .dropdown-item img { margin-right: 10px; }
         .search-box { padding: 10px; border-bottom: 1px solid #eee; }
         .search-box input {
             width: 100%;
@@ -99,18 +99,9 @@
         .player-img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
         .champ-img { width: 24px; height: 24px; object-fit: contain; }
 
-        .table {
-            margin-bottom: 0;
-            font-size: 0.9rem;
-        }
-        .table th {
-            background: #f8f9fa;
-            border-bottom: 2px solid #dee2e6;
-        }
-        .highlight-row {
-            background-color: #cfe2ff !important;
-            font-weight: bold;
-        }
+        .table { margin-bottom: 0; font-size: 0.9rem; }
+        .table th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
+        .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
 
         .pitch {
             background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
@@ -175,50 +166,48 @@
 </head>
 <body>
     <div class="container py-5">
-        <h1 class="text-center mb-4 fw-bold">🏆 مركز البطولات الشامل</h1>
+        <h1 class="text-center mb-4 fw-bold">🏆 Football Center</h1>
 
-        <!-- اختيار البطولة -->
+        <!-- Championship Selection -->
         <div class="champ-select">
-            <label class="fw-bold">اختر البطولة:</label>
+            <label class="fw-bold">Select Championship:</label>
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" id="championshipDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <span id="selectedChampText">اختر بطولة</span>
+                    <span id="selectedChampText">Select Championship</span>
                 </button>
                 <div class="dropdown-menu w-100" aria-labelledby="championshipDropdown">
                     <div class="search-box">
-                        <input type="text" id="champSearch" placeholder="ابحث عن بطولة..." class="form-control">
+                        <input type="text" id="champSearch" placeholder="Search championship..." class="form-control">
                     </div>
-                    <div id="champList">
-                        <!-- ستتم تعبئته -->
-                    </div>
+                    <div id="champList"></div>
                 </div>
             </div>
             <input type="hidden" id="selectedChampId" value="">
         </div>
 
-        <!-- التبويبات الرئيسية -->
+        <!-- Main Tabs -->
         <ul class="nav nav-tabs" id="mainTabs" role="tablist" style="display:none;">
             <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab">المباريات</button>
+                <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab">Matches</button>
             </li>
             <li class="nav-item" role="presentation" id="standingsTabItem">
-                <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab">الترتيب</button>
+                <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab">Standings</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="scorers-tab" data-bs-toggle="tab" data-bs-target="#scorers" type="button" role="tab">الهدافون</button>
+                <button class="nav-link" id="scorers-tab" data-bs-toggle="tab" data-bs-target="#scorers" type="button" role="tab">Top Scorers</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="assists-tab" data-bs-toggle="tab" data-bs-target="#assists" type="button" role="tab">الصناع</button>
+                <button class="nav-link" id="assists-tab" data-bs-toggle="tab" data-bs-target="#assists" type="button" role="tab">Assists</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">الأخبار</button>
+                <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab">News</button>
             </li>
             <li class="nav-item" role="presentation" id="bracketTabItem" style="display:none;">
-                <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab">خريطة المواجهات</button>
+                <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab">Bracket</button>
             </li>
         </ul>
 
-        <!-- محتوى التبويبات الرئيسية -->
+        <!-- Main Tab Content -->
         <div class="tab-content" id="mainTabsContent" style="display:none;">
             <div class="tab-pane fade show active" id="matches" role="tabpanel">
                 <div id="matchesContent" class="mt-3"></div>
@@ -243,21 +232,21 @@
             </div>
         </div>
 
-        <!-- مؤشر التحميل -->
+        <!-- Loading Indicator -->
         <div id="loadingIndicator" class="loader hidden text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2">جاري التحميل...</p>
+            <p class="mt-2">Loading...</p>
         </div>
-        <!-- رسالة خطأ -->
+        <!-- Error Message -->
         <div id="errorIndicator" class="error-message hidden text-center text-danger py-3"></div>
     </div>
 
-    <!-- Modal لتفاصيل المباراة -->
+    <!-- Match Details Modal -->
     <div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="matchModalTitle">تفاصيل المباراة</h5>
+                    <h5 class="modal-title" id="matchModalTitle">Match Details</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="matchModalBody"></div>
@@ -265,12 +254,12 @@
         </div>
     </div>
 
-    <!-- Modal لمعلومات الفريق -->
+    <!-- Team Info Modal -->
     <div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="teamModalTitle">معلومات الفريق</h5>
+                    <h5 class="modal-title" id="teamModalTitle">Team Info</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="teamModalBody"></div>
@@ -278,12 +267,12 @@
         </div>
     </div>
 
-    <!-- Modal لمعلومات اللاعب -->
+    <!-- Player Info Modal -->
     <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="playerModalTitle">معلومات اللاعب</h5>
+                    <h5 class="modal-title" id="playerModalTitle">Player Info</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="playerModalBody"></div>
@@ -291,12 +280,12 @@
         </div>
     </div>
 
-    <!-- Modal لمعلومات المدرب -->
+    <!-- Coach Info Modal -->
     <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="coachModalTitle">معلومات المدرب</h5>
+                    <h5 class="modal-title" id="coachModalTitle">Coach Info</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="coachModalBody"></div>
@@ -304,12 +293,12 @@
         </div>
     </div>
 
-    <!-- Modal لتفاصيل الخبر -->
+    <!-- News Detail Modal -->
     <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="newsModalTitle">تفاصيل الخبر</h5>
+                    <h5 class="modal-title" id="newsModalTitle">News Detail</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body" id="newsModalBody"></div>
@@ -319,7 +308,7 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ========== الإعدادات ==========
+        // ========== Settings ==========
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
         const API_BASE = 'https://api-en.ysscores.com/api';
         const NEWS_BASE = 'https://news-en.ysscores.com/api';
@@ -330,12 +319,10 @@
         const IMG_BASE_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
         const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
 
-        // متغيرات عامة
         let championshipsList = [];
         let currentChampionship = null;
         let currentTab = 'matches';
 
-        // دوال مساعدة
         function showLoading() {
             document.getElementById('loadingIndicator').classList.remove('hidden');
             document.getElementById('errorIndicator').classList.add('hidden');
@@ -354,7 +341,7 @@
             return await response.json();
         }
 
-        // ========== تحميل قائمة البطولات ==========
+        // ========== Load Championships ==========
         async function loadChampionships() {
             try {
                 showLoading();
@@ -364,11 +351,11 @@
                     championshipsList = data.data;
                     populateChampDropdown(championshipsList);
                 } else {
-                    showError('فشل تحميل قائمة البطولات');
+                    showError('Failed to load championships');
                 }
             } catch (err) {
                 console.error(err);
-                showError('تعذر الاتصال بالخادم');
+                showError('Failed to connect to server');
             } finally {
                 hideLoading();
             }
@@ -419,30 +406,22 @@
             document.getElementById('selectedChampId').value = id;
             document.getElementById('selectedChampText').innerHTML = `
                 <span class="d-flex align-items-center">
-                    ${image ? `<img src="${image}" class="champ-img" style="width:20px;height:20px;margin-left:8px;">` : ''}
+                    ${image ? `<img src="${image}" class="champ-img" style="width:20px;height:20px;margin-right:8px;">` : ''}
                     ${title}
                 </span>
             `;
 
             bootstrap.Dropdown.getInstance(document.getElementById('championshipDropdown'))?.hide();
 
-            currentChampionship = {
-                url_id: id,
-                type: type,
-                title: title,
-                standings: standings,
-                cups: cups
-            };
+            currentChampionship = { url_id: id, type: type, title: title, standings: standings, cups: cups };
 
             document.getElementById('mainTabs').style.display = '';
             document.getElementById('mainTabsContent').style.display = '';
 
             resetTabs();
-
             document.getElementById('standingsTabItem').style.display = standings ? '' : 'none';
             const showBracket = type === 4 || (type === 2 && cups);
             document.getElementById('bracketTabItem').style.display = showBracket ? '' : 'none';
-
             switchTab('matches');
         }
 
@@ -486,7 +465,7 @@
             });
         });
 
-        // ========== تحميل المباريات ==========
+        // ========== Load Matches ==========
         async function loadMatches() {
             if (!currentChampionship) return;
             showLoading();
@@ -497,19 +476,19 @@
                 let html = '';
                 if (data.data) {
                     const { online, coming, end } = data.data;
-                    html += '<h5 class="mt-3">المباريات المباشرة</h5>';
-                    html += online.data.length ? renderMatchesList(online.data) : '<p>لا توجد مباريات مباشرة</p>';
-                    html += '<h5 class="mt-4">المباريات القادمة</h5>';
-                    html += coming.data.length ? renderMatchesList(coming.data) : '<p>لا توجد مباريات قادمة</p>';
-                    html += '<h5 class="mt-4">المباريات المنتهية</h5>';
-                    html += end.data.length ? renderMatchesList(end.data) : '<p>لا توجد مباريات منتهية</p>';
+                    html += '<h5 class="mt-3">Live Matches</h5>';
+                    html += online.data.length ? renderMatchesList(online.data) : '<p>No live matches</p>';
+                    html += '<h5 class="mt-4">Upcoming Matches</h5>';
+                    html += coming.data.length ? renderMatchesList(coming.data) : '<p>No upcoming matches</p>';
+                    html += '<h5 class="mt-4">Finished Matches</h5>';
+                    html += end.data.length ? renderMatchesList(end.data) : '<p>No finished matches</p>';
                 } else {
-                    html = '<p>لا توجد بيانات</p>';
+                    html = '<p>No data available</p>';
                 }
                 matchesContent.innerHTML = html;
             } catch (err) {
                 console.error(err);
-                document.getElementById('matchesContent').innerHTML = '<div class="alert alert-danger">فشل تحميل المباريات</div>';
+                document.getElementById('matchesContent').innerHTML = '<div class="alert alert-danger">Failed to load matches</div>';
             } finally {
                 hideLoading();
             }
@@ -526,13 +505,13 @@
                         <div class="card p-3 match-card" data-match-id="${match.match_id}">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="text-center">
-                                    <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}">
-                                    <div class="link-item small" data-team-id="${home.row_id}">${home.title}</div>
+                                    <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                                    <div class="small" data-team-id="${home.row_id}" onclick="openTeamModal(${home.row_id})">${home.title}</div>
                                 </div>
                                 <div class="fs-5 fw-bold">${match.home_scores} - ${match.away_scores}</div>
                                 <div class="text-center">
-                                    <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}">
-                                    <div class="link-item small" data-team-id="${away.row_id}">${away.title}</div>
+                                    <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                                    <div class="small" data-team-id="${away.row_id}" onclick="openTeamModal(${away.row_id})">${away.title}</div>
                                 </div>
                             </div>
                             <div class="text-center text-muted small mt-2">${date} | ${match.round || ''}</div>
@@ -544,23 +523,16 @@
             setTimeout(() => {
                 document.querySelectorAll('.match-card').forEach(card => {
                     card.addEventListener('click', function(e) {
-                        if (e.target.classList.contains('link-item')) return;
+                        if (e.target.classList.contains('team-img') || e.target.classList.contains('small')) return;
                         const matchId = this.dataset.matchId;
                         openMatchDetails(matchId);
-                    });
-                });
-                document.querySelectorAll('.link-item[data-team-id]').forEach(el => {
-                    el.addEventListener('click', function(e) {
-                        e.stopPropagation();
-                        const teamId = this.dataset.teamId;
-                        openTeamModal(teamId);
                     });
                 });
             }, 0);
             return html;
         }
 
-        // ========== تفاصيل المباراة (Modal) ==========
+        // ========== Match Details Modal ==========
         async function openMatchDetails(matchId) {
             showLoading();
             try {
@@ -585,13 +557,12 @@
                 const h2h = h2hData.data || {};
 
                 renderMatchDetails(info, events, lineups, stats, h2h);
-                document.getElementById('matchModalTitle').textContent = 
-                    `${info.home_team.title} vs ${info.away_team.title}`;
+                document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
             } catch (err) {
                 console.error(err);
-                showError('فشل تحميل تفاصيل المباراة');
+                showError('Failed to load match details');
             } finally {
                 hideLoading();
             }
@@ -605,9 +576,9 @@
             };
             let html = `
                 <div class="text-center mb-4">
-                    <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}" style="width:50px;height:50px;">
+                    <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}" style="width:50px;height:50px;" onclick="openTeamModal(${info.home_team.row_id})">
                     <span class="mx-3 fs-3 fw-bold">${info.home_scores} - ${info.away_scores}</span>
-                    <img src="${IMG_BASE_TEAM + info.away_team.image}" class="team-img" alt="${info.away_team.title}" style="width:50px;height:50px;">
+                    <img src="${IMG_BASE_TEAM + info.away_team.image}" class="team-img" alt="${info.away_team.title}" style="width:50px;height:50px;" onclick="openTeamModal(${info.away_team.row_id})">
                     <div class="text-muted mt-2">${info.match_date} ${info.match_time} | ${info.Stadium || ''}</div>
                     <div class="mt-2">
                         <button class="btn btn-sm btn-outline-primary" onclick="openTeamModal(${info.home_team.row_id})">${info.home_team.title}</button>
@@ -616,84 +587,108 @@
                 </div>
             `;
 
-            // الأحداث
-            html += '<h6 class="border-bottom pb-1">أحداث المباراة</h6>';
+            // Events
+            html += '<h6 class="border-bottom pb-1">Match Events</h6>';
             if (events.length) {
                 html += '<ul class="list-group mb-4">';
                 events.forEach(ev => {
-                    const player = ev.player_name ? ev.player_name.title : 'غير محدد';
-                    const playerImg = ev.player_name && ev.player_name.image ? `<img src="${IMG_BASE_PLAYER + ev.player_name.image}" class="player-img me-2" style="width:25px;height:25px;">` : '';
-                    const type = ev.type === 1 ? 'هدف' : ev.type === 2 ? 'بطاقة صفراء' : ev.type === 5 ? 'هدف' : ev.type === 8 ? 'استبدال' : ev.type === 21 ? 'فرصة' : ev.type === 22 ? 'فرصة ضائعة' : 'أخرى';
+                    const player = ev.player_name ? ev.player_name.title : 'Unknown';
+                    const playerImg = ev.player_name && ev.player_name.image ? `<img src="${IMG_BASE_PLAYER + ev.player_name.image}" class="player-img me-2" style="width:25px;height:25px;" onclick="openPlayerModal(${ev.player_name.id})">` : '';
+                    const type = ev.type === 1 ? 'Goal' : ev.type === 2 ? 'Yellow Card' : ev.type === 5 ? 'Goal' : ev.type === 8 ? 'Substitution' : ev.type === 21 ? 'Chance' : ev.type === 22 ? 'Missed Chance' : 'Other';
                     html += `<li class="list-group-item d-flex justify-content-between align-items-center">
                         <span>${playerImg}${player}</span>
                         <span class="badge bg-secondary">${type}</span>
-                        <span class="text-muted">${ev.time_minute} دقيقة</span>
+                        <span class="text-muted">${ev.time_minute}'</span>
                     </li>`;
                 });
                 html += '</ul>';
             } else {
-                html += '<p>لا توجد أحداث</p>';
+                html += '<p>No events</p>';
             }
 
-            // إحصائيات
-            html += '<h6 class="border-bottom pb-1">الإحصائيات</h6>';
+            // Stats
+            html += '<h6 class="border-bottom pb-1">Statistics</h6>';
             if (Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
                 const awayStats = stats[info.away_team.row_id] || {};
                 html += '<div class="row mb-4">';
-                html += `<div class="col-6"><strong>${info.home_team.title}</strong><br>الاستحواذ: ${homeStats.ball_possession || 0}%<br>التسديدات: ${homeStats.total_shots || 0}<br>الأخطاء: ${homeStats.fouls || 0}</div>`;
-                html += `<div class="col-6 text-start"><strong>${info.away_team.title}</strong><br>الاستحواذ: ${awayStats.ball_possession || 0}%<br>التسديدات: ${awayStats.total_shots || 0}<br>الأخطاء: ${awayStats.fouls || 0}</div>`;
+                html += `<div class="col-6"><strong>${info.home_team.title}</strong><br>Possession: ${homeStats.ball_possession || 0}%<br>Shots: ${homeStats.total_shots || 0}<br>Fouls: ${homeStats.fouls || 0}</div>`;
+                html += `<div class="col-6 text-end"><strong>${info.away_team.title}</strong><br>Possession: ${awayStats.ball_possession || 0}%<br>Shots: ${awayStats.total_shots || 0}<br>Fouls: ${awayStats.fouls || 0}</div>`;
                 html += '</div>';
             } else {
-                html += '<p>لا توجد إحصائيات</p>';
+                html += '<p>No stats</p>';
             }
 
-            // التشكيلة داخل ملعب
-            html += '<h6 class="border-bottom pb-1">التشكيلة</h6>';
+            // Lineups
+            html += '<h6 class="border-bottom pb-1">Lineups</h6>';
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
+            const homeCoach = lineups['0']?.home_coach;
+            const awayCoach = lineups['0']?.away_coach;
+            const injureds = lineups.lineup_injureds || {};
+            const homeInjured = injureds[info.home_team.row_id] || [];
+            const awayInjured = injureds[info.away_team.row_id] || [];
+
             if (homeLineup && awayLineup) {
                 html += '<div class="row">';
-                html += `<div class="col-12 col-md-6">${renderPitch(info.home_team, homeLineup, info.home_formation)}</div>`;
-                html += `<div class="col-12 col-md-6">${renderPitch(info.away_team, awayLineup, info.away_formation)}</div>`;
+                html += `<div class="col-12 col-md-6">${renderPitch(info.home_team, homeLineup, info.home_formation, homeCoach, homeInjured)}</div>`;
+                html += `<div class="col-12 col-md-6">${renderPitch(info.away_team, awayLineup, info.away_formation, awayCoach, awayInjured)}</div>`;
                 html += '</div>';
             } else {
-                html += '<p>التشكيلة غير متوفرة</p>';
+                html += '<p>Lineups not available</p>';
             }
 
-            // المواجهات المباشرة (H2H)
-            html += '<h6 class="border-bottom pb-1 mt-4">المواجهات المباشرة (H2H)</h6>';
+            // H2H
+            html += '<h6 class="border-bottom pb-1 mt-4">Head-to-Head (H2H)</h6>';
             if (Object.keys(h2h).length) {
                 html += '<ul class="list-group">';
                 for (const matchId in h2h) {
                     const h = h2h[matchId];
-                    const homeTitle = teamMap[h.home] || 'فريق غير معروف';
-                    const awayTitle = teamMap[h.away] || 'فريق غير معروف';
-                    const result = h.win === 'win1' ? 'فوز الفريق الأول' : h.win === 'win2' ? 'فوز الفريق الثاني' : 'تعادل';
-                    html += `
-                        <li class="list-group-item d-flex justify-content-between">
-                            <span>${homeTitle} ${h.home_score} - ${h.away_score} ${awayTitle}</span>
-                            <small class="text-muted">${h.match_date} | ${result}</small>
-                        </li>
-                    `;
+                    const homeTitle = teamMap[h.home] || 'Unknown';
+                    const awayTitle = teamMap[h.away] || 'Unknown';
+                    const result = h.win === 'win1' ? 'Home Win' : h.win === 'win2' ? 'Away Win' : 'Draw';
+                    html += `<li class="list-group-item d-flex justify-content-between">
+                        <span>${homeTitle} ${h.home_score} - ${h.away_score} ${awayTitle}</span>
+                        <small class="text-muted">${h.match_date} | ${result}</small>
+                    </li>`;
                 }
                 html += '</ul>';
             } else {
-                html += '<p>لا توجد بيانات H2H</p>';
+                html += '<p>No H2H data</p>';
             }
 
             body.innerHTML = html;
         }
 
-        function renderPitch(team, lineupData, formation) {
+        function getPositionFullName(pos) {
+            const mapping = {
+                'G': 'Goalkeeper',
+                'D': 'Defender',
+                'M': 'Midfielder',
+                'F': 'Forward',
+                'GK': 'Goalkeeper',
+                'CB': 'Centre Back',
+                'LB': 'Left Back',
+                'RB': 'Right Back',
+                'CDM': 'Defensive Midfielder',
+                'CM': 'Central Midfielder',
+                'CAM': 'Attacking Midfielder',
+                'LM': 'Left Midfielder',
+                'RM': 'Right Midfielder',
+                'LW': 'Left Winger',
+                'RW': 'Right Winger',
+                'CF': 'Centre Forward',
+                'SS': 'Second Striker',
+                'AM': 'Attacking Midfielder',
+                'DM': 'Defensive Midfielder'
+            };
+            return mapping[pos] || pos || 'Unknown';
+        }
+
+        function renderPitch(team, lineupData, formation, coach, injuredPlayers) {
             const players = lineupData.lineup || [];
             const formationText = formation || '4-3-3';
-            const groups = {
-                'G': [],
-                'D': [],
-                'M': [],
-                'F': []
-            };
+            const groups = { 'G': [], 'D': [], 'M': [], 'F': [] };
             players.forEach(p => {
                 const pos = p.position || 'M';
                 if (groups[pos]) groups[pos].push(p);
@@ -703,14 +698,39 @@
             let html = `
                 <div class="pitch">
                     <div class="team-name">
-                        <img src="${IMG_BASE_TEAM + team.image}" class="team-img" style="width:25px;height:25px;vertical-align:middle;">
+                        <img src="${IMG_BASE_TEAM + team.image}" class="team-img" style="width:25px;height:25px;vertical-align:middle;cursor:pointer;" onclick="openTeamModal(${team.row_id})">
                         ${team.title} (${formationText})
                     </div>
             `;
+            if (coach) {
+                html += `
+                    <div class="d-flex align-items-center justify-content-center mb-3">
+                        <img src="${IMG_BASE_COACH + coach.image}" class="player-img me-2" style="width:35px;height:35px;cursor:pointer;" onclick="openCoachModal(${coach.id})" title="${coach.title}">
+                        <span class="small" style="color:white; cursor:pointer;" onclick="openCoachModal(${coach.id})">${coach.title}</span>
+                    </div>
+                `;
+            }
             html += `<div class="pitch-row">${renderPlayersRow(groups['G'])}</div>`;
             html += `<div class="pitch-row">${renderPlayersRow(groups['D'])}</div>`;
             html += `<div class="pitch-row">${renderPlayersRow(groups['M'])}</div>`;
             html += `<div class="pitch-row">${renderPlayersRow(groups['F'])}</div>`;
+
+            if (injuredPlayers && injuredPlayers.length > 0) {
+                html += `<div class="mt-3" style="background:rgba(0,0,0,0.4); padding:10px; border-radius:8px;">`;
+                html += `<strong style="color:#fff;">Absences:</strong>`;
+                html += `<div class="d-flex flex-wrap">`;
+                injuredPlayers.forEach(inj => {
+                    html += `
+                        <div class="player-slot" style="margin:5px;">
+                            <img src="${IMG_BASE_PLAYER + inj.player.image}" alt="${inj.player.title}" onclick="openPlayerModal(${inj.player.row_id})" style="cursor:pointer; border-color:#ffc107;">
+                            <span class="player-name" style="color:#ffc107;">${inj.player.title}</span>
+                            <small style="color:#fff; font-size:0.6rem;">${inj.type_name || 'Unknown'}</small>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            }
+
             html += '</div>';
             return html;
         }
@@ -718,13 +738,14 @@
         function renderPlayersRow(players) {
             return players.map(p => `
                 <div class="player-slot">
-                    <img src="${IMG_BASE_PLAYER + p.player.image}" alt="${p.player.title}" onerror="this.style.display='none'">
+                    <img src="${IMG_BASE_PLAYER + p.player.image}" alt="${p.player.title}" onclick="openPlayerModal(${p.player.row_id})" style="cursor:pointer;" onerror="this.style.display='none'">
                     <span class="player-name">${p.player.title}</span>
+                    <small style="color:#fff; font-size:0.6rem;">${getPositionFullName(p.position)}</small>
                 </div>
             `).join('');
         }
 
-        // ========== تحميل الترتيب ==========
+        // ========== Load Standings ==========
         async function loadStandings() {
             if (!currentChampionship) return;
             showLoading();
@@ -742,11 +763,11 @@
                 } else if (data.data && data.data.standings && data.data.standings.groups) {
                     standingsContent.innerHTML = renderGroupStandings(data.data.standings.groups);
                 } else {
-                    standingsContent.innerHTML = '<p>لا توجد بيانات ترتيب</p>';
+                    standingsContent.innerHTML = '<p>No standings data</p>';
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('standingsContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الترتيب</div>';
+                document.getElementById('standingsContent').innerHTML = '<div class="alert alert-danger">Failed to load standings</div>';
             } finally {
                 hideLoading();
             }
@@ -758,7 +779,7 @@
                     <table class="table table-striped table-hover">
                         <thead>
                             <tr>
-                                <th>#</th><th>الفريق</th><th>لعب</th><th>فاز</th><th>تعادل</th><th>خسر</th><th>له</th><th>عليه</th><th>الفرق</th><th>نقاط</th>
+                                <th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -770,7 +791,7 @@
                 html += `
                     <tr class="${rowClass}">
                         <td>${idx+1}</td>
-                        <td><img src="${IMG_BASE_TEAM + info.image}" class="team-img" alt="${info.title}"> <span class="link-item" onclick="openTeamModal(${info.row_id})">${info.title}</span></td>
+                        <td><img src="${IMG_BASE_TEAM + info.image}" class="team-img" alt="${info.title}" onclick="openTeamModal(${info.row_id})" style="cursor:pointer;"> <span class="link-item" onclick="openTeamModal(${info.row_id})">${info.title}</span></td>
                         <td>${team.play}</td><td>${team.wins}</td><td>${team.draw}</td><td>${team.lose}</td>
                         <td>${team.for}</td><td>${team.against}</td><td>${team.diff}</td><td>${team.points}</td>
                     </tr>
@@ -783,13 +804,13 @@
         function renderGroupStandings(groups) {
             let html = '';
             for (const groupName in groups) {
-                html += `<h5 class="mt-3">المجموعة ${groupName}</h5>`;
+                html += `<h5 class="mt-3">Group ${groupName}</h5>`;
                 html += renderStandingsTable(groups[groupName]);
             }
             return html;
         }
 
-        // ========== تحميل الهدافين ==========
+        // ========== Load Scorers ==========
         async function loadScorers(page = 1) {
             if (!currentChampionship) return;
             showLoading();
@@ -801,17 +822,17 @@
                     scorersContent.innerHTML = renderPlayersList(data.data.data, 'goals');
                     renderPagination('scorersPagination', data.data, loadScorers);
                 } else {
-                    scorersContent.innerHTML = '<p>لا توجد بيانات</p>';
+                    scorersContent.innerHTML = '<p>No data</p>';
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('scorersContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الهدافين</div>';
+                document.getElementById('scorersContent').innerHTML = '<div class="alert alert-danger">Failed to load top scorers</div>';
             } finally {
                 hideLoading();
             }
         }
 
-        // ========== تحميل الصناع ==========
+        // ========== Load Assists ==========
         async function loadAssists(page = 1) {
             if (!currentChampionship) return;
             showLoading();
@@ -823,11 +844,11 @@
                     assistsContent.innerHTML = renderPlayersList(data.data.data, 'assist');
                     renderPagination('assistsPagination', data.data, loadAssists);
                 } else {
-                    assistsContent.innerHTML = '<p>لا توجد بيانات</p>';
+                    assistsContent.innerHTML = '<p>No data</p>';
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('assistsContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الصناع</div>';
+                document.getElementById('assistsContent').innerHTML = '<div class="alert alert-danger">Failed to load assists</div>';
             } finally {
                 hideLoading();
             }
@@ -841,7 +862,7 @@
                 html += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
                         <div class="d-flex align-items-center">
-                            <img src="${IMG_BASE_PLAYER + info.image}" class="player-img me-2" alt="${info.title}" onerror="this.style.display='none'">
+                            <img src="${IMG_BASE_PLAYER + info.image}" class="player-img me-2" alt="${info.title}" onclick="openPlayerModal(${info.id})" style="cursor:pointer;" onerror="this.style.display='none'">
                             <span class="link-item" onclick="openPlayerModal(${info.id})">${info.title}</span>
                             <small class="text-muted ms-2">(${info.team_name})</small>
                         </div>
@@ -879,7 +900,7 @@
             container.appendChild(ul);
         }
 
-        // ========== تحميل الأخبار ==========
+        // ========== Load News ==========
         async function loadNews(page = 1) {
             if (!currentChampionship) return;
             showLoading();
@@ -891,11 +912,11 @@
                     newsContent.innerHTML = renderNewsList(data.data.data);
                     renderPagination('newsPagination', data.data, loadNews);
                 } else {
-                    newsContent.innerHTML = '<p>لا توجد أخبار</p>';
+                    newsContent.innerHTML = '<p>No news</p>';
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('newsContent').innerHTML = '<div class="alert alert-danger">فشل تحميل الأخبار</div>';
+                document.getElementById('newsContent').innerHTML = '<div class="alert alert-danger">Failed to load news</div>';
             } finally {
                 hideLoading();
             }
@@ -921,7 +942,7 @@
             return html;
         }
 
-        // ========== تحميل خريطة المواجهات ==========
+        // ========== Load Bracket ==========
         async function loadBracket() {
             if (!currentChampionship) return;
             showLoading();
@@ -932,11 +953,11 @@
                 if (data.data && (data.data.map || data.data.lot)) {
                     bracketContent.innerHTML = renderBracket(data.data.map, data.data.lot);
                 } else {
-                    bracketContent.innerHTML = '<p>لا توجد بيانات للمواجهات</p>';
+                    bracketContent.innerHTML = '<p>No bracket data</p>';
                 }
             } catch (err) {
                 console.error(err);
-                document.getElementById('bracketContent').innerHTML = '<div class="alert alert-danger">فشل تحميل المواجهات</div>';
+                document.getElementById('bracketContent').innerHTML = '<div class="alert alert-danger">Failed to load bracket</div>';
             } finally {
                 hideLoading();
             }
@@ -945,18 +966,18 @@
         function renderBracket(map, lot) {
             let html = '';
             if (lot && lot.length > 0) {
-                html += '<h5 class="mt-3">الملحق (Playoffs)</h5>';
+                html += '<h5 class="mt-3">Playoffs</h5>';
                 lot.forEach(match => {
-                    const winner = match.winTeam ? (match.teamA.row_id == match.winTeam ? match.teamA.title : match.teamB.title) : 'غير محدد';
+                    const winner = match.winTeam ? (match.teamA.row_id == match.winTeam ? match.teamA.title : match.teamB.title) : 'Unknown';
                     html += `<div class="bracket-match">
                         <span class="link-item" onclick="openTeamModal(${match.teamA.row_id})">${match.teamA.title}</span> vs 
                         <span class="link-item" onclick="openTeamModal(${match.teamB.row_id})">${match.teamB.title}</span>
-                        (الفائز: ${winner})
+                        (Winner: ${winner})
                     </div>`;
                 });
             }
             if (map && map.length > 0) {
-                html += '<h5 class="mt-4">خريطة الأدوار الإقصائية</h5>';
+                html += '<h5 class="mt-4">Knockout Bracket</h5>';
                 map.forEach(match => {
                     const winnerClass = match.winTeam ? 'winner' : '';
                     html += `<div class="bracket-match ${winnerClass}">
@@ -970,7 +991,7 @@
             return html;
         }
 
-        // ========== نافذة الفريق ==========
+        // ========== Team Modal ==========
         async function openTeamModal(teamId) {
             showLoading();
             try {
@@ -1005,7 +1026,7 @@
                 modal.show();
             } catch (err) {
                 console.error(err);
-                showError('فشل تحميل معلومات الفريق');
+                showError('Failed to load team info');
             } finally {
                 hideLoading();
             }
@@ -1016,22 +1037,22 @@
             let html = `
                 <ul class="nav nav-tabs" id="teamModalTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">نظرة عامة</button>
+                        <button class="nav-link active" id="overview-tab" data-bs-toggle="tab" data-bs-target="#overview" type="button" role="tab">Overview</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="matches-tab-team" data-bs-toggle="tab" data-bs-target="#matches-team" type="button" role="tab">المباريات</button>
+                        <button class="nav-link" id="matches-tab-team" data-bs-toggle="tab" data-bs-target="#matches-team" type="button" role="tab">Matches</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="news-tab-team" data-bs-toggle="tab" data-bs-target="#news-team" type="button" role="tab">الأخبار</button>
+                        <button class="nav-link" id="news-tab-team" data-bs-toggle="tab" data-bs-target="#news-team" type="button" role="tab">News</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="standings-tab-team" data-bs-toggle="tab" data-bs-target="#standings-team" type="button" role="tab">الترتيب</button>
+                        <button class="nav-link" id="standings-tab-team" data-bs-toggle="tab" data-bs-target="#standings-team" type="button" role="tab">Standings</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="players-tab-team" data-bs-toggle="tab" data-bs-target="#players-team" type="button" role="tab">اللاعبون</button>
+                        <button class="nav-link" id="players-tab-team" data-bs-toggle="tab" data-bs-target="#players-team" type="button" role="tab">Players</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="transfers-tab-team" data-bs-toggle="tab" data-bs-target="#transfers-team" type="button" role="tab">الانتقالات</button>
+                        <button class="nav-link" id="transfers-tab-team" data-bs-toggle="tab" data-bs-target="#transfers-team" type="button" role="tab">Transfers</button>
                     </li>
                 </ul>
                 <div class="tab-content mt-3" id="teamModalTabsContent">
@@ -1045,7 +1066,7 @@
                         ${renderTeamNews(data.teamNews)}
                     </div>
                     <div class="tab-pane fade" id="standings-team" role="tabpanel">
-                        <div id="teamStandingsContent">جاري تحميل الترتيب...</div>
+                        <div id="teamStandingsContent">Loading standings...</div>
                     </div>
                     <div class="tab-pane fade" id="players-team" role="tabpanel">
                         ${renderTeamPlayers(data.players)}
@@ -1066,7 +1087,6 @@
                 });
             });
 
-            // تحميل الترتيب تلقائيًا عند فتح التبويب لأول مرة إذا كان نشطًا
             if (document.querySelector('#standings-team').classList.contains('active')) {
                 loadTeamStandings(data.teamInfo.id);
             }
@@ -1079,34 +1099,34 @@
                     <h4>${teamInfo.title}</h4>
                 </div>
                 <p>${teamInfo.about || ''}</p>
-                <p><strong>البلد:</strong> ${teamInfo.country ? teamInfo.country.title : ''}</p>
-                <p><strong>الملعب:</strong> ${teamInfo.stadium_name || ''}</p>
+                <p><strong>Country:</strong> ${teamInfo.country ? teamInfo.country.title : ''}</p>
+                <p><strong>Stadium:</strong> ${teamInfo.stadium_name || ''}</p>
                 <hr>
-                <h6>المدرب</h6>
+                <h6>Coach</h6>
                 ${players.coach ? `
                     <div class="d-flex align-items-center">
-                        <img src="${IMG_BASE_COACH + players.coach.image}" class="player-img me-2" style="width:40px;height:40px;">
+                        <img src="${IMG_BASE_COACH + players.coach.image}" class="player-img me-2" style="width:40px;height:40px;" onclick="openCoachModal(${players.coach.id})" style="cursor:pointer;">
                         <span class="link-item" onclick="openCoachModal(${players.coach.id})">${players.coach.title}</span>
                     </div>
-                ` : '<p>غير متوفر</p>'}
+                ` : '<p>Not available</p>'}
                 <hr>
-                <h6>البطولات</h6>
-                ${teamPage.cups ? renderTeamCups(teamPage.cups) : '<p>لا توجد بطولات</p>'}
+                <h6>Honours</h6>
+                ${teamPage.cups ? renderTeamCups(teamPage.cups) : '<p>No honours</p>'}
             `;
             return html;
         }
 
         function renderTeamMatches(matchesData) {
-            if (!matchesData) return '<p>لا توجد بيانات مباريات</p>';
-            let html = '<h6>المباريات القادمة</h6>';
-            html += matchesData.coming && matchesData.coming.data.length ? renderMatchesList(matchesData.coming.data) : '<p>لا توجد مباريات قادمة</p>';
-            html += '<h6 class="mt-3">المباريات المنتهية</h6>';
-            html += matchesData.end && matchesData.end.data.length ? renderMatchesList(matchesData.end.data) : '<p>لا توجد مباريات منتهية</p>';
+            if (!matchesData) return '<p>No matches data</p>';
+            let html = '<h6>Upcoming Matches</h6>';
+            html += matchesData.coming && matchesData.coming.data.length ? renderMatchesList(matchesData.coming.data) : '<p>No upcoming matches</p>';
+            html += '<h6 class="mt-3">Finished Matches</h6>';
+            html += matchesData.end && matchesData.end.data.length ? renderMatchesList(matchesData.end.data) : '<p>No finished matches</p>';
             return html;
         }
 
         function renderTeamNews(newsData) {
-            if (!newsData || !newsData.data || !newsData.data.length) return '<p>لا توجد أخبار</p>';
+            if (!newsData || !newsData.data || !newsData.data.length) return '<p>No news</p>';
             return renderNewsList(newsData.data);
         }
 
@@ -1116,12 +1136,14 @@
                 if (pos === 'coach') continue;
                 const playersList = playersData[pos];
                 if (Array.isArray(playersList)) {
-                    html += `<div class="col-6 col-md-4"><strong>${pos}</strong><ul>`;
+                    const groupName = getPositionFullName(pos);
+                    html += `<div class="col-6 col-md-4"><strong>${groupName}</strong><ul>`;
                     playersList.forEach(p => {
+                        const playerPos = getPositionFullName(p.position);
                         html += `<li class="d-flex align-items-center mb-1">
-                            <img src="${IMG_BASE_PLAYER + p.image}" class="player-img me-2" style="width:25px;height:25px;" onerror="this.style.display='none'">
+                            <img src="${IMG_BASE_PLAYER + p.image}" class="player-img me-2" style="width:25px;height:25px;cursor:pointer;" onclick="openPlayerModal(${p.row_id})" onerror="this.style.display='none'">
                             <span class="link-item" onclick="openPlayerModal(${p.row_id})">${p.title}</span>
-                            <span class="text-muted ms-2">(${p.position || ''})</span>
+                            <span class="text-muted ms-2">(${playerPos})</span>
                         </li>`;
                     });
                     html += '</ul></div>';
@@ -1132,30 +1154,30 @@
         }
 
         function renderTeamTransfers(transfersData) {
-            if (!transfersData) return '<p>لا توجد انتقالات</p>';
+            if (!transfersData) return '<p>No transfers</p>';
             const important = transfersData.important || [];
             const all = transfersData.all || [];
             const allTransfers = [...important, ...all.filter(t => !important.some(i => i.player_name?.row_id === t.player_name?.row_id))];
 
-            if (!allTransfers.length) return '<p>لا توجد انتقالات</p>';
+            if (!allTransfers.length) return '<p>No transfers</p>';
 
             let html = '<div class="row">';
             allTransfers.forEach(t => {
-                const playerImg = t.player_name?.image ? `<img src="${IMG_BASE_PLAYER + t.player_name.image}" class="player-img me-2" style="width:35px;height:35px;" onerror="this.style.display='none'">` : '';
-                const typeLabel = t.type === 0 ? 'انتقال دائم' : t.type === 1 ? 'إعارة' : t.type === 4 ? 'انتقال مجاني' : 'نوع آخر';
+                const playerImg = t.player_name?.image ? `<img src="${IMG_BASE_PLAYER + t.player_name.image}" class="player-img me-2" style="width:35px;height:35px;" onclick="openPlayerModal(${t.player_name.row_id})" style="cursor:pointer;" onerror="this.style.display='none'">` : '';
+                const typeLabel = t.type === 0 ? 'Permanent' : t.type === 1 ? 'Loan' : t.type === 4 ? 'Free' : 'Other';
                 html += `
                     <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card h-100 p-3">
                             <div class="d-flex align-items-center mb-2">
                                 ${playerImg}
-                                <span class="fw-bold link-item" onclick="openPlayerModal(${t.player_name.row_id})">${t.player_name?.title || 'غير معروف'}</span>
+                                <span class="fw-bold link-item" onclick="openPlayerModal(${t.player_name.row_id})">${t.player_name?.title || 'Unknown'}</span>
                             </div>
                             <div class="small">
-                                <div><strong>من:</strong> <span class="link-item" onclick="openTeamModal(${t.team_out.row_id})">${t.team_out?.title}</span></div>
-                                <div><strong>إلى:</strong> <span class="link-item" onclick="openTeamModal(${t.team_in.row_id})">${t.team_in?.title}</span></div>
-                                <div><strong>القيمة:</strong> ${t.value || 'غير معلن'}</div>
-                                <div><strong>النوع:</strong> ${typeLabel}</div>
-                                <div><strong>التاريخ:</strong> ${t.date_from} إلى ${t.date_to || 'الآن'}</div>
+                                <div><strong>From:</strong> <span class="link-item" onclick="openTeamModal(${t.team_out.row_id})">${t.team_out?.title}</span></div>
+                                <div><strong>To:</strong> <span class="link-item" onclick="openTeamModal(${t.team_in.row_id})">${t.team_in?.title}</span></div>
+                                <div><strong>Value:</strong> ${t.value || 'Undisclosed'}</div>
+                                <div><strong>Type:</strong> ${typeLabel}</div>
+                                <div><strong>Date:</strong> ${t.date_from} to ${t.date_to || 'Now'}</div>
                             </div>
                         </div>
                     </div>
@@ -1169,7 +1191,7 @@
             const container = document.getElementById('teamStandingsContent');
             if (!container || container.dataset.loaded) return;
             container.dataset.loaded = 'true';
-            container.innerHTML = '<div class="spinner-border spinner-border-sm"></div> جاري تحميل الترتيب...';
+            container.innerHTML = '<div class="spinner-border spinner-border-sm"></div> Loading standings...';
 
             try {
                 const teamInfoUrl = `${API_BASE}/info/team_info/${teamId}/L/60`;
@@ -1199,15 +1221,15 @@
                         if (teams && teams.length) {
                             standingsHtml += renderStandingsTable(teams, teamId);
                         } else {
-                            standingsHtml += '<p>لا توجد بيانات ترتيب</p>';
+                            standingsHtml += '<p>No standings data</p>';
                         }
                     } catch (err) {
-                        standingsHtml += '<p>فشل تحميل الترتيب</p>';
+                        standingsHtml += '<p>Failed to load standings</p>';
                     }
                 }
-                container.innerHTML = standingsHtml || '<p>لا توجد بطولات</p>';
+                container.innerHTML = standingsHtml || '<p>No championships</p>';
             } catch (err) {
-                container.innerHTML = '<p>فشل تحميل الترتيب</p>';
+                container.innerHTML = '<p>Failed to load standings</p>';
             }
         }
 
@@ -1220,7 +1242,7 @@
             return html;
         }
 
-        // ========== نافذة اللاعب ==========
+        // ========== Player Modal ==========
         async function openPlayerModal(playerId) {
             showLoading();
             try {
@@ -1232,7 +1254,7 @@
                 modal.show();
             } catch (err) {
                 console.error(err);
-                showError('فشل تحميل معلومات اللاعب');
+                showError('Failed to load player info');
             } finally {
                 hideLoading();
             }
@@ -1254,18 +1276,18 @@
                     <img src="${IMG_BASE_PLAYER + playerInfo.image}" class="player-img me-2" style="width:60px;height:60px;">
                     <h4>${playerInfo.title}</h4>
                 </div>
-                <p><strong>النادي:</strong> <span class="link-item" onclick="openTeamModal(${playerInfo.team_name.row_id})">${playerInfo.team_name.title}</span></p>
-                <p><strong>المركز:</strong> ${playerInfo.position || 'غير محدد'}</p>
-                <p><strong>الطول:</strong> ${playerInfo.height ? playerInfo.height + ' سم' : 'غير محدد'}</p>
-                <p><strong>الوزن:</strong> ${playerInfo.weight ? playerInfo.weight + ' كجم' : 'غير محدد'}</p>
-                <p><strong>تاريخ الميلاد:</strong> ${playerInfo.birth_day || 'غير محدد'}</p>
-                <p><strong>البلد:</strong> ${playerInfo.country ? playerInfo.country.title : ''}</p>
+                <p><strong>Club:</strong> <span class="link-item" onclick="openTeamModal(${playerInfo.team_name.row_id})">${playerInfo.team_name.title}</span></p>
+                <p><strong>Position:</strong> ${playerInfo.position ? getPositionFullName(playerInfo.position) : 'Unknown'}</p>
+                <p><strong>Height:</strong> ${playerInfo.height ? playerInfo.height + ' cm' : 'Unknown'}</p>
+                <p><strong>Weight:</strong> ${playerInfo.weight ? playerInfo.weight + ' kg' : 'Unknown'}</p>
+                <p><strong>Birth Date:</strong> ${playerInfo.birth_day || 'Unknown'}</p>
+                <p><strong>Country:</strong> ${playerInfo.country ? playerInfo.country.title : ''}</p>
                 <hr>
-                <h6>الإحصائيات</h6>
-                ${playerInfo.player_statistics ? renderPlayerStats(playerInfo.player_statistics) : '<p>لا توجد إحصائيات</p>'}
+                <h6>Statistics</h6>
+                ${playerInfo.player_statistics ? renderPlayerStats(playerInfo.player_statistics) : '<p>No stats</p>'}
                 <hr>
-                <h6>الانتقالات</h6>
-                ${playerInfo.transfers ? renderPlayerTransfers(playerInfo.transfers) : '<p>لا توجد انتقالات</p>'}
+                <h6>Transfers</h6>
+                ${playerInfo.transfers ? renderPlayerTransfers(playerInfo.transfers) : '<p>No transfers</p>'}
             `;
             body.innerHTML = html;
         }
@@ -1273,7 +1295,7 @@
         function renderPlayerStats(stats) {
             let html = '<ul>';
             stats.forEach(stat => {
-                html += `<li>${stat.league.title}: ${stat.appearances} مباراة، ${stat.goals} أهداف، ${stat.assist} تمريرات حاسمة</li>`;
+                html += `<li>${stat.league.title}: ${stat.appearances} apps, ${stat.goals} goals, ${stat.assist} assists</li>`;
             });
             html += '</ul>';
             return html;
@@ -1288,7 +1310,7 @@
             return html;
         }
 
-        // ========== نافذة المدرب ==========
+        // ========== Coach Modal ==========
         async function openCoachModal(coachId) {
             showLoading();
             try {
@@ -1300,7 +1322,7 @@
                 modal.show();
             } catch (err) {
                 console.error(err);
-                showError('فشل تحميل معلومات المدرب');
+                showError('Failed to load coach info');
             } finally {
                 hideLoading();
             }
@@ -1322,11 +1344,11 @@
                     <img src="${IMG_BASE_COACH + coachInfo.image}" class="player-img me-2" style="width:60px;height:60px;">
                     <h4>${coachInfo.title}</h4>
                 </div>
-                <p><strong>تاريخ الميلاد:</strong> ${coachInfo.birth_date || 'غير محدد'}</p>
-                <p><strong>البلد:</strong> ${coachInfo.country ? coachInfo.country.title : ''}</p>
+                <p><strong>Birth Date:</strong> ${coachInfo.birth_date || 'Unknown'}</p>
+                <p><strong>Country:</strong> ${coachInfo.country ? coachInfo.country.title : ''}</p>
                 <hr>
-                <h6>المسيرة التدريبية</h6>
-                ${coachInfo.teams_c ? renderCoachTeams(coachInfo.teams_c) : '<p>لا توجد بيانات</p>'}
+                <h6>Coaching Career</h6>
+                ${coachInfo.teams_c ? renderCoachTeams(coachInfo.teams_c) : '<p>No data</p>'}
             `;
             body.innerHTML = html;
         }
@@ -1340,7 +1362,7 @@
             return html;
         }
 
-        // ========== نافذة الخبر ==========
+        // ========== News Modal ==========
         async function openNewsModal(newsId) {
             showLoading();
             try {
@@ -1358,7 +1380,7 @@
                 modal.show();
             } catch (err) {
                 console.error(err);
-                showError('فشل تحميل تفاصيل الخبر');
+                showError('Failed to load news detail');
             } finally {
                 hideLoading();
             }
@@ -1372,7 +1394,7 @@
                 <p class="text-muted">${newsData.created_at.date} | ❤️ ${newsData.likes_count} | 👎 ${newsData.dislikes_count}</p>
                 <div class="news-full-content">${newsData.full_news}</div>
                 <hr>
-                <h6>التعليقات (${commentsData.total_all || 0})</h6>
+                <h6>Comments (${commentsData.total_all || 0})</h6>
             `;
 
             if (commentsData.data && commentsData.data.length > 0) {
@@ -1382,14 +1404,14 @@
                 });
                 html += '</ul>';
             } else {
-                html += '<p>لا توجد تعليقات</p>';
+                html += '<p>No comments</p>';
             }
 
             body.innerHTML = html;
         }
 
-        // بدء التحميل
+        // Initialize
         loadChampionships();
     </script>
 </body>
-            </html>
+    </html>
