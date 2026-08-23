@@ -1,219 +1,1340 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>انتقالات اللاعبين - YSScores</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Transfer News - Live Updates</title>
     <style>
+        :root {
+            --bg-primary: #0c1220;
+            --bg-secondary: #111a2e;
+            --bg-card: #151f35;
+            --bg-card-hover: #1a2740;
+            --bg-modal: #0f1729;
+            --border: #1e2d4a;
+            --border-light: #2a3d5f;
+            --text-primary: #f0f4fa;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-green: #10b981;
+            --accent-green-bg: rgba(16, 185, 129, 0.15);
+            --accent-blue: #3b82f6;
+            --accent-blue-bg: rgba(59, 130, 246, 0.15);
+            --accent-orange: #f59e0b;
+            --accent-orange-bg: rgba(245, 158, 11, 0.15);
+            --accent-red: #ef4444;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.6);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --radius-full: 50%;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --font: 'Segoe UI', 'Roboto', 'Helvetica Neue', Arial, sans-serif;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f8f9fa;
+            font-family: var(--font);
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
         }
-        .transfer-card {
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-            overflow: hidden;
-            transition: transform 0.2s;
+
+        /* ===== Scrollbar ===== */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: var(--border-light);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3d527a;
+        }
+
+        /* ===== Header ===== */
+        .site-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: rgba(12, 18, 32, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            height: 64px;
+        }
+        .site-header .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 800;
+            font-size: 1.25rem;
+            letter-spacing: -0.5px;
+            color: var(--text-primary);
+            text-decoration: none;
+        }
+        .site-header .logo-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-sm);
+            background: linear-gradient(135deg, var(--accent-green), #059669);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            color: #fff;
+        }
+        .site-header .live-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--accent-green);
+            background: var(--accent-green-bg);
+            padding: 6px 14px;
+            border-radius: 20px;
+            animation: pulse-live 2s infinite;
+        }
+        .live-badge .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: var(--radius-full);
+            background: var(--accent-green);
+            box-shadow: 0 0 8px rgba(16, 185, 129, 0.7);
+        }
+        @keyframes pulse-live {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        /* ===== Main Container ===== */
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 24px 20px 80px;
+        }
+
+        /* ===== Section Headers ===== */
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             margin-bottom: 20px;
-            background: #fff;
         }
-        .transfer-card:hover {
-            transform: translateY(-5px);
-        }
-        .transfer-card .card-body {
-            padding: 1.25rem;
-        }
-        .player-img {
-            width: 60px;
-            height: 60px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid #e0e0e0;
-        }
-        .team-img {
-            width: 40px;
-            height: 40px;
-            object-fit: contain;
-        }
-        .transfer-info {
+        .section-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
             display: flex;
             align-items: center;
             gap: 10px;
-            margin: 10px 0;
+            color: var(--text-primary);
         }
-        .transfer-details {
+        .section-title .icon {
+            width: 28px;
+            height: 28px;
+            border-radius: var(--radius-sm);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             font-size: 0.9rem;
-            color: #6c757d;
+            background: var(--accent-orange-bg);
+            color: var(--accent-orange);
         }
-        .value {
-            font-weight: bold;
-            color: #198754;
+        .section-count {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            background: var(--bg-card);
+            padding: 4px 12px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
         }
-        .section-title {
-            font-size: 1.5rem;
+
+        /* ===== Important Transfers Grid ===== */
+        .important-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+        .important-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 18px 20px;
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .important-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            border-radius: var(--radius) var(--radius) 0 0;
+        }
+        .important-card.type-0::before {
+            background: var(--accent-green);
+        }
+        .important-card.type-1::before,
+        .important-card.type-4::before {
+            background: var(--accent-blue);
+        }
+        .important-card:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-light);
+            transform: translateY(-2px);
+            box-shadow: var(--shadow);
+        }
+        .important-card .transfer-top {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 14px;
+        }
+        .player-photo-sm {
+            width: 48px;
+            height: 48px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .important-card:hover .player-photo-sm {
+            border-color: var(--accent-green);
+            transform: scale(1.05);
+        }
+        .player-info-sm {
+            flex: 1;
+            min-width: 0;
+        }
+        .player-name-sm {
             font-weight: 700;
-            margin: 30px 0 15px;
-            color: #212529;
-            border-right: 4px solid #0d6efd;
-            padding-right: 10px;
+            font-size: 1rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .loader {
+        .player-position-sm {
+            font-size: 0.78rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            letter-spacing: 0.3px;
+        }
+        .transfer-type-badge {
+            font-size: 0.7rem;
+            font-weight: 700;
+            padding: 4px 10px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            flex-shrink: 0;
+        }
+        .badge-transfer {
+            background: var(--accent-green-bg);
+            color: var(--accent-green);
+        }
+        .badge-loan {
+            background: var(--accent-blue-bg);
+            color: var(--accent-blue);
+        }
+        .transfer-teams {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .team-chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 5px 12px 5px 6px;
+            font-size: 0.82rem;
+            font-weight: 600;
+            max-width: 45%;
+            transition: var(--transition);
+        }
+        .team-chip:hover {
+            border-color: var(--border-light);
+        }
+        .team-chip .team-badge-sm {
+            width: 22px;
+            height: 22px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            background: var(--bg-primary);
+        }
+        .team-chip .team-name-sm {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            font-size: 0.78rem;
+        }
+        .arrow-icon {
+            color: var(--text-muted);
+            font-size: 1rem;
+            flex-shrink: 0;
+        }
+        .transfer-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            font-size: 0.78rem;
+            color: var(--text-muted);
+        }
+        .transfer-meta .value {
+            font-weight: 700;
+            color: var(--accent-orange);
+            font-size: 0.85rem;
+        }
+        .transfer-meta .date {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ===== All Transfers List ===== */
+        .transfers-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+        .transfer-row {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            cursor: pointer;
+            transition: var(--transition);
+            position: relative;
+        }
+        .transfer-row:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--border-light);
+            transform: translateX(4px);
+            box-shadow: var(--shadow);
+        }
+        .transfer-row .player-photo {
+            width: 52px;
+            height: 52px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            border: 2px solid var(--border-light);
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+        .transfer-row:hover .player-photo {
+            border-color: var(--accent-blue);
+        }
+        .transfer-row .main-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .transfer-row .player-name {
+            font-weight: 700;
+            font-size: 1.02rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .transfer-row .player-name .pos-tag {
+            font-size: 0.68rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 2px 8px;
+            border-radius: 10px;
+            letter-spacing: 0.3px;
+        }
+        .transfer-row .teams-line {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .transfer-row .teams-line .team-badge-inline {
+            width: 18px;
+            height: 18px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            background: var(--bg-primary);
+            vertical-align: middle;
+        }
+        .transfer-row .teams-line .arrow {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            flex-shrink: 0;
+        }
+        .transfer-row .right-side {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            gap: 4px;
+            flex-shrink: 0;
+        }
+        .transfer-row .value-display {
+            font-weight: 700;
+            font-size: 0.85rem;
+            color: var(--accent-orange);
+        }
+        .transfer-row .date-display {
+            font-size: 0.72rem;
+            color: var(--text-muted);
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ===== Loading Spinner ===== */
+        .loading-sentinel {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 30px 0;
+            gap: 12px;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+        .spinner {
+            width: 28px;
+            height: 28px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent-green);
+            border-radius: var(--radius-full);
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        .no-more {
             text-align: center;
-            padding: 40px;
-            display: none;
+            padding: 30px 0;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+            font-weight: 500;
         }
+
+        /* ===== Player Modal ===== */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            z-index: 200;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .modal-container {
+            background: var(--bg-modal);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            max-width: 620px;
+            width: 100%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: var(--shadow-lg);
+            transform: translateY(20px) scale(0.95);
+            transition: var(--transition);
+            position: relative;
+        }
+        .modal-overlay.active .modal-container {
+            transform: translateY(0) scale(1);
+        }
+        .modal-close {
+            position: absolute;
+            top: 14px;
+            right: 14px;
+            z-index: 10;
+            width: 36px;
+            height: 36px;
+            border-radius: var(--radius-full);
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 1.2rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+            backdrop-filter: blur(8px);
+        }
+        .modal-close:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--border-light);
+        }
+
+        /* Modal Cover */
+        .modal-cover {
+            position: relative;
+            height: 200px;
+            border-radius: 16px 16px 0 0;
+            overflow: hidden;
+            background: var(--bg-secondary);
+        }
+        .modal-cover img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            opacity: 0.85;
+        }
+        .modal-cover .cover-overlay {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 60%;
+            background: linear-gradient(to top, var(--bg-modal) 20%, transparent 100%);
+            pointer-events: none;
+        }
+
+        /* Modal Body */
+        .modal-body {
+            padding: 0 24px 24px;
+            position: relative;
+        }
+        .modal-player-avatar {
+            width: 110px;
+            height: 110px;
+            border-radius: var(--radius-full);
+            border: 4px solid var(--bg-modal);
+            object-fit: cover;
+            background: var(--bg-secondary);
+            margin-top: -55px;
+            position: relative;
+            z-index: 5;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
+        }
+        .modal-player-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .modal-player-name .country-flag {
+            width: 24px;
+            height: 18px;
+            border-radius: 3px;
+            object-fit: cover;
+            border: 1px solid var(--border);
+        }
+        .modal-player-meta {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-top: 6px;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .modal-player-meta .pos-badge {
+            font-weight: 700;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 14px;
+            background: var(--accent-blue-bg);
+            color: var(--accent-blue);
+            letter-spacing: 0.3px;
+        }
+        .modal-player-meta .foot-badge {
+            font-weight: 600;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 14px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        .modal-player-meta .team-badge-link {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            padding: 3px 10px;
+            border-radius: 14px;
+        }
+        .modal-player-meta .team-badge-link img {
+            width: 18px;
+            height: 18px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+        }
+
+        /* Modal Stats Grid */
+        .modal-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            gap: 10px;
+            margin-top: 20px;
+            padding: 16px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+        }
+        .stat-item {
+            text-align: center;
+        }
+        .stat-item .stat-value {
+            font-weight: 800;
+            font-size: 1.1rem;
+            color: var(--text-primary);
+        }
+        .stat-item .stat-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-top: 2px;
+        }
+
+        /* Modal Transfer History */
+        .modal-history-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--text-primary);
+        }
+        .modal-history-title .icon {
+            color: var(--accent-orange);
+        }
+        .transfer-history-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+        .history-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            transition: var(--transition);
+            font-size: 0.82rem;
+        }
+        .history-item:hover {
+            border-color: var(--border-light);
+        }
+        .history-item .h-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: var(--radius-full);
+            object-fit: cover;
+            background: var(--bg-secondary);
+            flex-shrink: 0;
+        }
+        .history-item .h-info {
+            flex: 1;
+            min-width: 0;
+        }
+        .history-item .h-team {
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .history-item .h-dates {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+        }
+        .history-item .h-trans {
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            flex-shrink: 0;
+        }
+        .history-item .h-value {
+            font-size: 0.75rem;
+            font-weight: 700;
+            color: var(--accent-orange);
+            flex-shrink: 0;
+            min-width: 55px;
+            text-align: right;
+        }
+        .history-item.active-transfer {
+            border-color: var(--accent-green);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        /* ===== Error States ===== */
         .error-message {
             text-align: center;
             padding: 30px;
-            color: #dc3545;
-            display: none;
-            background: #f8d7da;
-            border-radius: 8px;
-            margin: 20px 0;
+            color: var(--accent-red);
+            font-size: 0.9rem;
+            font-weight: 500;
+            background: rgba(239, 68, 68, 0.08);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: var(--radius-sm);
+        }
+
+        /* ===== Responsive ===== */
+        @media (max-width: 768px) {
+            .container {
+                padding: 16px 12px 60px;
+            }
+            .site-header {
+                padding: 0 16px;
+                height: 56px;
+            }
+            .site-header .logo {
+                font-size: 1.05rem;
+                gap: 8px;
+            }
+            .site-header .logo-icon {
+                width: 30px;
+                height: 30px;
+                font-size: 0.9rem;
+            }
+            .section-title {
+                font-size: 1.15rem;
+            }
+            .important-grid {
+                grid-template-columns: 1fr;
+            }
+            .transfer-row {
+                padding: 12px 14px;
+                gap: 12px;
+            }
+            .transfer-row .player-photo {
+                width: 44px;
+                height: 44px;
+            }
+            .transfer-row .player-name {
+                font-size: 0.92rem;
+            }
+            .transfer-row .teams-line {
+                font-size: 0.78rem;
+                gap: 6px;
+            }
+            .transfer-row .right-side {
+                gap: 2px;
+            }
+            .modal-container {
+                max-height: 90vh;
+                border-radius: 12px;
+            }
+            .modal-cover {
+                height: 150px;
+                border-radius: 12px 12px 0 0;
+            }
+            .modal-player-avatar {
+                width: 80px;
+                height: 80px;
+                margin-top: -40px;
+                border-width: 3px;
+            }
+            .modal-body {
+                padding: 0 16px 16px;
+            }
+            .modal-player-name {
+                font-size: 1.2rem;
+            }
+            .modal-stats {
+                grid-template-columns: repeat(3, 1fr);
+                padding: 12px;
+                gap: 8px;
+            }
+            .stat-item .stat-value {
+                font-size: 0.95rem;
+            }
+        }
+        @media (max-width: 480px) {
+            .transfer-row {
+                flex-wrap: wrap;
+                align-items: flex-start;
+            }
+            .transfer-row .right-side {
+                flex-direction: row;
+                align-items: center;
+                gap: 8px;
+                width: 100%;
+                justify-content: space-between;
+                margin-top: 4px;
+            }
+            .modal-stats {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .team-chip {
+                max-width: 40%;
+                padding: 4px 8px 4px 4px;
+                font-size: 0.7rem;
+            }
+            .team-chip .team-badge-sm {
+                width: 18px;
+                height: 18px;
+            }
+            .team-chip .team-name-sm {
+                font-size: 0.68rem;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <h1 class="text-center mb-5 fw-bold">🔄 انتقالات اللاعبين</h1>
 
-        <div id="loader" class="loader">
-            <div class="spinner-border text-primary" role="status">
-                <span class="visually-hidden">جاري التحميل...</span>
+    <!-- ===== Header ===== -->
+    <header class="site-header">
+        <a href="#" class="logo">
+            <span class="logo-icon">⚽</span>
+            <span>Transfer News</span>
+        </a>
+        <div class="live-badge">
+            <span class="dot"></span>
+            <span>Live Updates</span>
+        </div>
+    </header>
+
+    <!-- ===== Main Content ===== -->
+    <main class="container">
+        <!-- Important Transfers Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="icon">⭐</span>
+                Key Transfers
+            </h2>
+            <span class="section-count" id="importantCount">Loading...</span>
+        </div>
+        <div class="important-grid" id="importantGrid">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- All Transfers Section -->
+        <div class="section-header">
+            <h2 class="section-title">
+                <span class="icon">🔄</span>
+                All Transfers
+            </h2>
+            <span class="section-count" id="totalCount">Loading...</span>
+        </div>
+        <div class="transfers-list" id="transfersList">
+            <!-- Populated by JS -->
+        </div>
+
+        <!-- Infinite Scroll Sentinel -->
+        <div id="loadingSentinel" class="loading-sentinel">
+            <div class="spinner"></div>
+            <span>Loading more transfers...</span>
+        </div>
+    </main>
+
+    <!-- ===== Player Profile Modal ===== -->
+    <div class="modal-overlay" id="playerModal">
+        <div class="modal-container" id="modalContainer">
+            <button class="modal-close" id="modalClose" aria-label="Close">&times;</button>
+            <div id="modalContent">
+                <!-- Populated by JS -->
             </div>
-            <p class="mt-3">جاري تحميل الانتقالات...</p>
         </div>
-
-        <div id="errorMessage" class="error-message">
-            <p><strong>تعذر جلب البيانات من المصدر.</strong></p>
-            <p>يرجى التحقق من الاتصال أو المحاولة لاحقًا.</p>
-        </div>
-
-        <div id="transfersContainer"></div>
     </div>
 
     <script>
-        // ========== الإعدادات ==========
-        const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
-        const TRANSFER_API_URL = 'https://api-en.ysscores.com/api/info/transfer_info_page/0?page=1';
-        const PLAYER_IMG_BASE = 'https://imgs.ysscores.com/player/64/';
-        const TEAM_IMG_BASE = 'https://imgs.ysscores.com/teams/64/';
+        // ===== Configuration =====
+        const API_BASE = 'https://api-en.ysscores.com/api/info';
+        const IMG_PLAYER = 'https://imgs.ysscores.com/player/150/';
+        const IMG_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
+        const IMG_TEAM_SM = 'https://imgs.ysscores.com/teams/128/';
+        const IMG_TEAM_MD = 'https://imgs.ysscores.com/teams/150/';
+        const IMG_COUNTRY = 'https://imgs.ysscores.com/country/';
 
-        // بناء الرابط النهائي للدالة مع تمرير الرابط الهدف
-        const FINAL_URL = SUPABASE_PROXY_URL + '?url=' + encodeURIComponent(TRANSFER_API_URL);
+        // ===== State =====
+        let currentPage = 0;
+        let lastPage = 1;
+        let totalTransfers = 0;
+        let isLoading = false;
+        let allLoaded = false;
+        let importantLoaded = false;
 
-        // ========== دوال مساعدة ==========
-        function formatDate(dateString) {
-            if (!dateString) return 'غير محدد';
-            return dateString;
+        // ===== DOM Elements =====
+        const importantGrid = document.getElementById('importantGrid');
+        const transfersList = document.getElementById('transfersList');
+        const loadingSentinel = document.getElementById('loadingSentinel');
+        const importantCount = document.getElementById('importantCount');
+        const totalCount = document.getElementById('totalCount');
+        const playerModal = document.getElementById('playerModal');
+        const modalContent = document.getElementById('modalContent');
+        const modalClose = document.getElementById('modalClose');
+
+        // ===== Utility Functions =====
+        function getTransferType(type) {
+            const types = {
+                0: { label: 'Transfer', badgeClass: 'badge-transfer' },
+                1: { label: 'Loan', badgeClass: 'badge-loan' },
+                2: { label: 'Free', badgeClass: 'badge-transfer' },
+                3: { label: 'End of Loan', badgeClass: 'badge-loan' },
+                4: { label: 'Loan', badgeClass: 'badge-loan' },
+            };
+            return types[type] || { label: 'Transfer', badgeClass: 'badge-transfer' };
         }
 
         function formatValue(value) {
-            if (!value || value === "0") return 'غير معلن';
-            return value + ' €';
+            if (value === null || value === undefined || value === '' || value === '0' || value === 0) {
+                return 'Free';
+            }
+            const str = String(value);
+            if (str.includes('M') || str.includes('K') || str.includes('B')) {
+                return '€' + str;
+            }
+            const num = parseFloat(str);
+            if (isNaN(num)) return 'Free';
+            if (num >= 1000000) {
+                return '€' + (num / 1000000).toFixed(1) + 'M';
+            }
+            if (num >= 1000) {
+                return '€' + (num / 1000).toFixed(0) + 'K';
+            }
+            return '€' + num;
         }
 
-        function getTransferType(type) {
-            const types = {
-                0: 'انتقال دائم',
-                1: 'إعارة',
-                4: 'انتقال مجاني',
-            };
-            return types[type] || 'نوع آخر';
+        function formatDate(dateStr) {
+            if (!dateStr) return '—';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
-        function createTransferCard(transfer) {
-            const playerImg = PLAYER_IMG_BASE + (transfer.player_name?.image || 'default.png');
-            const teamOutImg = TEAM_IMG_BASE + (transfer.team_out?.image || 'default.png');
-            const teamInImg = TEAM_IMG_BASE + (transfer.team_in?.image || 'default.png');
-            const playerName = transfer.player_name?.title || 'لاعب غير معروف';
-            const teamOutName = transfer.team_out?.title || 'غير محدد';
-            const teamInName = transfer.team_in?.title || 'غير محدد';
-            const dateFrom = formatDate(transfer.date_from);
-            const dateTo = formatDate(transfer.date_to);
-            const value = formatValue(transfer.value);
-            const type = getTransferType(transfer.type);
+        function formatDateShort(dateStr) {
+            if (!dateStr) return '—';
+            const date = new Date(dateStr);
+            if (isNaN(date.getTime())) return dateStr;
+            return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        }
 
-            return `
-                <div class="col-md-6 col-lg-4">
-                    <div class="transfer-card h-100">
-                        <div class="card-body">
-                            <div class="d-flex align-items-center justify-content-center mb-3">
-                                <img src="${playerImg}" class="player-img" alt="${playerName}" onerror="this.style.display='none'">
+        function calculateAge(birthDate) {
+            if (!birthDate) return '—';
+            const birth = new Date(birthDate);
+            if (isNaN(birth.getTime())) return '—';
+            const today = new Date();
+            let age = today.getFullYear() - birth.getFullYear();
+            const monthDiff = today.getMonth() - birth.getMonth();
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+                age--;
+            }
+            return age;
+        }
+
+        function getImageUrl(imgName, type) {
+            if (!imgName) return '';
+            if (imgName.startsWith('http')) return imgName;
+            switch (type) {
+                case 'player':
+                    return IMG_PLAYER + imgName;
+                case 'cover':
+                    return IMG_PLAYER_COVER + imgName;
+                case 'team-sm':
+                    return IMG_TEAM_SM + imgName;
+                case 'team-md':
+                    return IMG_TEAM_MD + imgName;
+                case 'country':
+                    return IMG_COUNTRY + imgName;
+                default:
+                    return imgName;
+            }
+        }
+
+        function handleImageError(img, fallbackText) {
+            img.style.display = 'none';
+            if (img.parentElement && !img.parentElement.querySelector('.img-fallback')) {
+                const fallback = document.createElement('span');
+                fallback.className = 'img-fallback';
+                fallback.textContent = fallbackText || '🏟️';
+                fallback.style.cssText =
+                    'display:flex;align-items:center;justify-content:center;font-size:1.2rem;width:100%;height:100%;background:var(--bg-secondary);';
+                img.parentElement.insertBefore(fallback, img);
+            }
+        }
+
+        function truncateText(text, maxLength) {
+            if (!text) return '';
+            return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
+        }
+
+        // ===== Render Functions =====
+        function renderImportantTransfers(transfers) {
+            if (!transfers || transfers.length === 0) {
+                importantGrid.innerHTML =
+                    '<div class="error-message" style="grid-column:1/-1;">No important transfers found.</div>';
+                return;
+            }
+            importantCount.textContent = transfers.length + ' transfers';
+            importantGrid.innerHTML = transfers.map(t => {
+                const typeInfo = getTransferType(t.type);
+                const playerImg = getImageUrl(t.player_name?.image, 'player');
+                const teamOutImg = getImageUrl(t.team_out?.image, 'team-sm');
+                const teamInImg = getImageUrl(t.team_in?.image, 'team-sm');
+                return `
+                    <div class="important-card type-${t.type}" onclick="openPlayerModal(${t.player_name?.row_id})">
+                        <div class="transfer-top">
+                            <img class="player-photo-sm" src="${playerImg}" alt="${t.player_name?.title || 'Player'}"
+                                 onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                            <span style="display:none;width:48px;height:48px;border-radius:50%;background:var(--bg-secondary);align-items:center;justify-content:center;font-size:1rem;flex-shrink:0;">👤</span>
+                            <div class="player-info-sm">
+                                <div class="player-name-sm">${t.player_name?.title || 'Unknown'}</div>
+                                <div class="player-position-sm">${t.player_name?.position || '—'}</div>
                             </div>
-                            <h5 class="text-center mb-3">${playerName}</h5>
-                            <div class="transfer-info justify-content-center">
-                                <img src="${teamOutImg}" class="team-img" alt="${teamOutName}" onerror="this.style.display='none'">
-                                <span>${teamOutName}</span>
-                                <span class="mx-2">←</span>
-                                <span>${teamInName}</span>
-                                <img src="${teamInImg}" class="team-img" alt="${teamInName}" onerror="this.style.display='none'">
-                            </div>
-                            <div class="transfer-details text-center">
-                                <div>📅 من: ${dateFrom} | إلى: ${dateTo}</div>
-                                <div>💰 القيمة: <span class="value">${value}</span></div>
-                                <div>🔁 النوع: ${type}</div>
-                            </div>
+                            <span class="transfer-type-badge ${typeInfo.badgeClass}">${typeInfo.label}</span>
                         </div>
+                        <div class="transfer-teams">
+                            <span class="team-chip">
+                                <img class="team-badge-sm" src="${teamOutImg}" alt="${t.team_out?.title || ''}"
+                                     onerror="this.style.display='none';">
+                                <span class="team-name-sm">${truncateText(t.team_out?.title || 'Unknown', 18)}</span>
+                            </span>
+                            <span class="arrow-icon">➜</span>
+                            <span class="team-chip">
+                                <img class="team-badge-sm" src="${teamInImg}" alt="${t.team_in?.title || ''}"
+                                     onerror="this.style.display='none';">
+                                <span class="team-name-sm">${truncateText(t.team_in?.title || 'Unknown', 18)}</span>
+                            </span>
+                        </div>
+                        <div class="transfer-meta">
+                            <span class="value">${formatValue(t.value)}</span>
+                            <span class="date">📅 ${formatDateShort(t.date_from)}</span>
+                            ${t.date_to ? `<span class="date">→ ${formatDateShort(t.date_to)}</span>` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderTransferRow(t) {
+            const typeInfo = getTransferType(t.type);
+            const playerImg = getImageUrl(t.player_name?.image, 'player');
+            const teamOutImg = getImageUrl(t.team_out?.image, 'team-sm');
+            const teamInImg = getImageUrl(t.team_in?.image, 'team-sm');
+            return `
+                <div class="transfer-row" onclick="openPlayerModal(${t.player_name?.row_id})">
+                    <img class="player-photo" src="${playerImg}" alt="${t.player_name?.title || 'Player'}"
+                         onerror="this.style.display='none';">
+                    <div class="main-info">
+                        <div class="player-name">
+                            ${t.player_name?.title || 'Unknown'}
+                            <span class="pos-tag">${t.player_name?.position || '—'}</span>
+                        </div>
+                        <div class="teams-line">
+                            <img class="team-badge-inline" src="${teamOutImg}" alt="${t.team_out?.title || ''}"
+                                 onerror="this.style.display='none';">
+                            <span>${truncateText(t.team_out?.title || 'Unknown', 20)}</span>
+                            <span class="arrow">➜</span>
+                            <img class="team-badge-inline" src="${teamInImg}" alt="${t.team_in?.title || ''}"
+                                 onerror="this.style.display='none';">
+                            <span>${truncateText(t.team_in?.title || 'Unknown', 20)}</span>
+                        </div>
+                    </div>
+                    <div class="right-side">
+                        <span class="transfer-type-badge ${typeInfo.badgeClass}" style="font-size:0.65rem;">${typeInfo.label}</span>
+                        <span class="value-display">${formatValue(t.value)}</span>
+                        <span class="date-display">${formatDateShort(t.date_from)}${t.date_to ? ' → ' + formatDateShort(t.date_to) : ''}</span>
                     </div>
                 </div>
             `;
         }
 
-        function renderTransfers(data) {
-            const container = document.getElementById('transfersContainer');
-            container.innerHTML = '';
+        function appendTransfers(transfers) {
+            if (!transfers || transfers.length === 0) return;
+            transfersList.insertAdjacentHTML('beforeend', transfers.map(renderTransferRow).join(''));
+        }
 
-            // الانتقالات المهمة
-            if (data.important && data.important.length > 0) {
-                let html = `<h2 class="section-title">⭐ انتقالات مهمة</h2><div class="row">`;
-                data.important.forEach(item => html += createTransferCard(item));
-                html += `</div>`;
-                container.innerHTML += html;
+        // ===== API Calls =====
+        async function fetchTransfersPage(page) {
+            const url = `${API_BASE}/transfer_info_page/0?page=${page}`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            if (!data.status || data.status_code !== 200) {
+                throw new Error(data.message || 'API error');
             }
+            return data.data;
+        }
 
-            // جميع الانتقالات
-            if (data.all && data.all.length > 0) {
-                let html = `<h2 class="section-title">📋 جميع الانتقالات</h2><div class="row">`;
-                data.all.forEach(item => html += createTransferCard(item));
-                html += `</div>`;
-                container.innerHTML += html;
+        async function fetchPlayerInfo(playerId) {
+            const url = `${API_BASE}/player_info/${playerId}/L/60`;
+            const response = await fetch(url);
+            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+            const data = await response.json();
+            if (!data.status || data.status_code !== 200) {
+                throw new Error(data.message || 'API error');
             }
+            return data.data;
+        }
 
-            if ((!data.important || data.important.length === 0) && (!data.all || data.all.length === 0)) {
-                container.innerHTML = '<p class="text-center text-muted">لا توجد انتقالات متاحة.</p>';
+        // ===== Infinite Scroll =====
+        async function loadInitialData() {
+            try {
+                const data = await fetchTransfersPage(1);
+                currentPage = 1;
+                lastPage = data.pagination?.last_page || 1;
+                totalTransfers = data.pagination?.total || 0;
+                totalCount.textContent = totalTransfers.toLocaleString() + ' transfers';
+
+                if (!importantLoaded && data.important && data.important.length > 0) {
+                    renderImportantTransfers(data.important);
+                    importantLoaded = true;
+                }
+                if (data.all && data.all.length > 0) {
+                    appendTransfers(data.all);
+                }
+                if (currentPage >= lastPage) {
+                    allLoaded = true;
+                    loadingSentinel.innerHTML = '<div class="no-more">🏁 You\'ve reached the end of all transfers.</div>';
+                }
+            } catch (error) {
+                console.error('Error loading transfers:', error);
+                transfersList.innerHTML =
+                    `<div class="error-message">Failed to load transfers. Please try again later.<br><small>${error.message}</small></div>`;
+                loadingSentinel.style.display = 'none';
             }
         }
 
-        async function fetchTransfers() {
-            const loader = document.getElementById('loader');
-            const errorMsg = document.getElementById('errorMessage');
-            const container = document.getElementById('transfersContainer');
-
-            loader.style.display = 'block';
-            errorMsg.style.display = 'none';
-            container.innerHTML = '';
+        async function loadMoreTransfers() {
+            if (isLoading || allLoaded) return;
+            isLoading = true;
+            loadingSentinel.innerHTML = '<div class="spinner"></div><span>Loading more transfers...</span>';
 
             try {
-                const response = await fetch(FINAL_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error ${response.status}`);
+                const nextPage = currentPage + 1;
+                if (nextPage > lastPage) {
+                    allLoaded = true;
+                    loadingSentinel.innerHTML = '<div class="no-more">🏁 You\'ve reached the end of all transfers.</div>';
+                    return;
                 }
-                const data = await response.json();
-                // البيانات موجودة في data.data (المفتاح data يحتوي على important و all)
-                renderTransfers(data.data);
+                const data = await fetchTransfersPage(nextPage);
+                currentPage = nextPage;
+                lastPage = data.pagination?.last_page || lastPage;
+                if (data.all && data.all.length > 0) {
+                    appendTransfers(data.all);
+                }
+                if (currentPage >= lastPage) {
+                    allLoaded = true;
+                    loadingSentinel.innerHTML = '<div class="no-more">🏁 You\'ve reached the end of all transfers.</div>';
+                } else {
+                    loadingSentinel.innerHTML = '<div class="spinner"></div><span>Scroll to load more...</span>';
+                }
             } catch (error) {
-                console.error('فشل الجلب:', error);
-                errorMsg.style.display = 'block';
+                console.error('Error loading more transfers:', error);
+                loadingSentinel.innerHTML =
+                    `<div class="error-message" style="padding:12px;">Failed to load more. <a href="#" onclick="retryLoadMore();return false;" style="color:var(--accent-blue);">Retry</a></div>`;
             } finally {
-                loader.style.display = 'none';
+                isLoading = false;
             }
         }
 
-        document.addEventListener('DOMContentLoaded', fetchTransfers);
+        function retryLoadMore() {
+            loadingSentinel.innerHTML = '<div class="spinner"></div><span>Loading more transfers...</span>';
+            loadMoreTransfers();
+        }
+
+        // Intersection Observer for infinite scroll
+        const observer = new IntersectionObserver((entries) => {
+            if (entries[0].isIntersecting && !isLoading && !allLoaded) {
+                loadMoreTransfers();
+            }
+        }, { rootMargin: '200px', threshold: 0.1 });
+
+        observer.observe(loadingSentinel);
+
+        // ===== Player Modal =====
+        async function openPlayerModal(playerId) {
+            if (!playerId) return;
+            playerModal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+            modalContent.innerHTML = `
+                <div style="padding:40px;text-align:center;">
+                    <div class="spinner" style="margin:0 auto 16px;border-top-color:var(--accent-blue);"></div>
+                    <p style="color:var(--text-muted);font-size:0.9rem;">Loading player profile...</p>
+                </div>
+            `;
+
+            try {
+                const player = await fetchPlayerInfo(playerId);
+                renderPlayerModal(player);
+            } catch (error) {
+                console.error('Error loading player:', error);
+                modalContent.innerHTML = `
+                    <div style="padding:40px;text-align:center;" class="error-message">
+                        Failed to load player profile.<br><small>${error.message}</small>
+                    </div>
+                `;
+            }
+        }
+
+        function renderPlayerModal(player) {
+            const coverImg = getImageUrl(player.image_cover, 'cover');
+            const avatarImg = getImageUrl(player.image, 'player');
+            const countryImg = getImageUrl(player.country?.image, 'country');
+            const teamImg = getImageUrl(player.team_name?.image, 'team-sm');
+            const age = calculateAge(player.birth_day);
+            const transfers = player.transfers || [];
+
+            modalContent.innerHTML = `
+                <!-- Cover Image -->
+                <div class="modal-cover">
+                    ${coverImg ? `<img src="${coverImg}" alt="Cover" onerror="this.style.display='none';">` : ''}
+                    <div class="cover-overlay"></div>
+                </div>
+                <div class="modal-body">
+                    <img class="modal-player-avatar" src="${avatarImg}" alt="${player.title || 'Player'}"
+                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span style="display:none;width:110px;height:110px;border-radius:50%;background:var(--bg-secondary);align-items:center;justify-content:center;font-size:2rem;margin-top:-55px;border:4px solid var(--bg-modal);box-shadow:0 4px 16px rgba(0,0,0,0.4);position:relative;z-index:5;">👤</span>
+
+                    <div class="modal-player-name">
+                        ${player.title || 'Unknown'}
+                        ${countryImg ? `<img class="country-flag" src="${countryImg}" alt="${player.country?.title || ''}"
+                             onerror="this.style.display='none';">` : ''}
+                    </div>
+                    <div class="modal-player-meta">
+                        <span class="pos-badge">${player.position || '—'}</span>
+                        <span class="foot-badge">${player.foot === 'R' ? 'Right Foot' : player.foot === 'L' ? 'Left Foot' : player.foot || '—'}</span>
+                        ${teamImg ? `<span class="team-badge-link"><img src="${teamImg}" alt="${player.team_name?.title || ''}"
+                             onerror="this.style.display='none';"> ${player.team_name?.title || '—'}</span>` : ''}
+                    </div>
+
+                    <!-- Stats -->
+                    <div class="modal-stats">
+                        <div class="stat-item">
+                            <div class="stat-value">${age}</div>
+                            <div class="stat-label">Age</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.height || '—'}</div>
+                            <div class="stat-label">Height (cm)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.weight || '—'}</div>
+                            <div class="stat-label">Weight (kg)</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.position || '—'}</div>
+                            <div class="stat-label">Position</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${player.country?.title || '—'}</div>
+                            <div class="stat-label">Nationality</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-value">${formatDateShort(player.birth_day)}</div>
+                            <div class="stat-label">Birth Date</div>
+                        </div>
+                    </div>
+
+                    <!-- Transfer History -->
+                    <div class="modal-history-title">
+                        <span class="icon">📋</span> Transfer History
+                    </div>
+                    <div class="transfer-history-list">
+                        ${transfers.length > 0 ? transfers.map(tr => {
+                            const transLabel = tr.trans === 'Loan' ? 'Loan' : tr.trans || 'Transfer';
+                            const badgeClass = tr.trans === 'Loan' ? 'badge-loan' : 'badge-transfer';
+                            const isActive = tr.active === 1;
+                            const teamImgHist = getImageUrl(tr.team_in?.image, 'team-sm');
+                            return `
+                                <div class="history-item ${isActive ? 'active-transfer' : ''}">
+                                    ${teamImgHist ? `<img class="h-badge" src="${teamImgHist}" alt="${tr.team_in?.title || ''}"
+                                         onerror="this.style.display='none';">` : '<span style="width:24px;height:24px;flex-shrink:0;">🏟️</span>'}
+                                    <div class="h-info">
+                                        <div class="h-team">${tr.team_in?.title || 'Unknown'} ${isActive ? '<span style="color:var(--accent-green);font-size:0.65rem;">● Active</span>' : ''}</div>
+                                        <div class="h-dates">${formatDate(tr.date_from)} → ${tr.date_to ? formatDate(tr.date_to) : 'Present'}</div>
+                                    </div>
+                                    <span class="h-trans ${badgeClass}">${transLabel}</span>
+                                    <span class="h-value">${formatValue(tr.value)}</span>
+                                </div>
+                            `;
+                        }).join('') : '<div style="text-align:center;color:var(--text-muted);padding:20px;">No transfer history available.</div>'}
+                    </div>
+                </div>
+            `;
+        }
+
+        function closePlayerModal() {
+            playerModal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // ===== Event Listeners =====
+        modalClose.addEventListener('click', closePlayerModal);
+        playerModal.addEventListener('click', (e) => {
+            if (e.target === playerModal) closePlayerModal();
+        });
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape' && playerModal.classList.contains('active')) {
+                closePlayerModal();
+            }
+        });
+
+        // ===== Init =====
+        loadInitialData();
     </script>
 </body>
-</html>
+    </html>
