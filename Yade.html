@@ -100,9 +100,32 @@
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        .goal-alert { position: absolute; top: 5px; right: 5px; background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 10; animation: fadeOut 5s forwards; }
-        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+        
+        /* تحسين إشعار الهدف - ظهور واختفاء ناعم في المنتصف */
+        .goal-alert { 
+            position: absolute; 
+            top: 20%; 
+            left: 50%; 
+            transform: translateX(-50%); 
+            background-color: #dc3545; 
+            color: white; 
+            padding: 10px 24px; 
+            border-radius: 30px; 
+            font-size: 1.2rem; 
+            font-weight: bold; 
+            z-index: 10; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3); 
+            animation: goalFade 8s forwards; 
+            pointer-events: none;
+            white-space: nowrap;
+        }
         .penalty-alert { background-color: #fd7e14; }
+        @keyframes goalFade {
+            0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
+            10% { opacity: 1; transform: translateX(-50%) scale(1); }
+            80% { opacity: 1; }
+            100% { opacity: 0; }
+        }
 
         .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
         .play-stream-btn:hover { background-color: #146c43; }
@@ -113,7 +136,7 @@
 
         .extra-time { color: #ffc107; }
 
-        /* ===== تنسيقات التطبيق الجديدة ===== */
+        /* تنسيقات التطبيق الجديدة */
         .live-indicator { display: flex; flex-direction: column; align-items: center; }
         .live-dot { margin-bottom: 2px; }
         .live-time { display: flex; flex-direction: column; align-items: center; font-weight: bold; color: #000; }
@@ -592,8 +615,8 @@
             return 0;
         }
 
-        // دالة جديدة لعرض الوقت المضاف بشكل يشبه التطبيق تماماً (+6:38)
-        function formatLiveTime(seconds, status) {
+        // دالة عرض الوقت المضاف، الآن تأخذ ex_time لعرض المدة الكلية مثل (+2:55 / 4)
+        function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
             if (status === 0) return 'VS';
@@ -603,7 +626,9 @@
                 const extraSeconds = totalSeconds - 90 * 60;
                 const extraMinutes = Math.floor(extraSeconds / 60);
                 const remainingSeconds = extraSeconds % 60;
-                return `<span class="clock-main">90'</span><span class="clock-sub">+${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}</span>`;
+                // إضافة الوقت الإضافي الكلي الذي حدده الحكم
+                const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
+                return `<span class="clock-main">90'</span><span class="clock-sub">+${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</span>`;
             }
             return `<span class="clock-main">${totalMinutes}'</span>`;
         }
@@ -615,7 +640,7 @@
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const seconds = getLiveSeconds(match);
             const status = match.status || 1;
-            const timeDisplay = formatLiveTime(seconds, status);
+            const timeDisplay = formatLiveTime(seconds, status, match.ex_time);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'>▶️ Play</button>` : '';
             const card = document.createElement('div');
@@ -719,6 +744,7 @@
             });
         }
 
+        // إشعار الهدف: الآن يظهر في المنتصف لمدة 8 ثوانٍ مع حركة ناعمة
         function showGoalAlert(matchId, side, type) {
             const card = document.querySelector(`.match-card[data-match-id="${matchId}"]`);
             if (!card) return;
@@ -727,10 +753,8 @@
             const alert = document.createElement('div');
             alert.className = type === 'GOAL' ? 'goal-alert' : 'goal-alert penalty-alert';
             alert.textContent = type;
-            if (side === 'home') { alert.style.left = '30%'; alert.style.right = 'auto'; }
-            else { alert.style.right = '30%'; alert.style.left = 'auto'; }
             card.appendChild(alert);
-            setTimeout(() => { if (alert.parentNode) alert.remove(); }, 5000);
+            setTimeout(() => { if (alert.parentNode) alert.remove(); }, 8000);
         }
 
         async function loadLiveAndTodayMatches() {
@@ -765,7 +789,7 @@
                             const seconds = getLiveSeconds(match);
                             const status = match.status || 1;
                             const timeEl = el.querySelector('.live-time');
-                            if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status);
+                            if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status, match.ex_time);
                         }
                     });
                 }, 1000);
@@ -964,19 +988,15 @@
             return html;
         }
 
-        // ====== دالة تحديث البث المباشر داخل نافذة المباراة (إضافة جديدة) ======
+        // ====== دالة تحديث البث المباشر داخل نافذة المباراة ======
         function startLiveMatchUpdates(matchId) {
-            // إيقاف أي مؤقت سابق
             if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
-            
-            // تحديث النتيجة والمؤقت كل ثانية
             window.matchLiveInterval = setInterval(async () => {
                 try {
                     const infoUrl = `${API_BASE}/matches/match_info/${matchId}/L/60`;
                     const infoData = await fetchFromProxy(infoUrl);
                     const info = infoData.data;
 
-                    // البحث عن عناصر النتيجة في الـ Modal
                     const liveScoreEl = document.querySelector('#matchModalBody .match-score');
                     const liveTimerEl = document.querySelector('#matchModalBody .match-timer');
                     const homeTeamImgEl = document.querySelector('#matchModalBody .home-team-img');
@@ -984,18 +1004,16 @@
 
                     if (liveScoreEl) liveScoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
                     
-                    // تحديث الصور إذا تغيرت
                     if (homeTeamImgEl) homeTeamImgEl.src = IMG_BASE_TEAM + info.home_team.image;
                     if (awayTeamImgEl) awayTeamImgEl.src = IMG_BASE_TEAM + info.away_team.image;
 
                     if (liveTimerEl) {
                         let seconds = getLiveSeconds(info);
-                        liveTimerEl.innerHTML = formatLiveTime(seconds, info.status);
+                        liveTimerEl.innerHTML = formatLiveTime(seconds, info.status, info.ex_time);
                     }
                 } catch (e) { /* تجاهل الأخطاء أثناء التحديث */ }
             }, 1000);
 
-            // تنظيف المؤقت عند إغلاق النافذة
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', () => {
                 if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
             }, { once: true });
@@ -1029,10 +1047,8 @@
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
                 
-                // بدء التحديث الحي للنتيجة والمؤقت
                 startLiveMatchUpdates(info.match_id);
                 
-                // إيقاف المؤقت القديم في حال كان يعمل
                 if (window.matchTimerInterval) clearInterval(window.matchTimerInterval);
             } catch (err) {
                 console.error(err);
@@ -1049,10 +1065,8 @@
             const t = translations[lang];
             const dateTime = formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp);
             
-            // صورة البطولة في الواجهة
             const champLogo = info.championship && info.championship.image ? `<img src="${IMG_BASE_CHAMP + info.championship.image}" class="champ-img">` : '';
             
-            // بناء رأس المباراة بشكل مطابق للتطبيق
             let infoBlock = `
                 <div class="match-header">
                     <div class="champ-badge">${champLogo} ${info.championship ? info.championship.title : 'N/A'}</div>
@@ -1063,7 +1077,7 @@
                         </div>
                         <div class="match-center-side">
                             <div class="match-score">${info.home_scores} - ${info.away_scores}</div>
-                            <div class="match-timer">${formatLiveTime(getLiveSeconds(info), info.status)}</div>
+                            <div class="match-timer">${formatLiveTime(getLiveSeconds(info), info.status, info.ex_time)}</div>
                         </div>
                         <div class="match-team-side">
                             <img src="${IMG_BASE_TEAM + info.away_team.image}" class="away-team-img" onclick="openTeamModal(${info.away_team.row_id})" style="cursor:pointer;">
@@ -1089,7 +1103,6 @@
             }
             infoBlock += '</div>';
             
-            // تركيب الصفحة
             let html = infoBlock;
             html += `
                 <ul class="nav nav-tabs match-modal-tabs" id="matchModalTabs" role="tablist">
@@ -1711,7 +1724,7 @@
             }
         }
 
-        // تم تحديث هذه الدالة لتطابق التطبيق تماماً مع صور الفريق
+        // دالة عرض اللاعب المطابقة للتطبيق
         function renderPlayerModal(playerInfo) {
             const body = document.getElementById('playerModalBody');
             const coverUrl = playerInfo.image_cover ? IMG_BASE_PLAYER_COVER + playerInfo.image_cover : null;
@@ -1932,4 +1945,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                   </html>
+    </html>
