@@ -349,6 +349,14 @@
             <input type="hidden" id="selectedChampId" value="">
         </div>
 
+        <!-- Live & Today Matches Section -->
+        <div id="liveTodaySection" class="mt-4">
+            <h3 class="mb-3">Live Matches</h3>
+            <div id="liveMatchesContainer" class="row"></div>
+            <h3 class="mt-4 mb-3">Today's Matches</h3>
+            <div id="todayMatchesContainer" class="row"></div>
+        </div>
+
         <!-- Main Tabs -->
         <ul class="nav nav-tabs" id="mainTabs" role="tablist" style="display:none;">
             <li class="nav-item" role="presentation">
@@ -543,6 +551,12 @@
         let newsPage = 1, newsNextUrl = null, newsLoading = false;
         let scorersObserver = null, assistsObserver = null, newsObserver = null;
 
+        // Live & Today State
+        let liveMatches = [];
+        let todayMatches = [];
+        let liveUpdateInterval = null;
+        let liveFetchInterval = null;
+
         // Time settings
         let timezoneOffset = 0; // minutes
         let timeFormat = '24'; // '24' or '12'
@@ -612,6 +626,7 @@
             if (LANG_API_BASE[lang]) API_BASE = LANG_API_BASE[lang];
             if (LANG_NEWS_BASE[lang]) NEWS_BASE = LANG_NEWS_BASE[lang];
             if (currentChampionship) switchTab(currentTab);
+            loadLiveAndTodayMatches(); // إعادة تحميل الأقسام
             document.getElementById('langMenu').classList.remove('open');
         }
 
@@ -653,6 +668,7 @@
                     timezoneOffset = offset * 60;
                     localStorage.setItem('timezone_offset', timezoneOffset);
                     if (currentChampionship) switchTab(currentTab);
+                    loadLiveAndTodayMatches();
                     hideTimeMenu();
                 });
                 timeZoneSubmenu.appendChild(btn);
@@ -670,6 +686,7 @@
                     timeFormat = fmt.value;
                     localStorage.setItem('time_format', timeFormat);
                     if (currentChampionship) switchTab(currentTab);
+                    loadLiveAndTodayMatches();
                     hideTimeMenu();
                 });
                 timeFormatSubmenu.appendChild(btn);
@@ -793,6 +810,152 @@
                 'CF': 'Centre Forward', 'SS': 'Second Striker', 'AM': 'Attacking Midfielder', 'DM': 'Defensive Midfielder'
             };
             return mapping[pos] || pos || 'Unknown';
+        }
+
+        // ========== Live & Today Matches ==========
+        function renderLiveMatchCard(match) {
+            const home = match.home_team;
+            const away = match.away_team;
+            const comp = match.championship ? match.championship.title : '';
+            const minute = match.minutes ? Math.floor(match.minutes / 60) : 0;
+            let displayMinute = minute;
+            let half = '1st Half';
+            if (minute > 45) {
+                displayMinute = minute - 45;
+                half = '2nd Half';
+            }
+            const card = document.createElement('div');
+            card.className = 'col-12 col-md-6 col-lg-4 mb-3';
+            card.innerHTML = `
+                <div class="card p-3 match-card" data-match-id="${match.match_id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center">
+                            <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                            <div class="small" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">${home.title}</div>
+                        </div>
+                        <div class="text-center">
+                            <span class="fs-5 fw-bold">${match.home_scores} - ${match.away_scores}</span>
+                            <div class="live-indicator" data-match-id="${match.match_id}">
+                                <span class="badge bg-danger">Live</span>
+                                <span class="badge bg-secondary live-time">${displayMinute}' ${half}</span>
+                            </div>
+                        </div>
+                        <div class="text-center">
+                            <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                            <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
+                        </div>
+                    </div>
+                    <div class="text-center text-muted small mt-2">${comp} | ${match.match_date} ${match.match_time}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderTodayMatchCard(match) {
+            const home = match.home_team;
+            const away = match.away_team;
+            const comp = match.championship ? match.championship.title : '';
+            const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
+            const card = document.createElement('div');
+            card.className = 'col-12 col-md-6 col-lg-4 mb-3';
+            card.innerHTML = `
+                <div class="card p-3 match-card" data-match-id="${match.match_id}">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="text-center">
+                            <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                            <div class="small" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">${home.title}</div>
+                        </div>
+                        <div class="fs-5 fw-bold">VS</div>
+                        <div class="text-center">
+                            <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                            <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
+                        </div>
+                    </div>
+                    <div class="text-center text-muted small mt-2">${dateTime} | ${comp}</div>
+                </div>
+            `;
+            return card;
+        }
+
+        function renderLiveAndToday() {
+            const liveContainer = document.getElementById('liveMatchesContainer');
+            const todayContainer = document.getElementById('todayMatchesContainer');
+            liveContainer.innerHTML = '';
+            todayContainer.innerHTML = '';
+
+            if (liveMatches.length === 0) {
+                liveContainer.innerHTML = '<div class="col-12"><p>No live matches currently.</p></div>';
+            } else {
+                liveMatches.forEach(match => {
+                    liveContainer.appendChild(renderLiveMatchCard(match));
+                });
+            }
+
+            if (todayMatches.length === 0) {
+                todayContainer.innerHTML = '<div class="col-12"><p>No matches today.</p></div>';
+            } else {
+                todayMatches.forEach(match => {
+                    todayContainer.appendChild(renderTodayMatchCard(match));
+                });
+            }
+
+            // إعادة ربط أحداث النقر لبطاقات المباريات
+            document.querySelectorAll('#liveMatchesContainer .match-card, #todayMatchesContainer .match-card').forEach(card => {
+                card.addEventListener('click', function(e) {
+                    if (e.target.classList.contains('team-img') || e.target.classList.contains('small')) return;
+                    openMatchDetails(this.dataset.matchId);
+                });
+            });
+        }
+
+        async function loadLiveAndTodayMatches() {
+            try {
+                // Live matches
+                const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
+                const liveData = await fetchFromProxy(liveUrl);
+                liveMatches = liveData.data || [];
+
+                // Today's matches
+                const today = new Date().toISOString().slice(0, 10);
+                const todayUrl = `${API_BASE}/matches/matches_date_get/${today}/%5B%5D/%5B%5D/%5B%5D/L/60`;
+                const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
+                todayMatches = todayData.data || [];
+
+                renderLiveAndToday();
+
+                // بدء التحديث اللحظي للوقت
+                if (liveUpdateInterval) clearInterval(liveUpdateInterval);
+                liveUpdateInterval = setInterval(() => {
+                    // تحديث الأوقات على البطاقات الحية
+                    document.querySelectorAll('.live-indicator').forEach(el => {
+                        const matchId = el.dataset.matchId;
+                        const match = liveMatches.find(m => m.match_id == matchId);
+                        if (match) {
+                            const currentSecond = Math.floor((Date.now() / 1000) - match.match_timestamp);
+                            const totalMinute = Math.floor(currentSecond / 60);
+                            let displayMinute = totalMinute;
+                            let half = '1st Half';
+                            if (totalMinute > 45) {
+                                displayMinute = totalMinute - 45;
+                                half = '2nd Half';
+                            }
+                            const timeEl = el.querySelector('.live-time');
+                            if (timeEl) timeEl.textContent = `${displayMinute}' ${half}`;
+                        }
+                    });
+                }, 1000);
+
+                // إعادة جلب المباشر كل 60 ثانية
+                if (liveFetchInterval) clearInterval(liveFetchInterval);
+                liveFetchInterval = setInterval(async () => {
+                    const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
+                    liveMatches = newLiveData.data || [];
+                    renderLiveAndToday();
+                }, 60000);
+
+            } catch (err) {
+                console.error('Failed to load live/today matches:', err);
+            }
         }
 
         // ========== Load Championships ==========
@@ -2016,6 +2179,7 @@
         initLanguageSystem();
         initTimeSystem();
         loadChampionships();
+        loadLiveAndTodayMatches();
     </script>
 </body>
-        </html>
+            </html>
