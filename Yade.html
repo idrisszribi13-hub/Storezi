@@ -111,6 +111,8 @@
         .video-player-modal .modal-body { padding: 0; height: 80vh; }
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
 
+        .extra-time { color: #ffc107; }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -548,7 +550,6 @@
                 return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
             }
             if (match.minutes) {
-                // minutes هي ثواني من YSScores
                 return match.minutes;
             }
             if (match.match_timestamp) {
@@ -560,46 +561,15 @@
         function formatLiveTime(seconds, status) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
-            const secs = totalSeconds % 60;
-            const mm = String(totalMinutes).padStart(2, '0');
-            const ss = String(secs).padStart(2, '0');
-
-            // الحالات
-            if (status === 0) {
-                // upcoming - سيتم التعامل معها في مكان آخر
-                return 'VS';
-            }
-            if (status === 4) {
-                return 'FT';
-            }
-            if (status === 2) {
-                return 'HT';
-            }
-            if (status === 1) {
-                // الشوط الأول
-                return `1HF ${mm}:${ss}`;
-            }
-            if (status === 3) {
-                // الشوط الثاني
-                const secondHalfSeconds = totalSeconds - 45 * 60;
-                if (secondHalfSeconds < 0) secondHalfSeconds = 0;
-                const secondHalfMinutes = Math.floor(secondHalfSeconds / 60);
-                const secondHalfSecs = secondHalfSeconds % 60;
-                if (totalMinutes > 90) {
-                    const extraMinutes = totalMinutes - 90;
-                    return `90+${extraMinutes}'`;
-                }
-                return `2HF ${String(secondHalfMinutes).padStart(2, '0')}:${String(secondHalfSecs).padStart(2, '0')}`;
-            }
-            // default fallback
+            if (status === 0) return 'VS';
+            if (status === 4) return 'FT';
+            if (status === 2) return 'HT';
+            // مباشر
             if (totalMinutes > 90) {
-                return `90+${totalMinutes - 90}'`;
+                const extra = totalMinutes - 90;
+                return `90<span class="extra-time">+${extra}'</span>`;
             }
-            if (totalMinutes > 45) {
-                const secondHalfMinutes = totalMinutes - 45;
-                return `2HF ${String(secondHalfMinutes).padStart(2, '0')}:${ss}`;
-            }
-            return `1HF ${mm}:${ss}`;
+            return `${totalMinutes}'`;
         }
 
         function renderLiveMatchCard(match) {
@@ -608,7 +578,7 @@
             const comp = match.championship ? match.championship.title : '';
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const seconds = getLiveSeconds(match);
-            const status = match.status || 1; // افتراضي مباشر
+            const status = match.status || 1;
             const timeDisplay = formatLiveTime(seconds, status);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'>▶️ Play</button>` : '';
@@ -755,7 +725,7 @@
                             const seconds = getLiveSeconds(match);
                             const status = match.status || 1;
                             const timeEl = el.querySelector('.live-time');
-                            if (timeEl) timeEl.textContent = formatLiveTime(seconds, status);
+                            if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status);
                         }
                     });
                 }, 1000);
@@ -1826,4 +1796,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-</html>
+    </html>
