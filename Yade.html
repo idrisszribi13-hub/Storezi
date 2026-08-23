@@ -8,11 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        /* تعريف الألوان والمتغيرات */
-        :root { 
-            --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; 
-            --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
-        }
+        /* ... (الأنماط الأساسية كما هي) ... */
+        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -85,40 +82,25 @@
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
-        
-        /* إشعار الهدف */
         .goal-alert { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background-color: #dc3545; color: white; padding: 10px 24px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: goalFade 8s forwards; pointer-events: none; white-space: nowrap; }
         .penalty-alert { background-color: #fd7e14; }
         @keyframes goalFade { 0% { opacity: 0; transform: translateX(-50%) scale(0.8); } 10% { opacity: 1; transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
-        
-        .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
+        .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; display: flex; align-items: center; justify-content: center; }
         .play-stream-btn:hover { background-color: #146c43; }
         .video-player-modal .modal-content { background-color: #000; }
         .video-player-modal .modal-body { padding: 0; height: 80vh; }
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
         .extra-time { color: #ffc107; }
 
-        /* --- تنسيق الدائرة الديناميكية الجديدة --- */
         .live-indicator { display: flex; flex-direction: column; align-items: center; }
         .live-dot { margin-bottom: 2px; }
         .live-time { display: flex; flex-direction: column; align-items: center; font-weight: bold; color: #000; }
-        
-        .live-time .clock-main { font-size: 14px; line-height: 1; }
-        .live-time .clock-sub { font-size: 11px; color: #ffc107; margin-top: 2px; } /* اللون الأصفر */
-        
-        .match-clock {
-            width: 56px; height: 56px; border-radius: 50%; 
-            background: conic-gradient(var(--success) 0%, #eaeaea 0%); /* تعبئة ديناميكية */
-            display: flex; justify-content: center; align-items: center; margin-top: 5px; position: relative;
-        }
-        /* إخفاء الجزء الداخلي لتصبح حلقة فقط */
-        .match-clock::before {
-            content: ""; position: absolute; top: 4px; left: 4px; width: 48px; height: 48px;
-            background: #fff; border-radius: 50%; z-index: 1;
-        }
-        .clock-inner { text-align: center; position: relative; z-index: 2; }
+        .live-time .clock-main { font-size: 14px; line-height: 1; margin-bottom: 2px; }
+        .live-time .clock-sub { font-size: 11px; color: #ffc107; margin-top: 2px; display: flex; align-items: center; gap: 3px; }
+        .match-clock { width: 56px; height: 56px; border-radius: 50%; border: 3px solid #27ae60; display: flex; justify-content: center; align-items: center; margin-top: 5px; position: relative; overflow: hidden; }
+        .match-clock::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: conic-gradient(#27ae60 var(--progress, 0%), #eaeaea var(--progress, 0%) 100%); z-index: 0; }
+        .clock-inner { position: relative; z-index: 1; background: #fff; width: 100%; height: 100%; border-radius: 50%; display: flex; justify-content: center; align-items: center; }
 
-        /* --- بقية تنسيقات التطبيق --- */
         .player-hero { position: relative; height: 280px; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea; }
         .player-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); opacity: 0.9; }
         .player-hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%); pointer-events: none; }
@@ -152,17 +134,10 @@
         .match-header .champ-badge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: center; font-size: 12px; color: #666; }
         .match-header .champ-badge img { width: 20px; height: 20px; }
 
-        /* عناصر الأيقونات */
-        .icon-16 { width: 16px; height: 16px; vertical-align: middle; margin-right: 4px; }
-        .icon-24 { width: 24px; height: 24px; vertical-align: middle; margin-right: 4px; }
-
-        /* بطاقات التفاصيل */
         .detail-card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; margin-bottom: 10px; padding: 12px 15px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #333; }
         .detail-row strong { color: #666; font-weight: 600; }
         .detail-row span { font-weight: 500; }
-        
-        /* آخر 5 مباريات */
         .last5-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .last5-container { background: #fff; border-radius: 12px; padding: 15px; border: 1px solid #eaeaea; margin-bottom: 20px; }
         .last5-columns { display: flex; justify-content: space-between; gap: 20px; }
@@ -171,8 +146,6 @@
         .dot-w { background: #28a745; }
         .dot-l { background: #dc3545; }
         .dot-d { background: #6c757d; }
-
-        /* H2H */
         .h2h-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .h2h-container { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #eaeaea; }
         .h2h-flex { display: flex; justify-content: space-between; align-items: center; }
@@ -183,8 +156,6 @@
         .h2h-stat { text-align: center; }
         .h2h-stat span.num { font-size: 20px; font-weight: bold; display: block; }
         .h2h-stat span.lbl { font-size: 12px; color: #777; display: block; }
-
-        /* الأحداث */
         .events-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .event-box { background: #fff; border-radius: 12px; padding: 10px 0; }
         .event-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
@@ -197,8 +168,6 @@
         .event-side-home img { width: 24px; height: 24px; object-fit: contain; }
         .event-side-away img { width: 24px; height: 24px; object-fit: contain; }
         .center-note { text-align: center; color: #555; font-size: 14px; padding: 15px 0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
-
-        /* الإحصائيات */
         .stats-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .stats-container { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #eaeaea; }
         .possession-box { text-align: center; margin-bottom: 20px; }
@@ -213,6 +182,11 @@
         .stat-line { height: 6px; width: 100%; background: #eaeaea; border-radius: 4px; overflow: hidden; margin-bottom: 15px; position: relative; }
         .stat-line-home { height: 100%; position: absolute; left: 0; background: #0984e3; }
         .stat-line-away { height: 100%; position: absolute; right: 0; background: #6c5ce7; }
+
+        /* أنماط أيقونات الهيدر في المشغل */
+        .stream-teams { display: flex; align-items: center; gap: 10px; }
+        .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
+        .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
 
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -288,9 +262,13 @@
             <div class="modal-content">
                 <div class="modal-header bg-dark text-white">
                     <div class="d-flex align-items-center">
-                        <img id="streamCompLogo" src="" style="width:30px;height:30px;object-fit:contain;display:none;">
-                        <span id="streamCompName" class="ms-2 me-3"></span>
-                        <span id="streamMatchInfo" class="fs-6"></span>
+                        <img id="streamCompLogo" src="" style="display:none;" class="stream-logo">
+                        <span id="streamCompName" class="me-3"></span>
+                        <div class="stream-teams">
+                            <img id="streamHomeLogo" src="" style="display:none;">
+                            <span id="streamMatchInfo" class="fs-6"></span>
+                            <img id="streamAwayLogo" src="" style="display:none;">
+                        </div>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
@@ -341,6 +319,7 @@
 
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
+
         const LANG_API_BASE = { ar: 'https://api-ar.ysscores.com/api', en: 'https://api-en.ysscores.com/api', fr: 'https://api-fr.ysscores.com/api', es: 'https://api-es.ysscores.com/api', it: 'https://api-it.ysscores.com/api', pt: 'https://api-pt.ysscores.com/api', br: 'https://api-br.ysscores.com/api' };
         const LANG_NEWS_BASE = { ar: 'https://news-ar.ysscores.com/api', en: 'https://news-en.ysscores.com/api', fr: 'https://news-fr.ysscores.com/api', es: 'https://news-es.ysscores.com/api', it: 'https://news-it.ysscores.com/api', pt: 'https://news-pt.ysscores.com/api', br: 'https://news-br.ysscores.com/api' };
 
@@ -373,6 +352,7 @@
         let previousScores = {};
         let liveSecondsBase = {};
 
+        // تعيين المنطقة الزمنية الافتراضية إلى تلقائي (0) لمنع إضافة ساعة مزدوجة
         let timezoneOffset = 0;
         let timeFormat = '24';
 
@@ -432,11 +412,11 @@
             const timeFormatOption = document.getElementById('timeFormatOption');
             const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
             const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
-            const zones = [-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7];
+            const zones = [-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12];
             zones.forEach(offset => {
                 const btn = document.createElement('button');
                 btn.className = 'time-option';
-                btn.textContent = offset === 0 ? 'GMT' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
+                btn.textContent = offset === 0 ? 'Auto (Device)' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
                 btn.addEventListener('click', () => { timezoneOffset = offset * 60; localStorage.setItem('timezone_offset', timezoneOffset); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
                 timeZoneSubmenu.appendChild(btn);
             });
@@ -459,12 +439,10 @@
             function hideTimeMenu() { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); }
         }
 
+        // تصحيح حساب الوقت: استخدام توقيت الجهاز مباشرة بدون إزاحة مزدوجة
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
-            if (timestamp) {
-                const date = new Date(timestamp * 1000 + timezoneOffset * 60000);
-                return formatDate(date) + ' ' + formatTime(date);
-            }
-            const date = new Date(dateStr + 'T' + timeStr + 'Z');
+            const date = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
+            // إضافة الإزاحة فقط إذا قام المستخدم بضبطها يدوياً
             date.setMinutes(date.getMinutes() + timezoneOffset);
             return formatDate(date) + ' ' + formatTime(date);
         }
@@ -548,6 +526,7 @@
             }
         }
 
+        // إضافة أسماء بديلة لفريق PSG ليتعرف عليه السيرفر
         const teamAliases = {
             'manchester united': ['man utd', 'man u', 'man united', 'manchester u'],
             'man city': ['manchester city', 'manchester c'],
@@ -559,7 +538,9 @@
             'aston villa': ['aston villa fc'],
             'brighton': ['brighton and hove albion', 'brighton & hove albion'],
             'leeds': ['leeds united', 'leeds utd'],
-            'manchester': ['man utd', 'man united']
+            'manchester': ['man utd', 'man united'],
+            'paris sg': ['paris-sg', 'paris saint-germain', 'paris saint germain', 'psg'],
+            'rennais': ['stade rennais', 'rennes', 'stade rennais fc']
         };
 
         function normalizeTeamName(name) {
@@ -588,22 +569,37 @@
         function openStreamPlayer(streamUrl, matchData) {
             const modalElement = document.getElementById('streamPlayerModal');
             const videoElement = document.getElementById('streamVideo');
-            const modalTitle = document.getElementById('streamPlayerTitle');
             const streamCompLogo = document.getElementById('streamCompLogo');
             const streamCompName = document.getElementById('streamCompName');
             const streamMatchInfo = document.getElementById('streamMatchInfo');
+            const streamHomeLogo = document.getElementById('streamHomeLogo');
+            const streamAwayLogo = document.getElementById('streamAwayLogo');
 
-            if (modalTitle) modalTitle.textContent = matchData ? matchData.title : 'Live Stream';
-            if (streamCompLogo) {
-                if (matchData && matchData.compLogo) {
-                    streamCompLogo.src = matchData.compLogo;
-                    streamCompLogo.style.display = 'inline-block';
-                } else {
-                    streamCompLogo.style.display = 'none';
-                }
+            // إعدادات الأيقونات والصور بشكل صحيح
+            if (matchData && matchData.compLogoUrl) {
+                streamCompLogo.src = matchData.compLogoUrl;
+                streamCompLogo.style.display = 'inline-block';
+            } else {
+                streamCompLogo.style.display = 'none';
             }
+
             if (streamCompName) streamCompName.textContent = matchData ? (matchData.compName || '') : '';
             if (streamMatchInfo) streamMatchInfo.textContent = matchData ? `${matchData.homeName} ${matchData.homeScore} - ${matchData.awayScore} ${matchData.awayName}` : '';
+
+            // عرض صور الفريقين
+            if (matchData && matchData.homeLogoUrl) {
+                streamHomeLogo.src = matchData.homeLogoUrl;
+                streamHomeLogo.style.display = 'inline-block';
+            } else {
+                streamHomeLogo.style.display = 'none';
+            }
+
+            if (matchData && matchData.awayLogoUrl) {
+                streamAwayLogo.src = matchData.awayLogoUrl;
+                streamAwayLogo.style.display = 'inline-block';
+            } else {
+                streamAwayLogo.style.display = 'none';
+            }
 
             let finalStreamUrl = streamUrl;
             if (finalStreamUrl.startsWith('http://')) {
@@ -654,38 +650,32 @@
             return 0;
         }
 
-        // دالة حساب الوقت المضاف مع الأيقونة واللون
+        // حساب نسبة تقدم الدائرة بناءً على الوقت والحالة
+        function getMatchProgress(seconds, status) {
+            if (status === 0) return 0; // لم تبدأ
+            if (status === 4) return 100; // انتهت
+            if (status === 2) return 50; // استراحة
+            const mins = seconds / 60;
+            return Math.min(100, (mins / 90) * 100);
+        }
+
+        // دالة عرض الوقت (90' كبيرة و +x:xx / y صفراء مع أيقونة)
         function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
-            
             if (status === 0) return 'VS';
-            if (status === 4) return 'FT'; // نهاية المباراة (دائرة ممتلئة)
-            if (status === 2) return 'HT'; // استراحة (دائرة نصف ممتلئة)
+            if (status === 4) return 'FT';
+            if (status === 2) return 'HT';
             
             if (totalMinutes > 90) {
                 const extraSeconds = totalSeconds - 90 * 60;
                 const extraMinutes = Math.floor(extraSeconds / 60);
                 const remainingSeconds = extraSeconds % 60;
                 const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
-                
-                // إضافة اللون الأصفر للوقت الإضافي
-                return `<span class="clock-main">90'</span><span class="clock-sub">${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</span>`;
+                return `<div class="clock-main">90'</div><div class="clock-sub"><img src="${ICONS.chronometer}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
             }
             
-            return `<span class="clock-main">${totalMinutes}'</span>`;
-        }
-
-        // دالة حساب نسبة تعبئة الدائرة (HT = 50%، FT = 100%، غير ذلك = الوقت الحالي بالنسبة لـ 90 دقيقة)
-        function getMatchCirclePercentage(seconds, status) {
-            if (status === 4) return 100; // مباراة منتهية: دائرة ممتلئة تماماً
-            if (status === 2) return 50;  // استراحة الشوط الأول: نصف ممتلئة
-            if (status === 0) return 0;   // لم تبدأ بعد: فارغة
-
-            const minute = seconds / 60;
-            if (minute >= 90) return 100; // وقت إضافي: الدائرة ممتلئة تماماً
-
-            return Math.min(100, (minute / 90) * 100); // تعبئة تدريجية حتى 90 دقيقة
+            return `<div class="clock-main">${totalMinutes}'</div>`;
         }
 
         function renderLiveMatchCard(match) {
@@ -693,23 +683,26 @@
             const away = match.away_team;
             const comp = match.championship ? match.championship.title : '';
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
+            
             const seconds = getLiveSeconds(match);
             const status = match.status || 1;
             const timeDisplay = formatLiveTime(seconds, status, match.ex_time);
-            const circlePercent = getMatchCirclePercentage(seconds, status);
+            const progress = getMatchProgress(seconds, status);
             
             const streamEvent = findStreamEvent(match);
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            const compLogoUrl = match.championship?.image ? IMG_BASE_CHAMP + match.championship.image : '';
+            const homeLogoUrl = IMG_BASE_TEAM + home.image;
+            const awayLogoUrl = IMG_BASE_TEAM + away.image;
+            
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
             
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
-            
-            // إضافة التعبئة الديناميكية (Conic Gradient) داخل الدائرة
             card.innerHTML = `
                 <div class="card p-3 match-card position-relative" data-match-id="${match.match_id}">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="text-center">
-                            <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                            <img src="${homeLogoUrl}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
                             <div class="small" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">${home.title}</div>
                         </div>
                         <div class="text-center">
@@ -717,7 +710,7 @@
                             <div class="live-indicator mt-1" data-match-id="${match.match_id}">
                                 <span class="live-dot"></span>
                                 <span class="badge bg-danger">Live</span>
-                                <div class="match-clock" style="background: conic-gradient(var(--success) ${circlePercent}%, #eaeaea ${circlePercent}%);">
+                                <div class="match-clock" style="--progress: ${progress}%">
                                     <div class="clock-inner">
                                         <span class="live-time">${timeDisplay}</span>
                                     </div>
@@ -726,7 +719,7 @@
                             ${playBtn}
                         </div>
                         <div class="text-center">
-                            <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                            <img src="${awayLogoUrl}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
@@ -742,14 +735,18 @@
             const comp = match.championship ? match.championship.title : '';
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
+            
             const streamEvent = findStreamEvent(match);
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            const compLogoUrl = match.championship?.image ? IMG_BASE_CHAMP + match.championship.image : '';
+            const homeLogoUrl = IMG_BASE_TEAM + home.image;
+            const awayLogoUrl = IMG_BASE_TEAM + away.image;
+            
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
             
             let statusBadge = '';
             if (match.status === 4) statusBadge = '<span class="badge bg-secondary">FT</span>';
             else if (match.status === 1 || match.status === 2 || match.status === 3) statusBadge = '<span class="badge bg-danger">Live</span>';
             else if (match.status === 0) statusBadge = '<span class="badge bg-info">Upcoming</span>';
-            
             const scoreDisplay = match.status === 0 ? 'VS' : `${match.home_scores} - ${match.away_scores}`;
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
@@ -757,7 +754,7 @@
                 <div class="card p-3 match-card" data-match-id="${match.match_id}">
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="text-center">
-                            <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                            <img src="${homeLogoUrl}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
                             <div class="small" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">${home.title}</div>
                         </div>
                         <div class="text-center">
@@ -766,7 +763,7 @@
                             ${playBtn}
                         </div>
                         <div class="text-center">
-                            <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                            <img src="${awayLogoUrl}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
@@ -837,9 +834,7 @@
                 });
                 await loadStreamEvents();
                 renderLiveAndToday();
-
                 if (liveUpdateInterval) clearInterval(liveUpdateInterval);
-                // تحديث الدائرة والوقت كل ثانية
                 liveUpdateInterval = setInterval(() => {
                     document.querySelectorAll('.live-indicator').forEach(el => {
                         const matchId = el.dataset.matchId;
@@ -848,17 +843,12 @@
                             const seconds = getLiveSeconds(match);
                             const status = match.status || 1;
                             const timeEl = el.querySelector('.live-time');
+                            const clockEl = el.querySelector('.match-clock');
                             if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status, match.ex_time);
-                            
-                            const circleEl = el.querySelector('.match-clock');
-                            if (circleEl) {
-                                const pct = getMatchCirclePercentage(seconds, status);
-                                circleEl.style.background = `conic-gradient(var(--success) ${pct}%, #eaeaea ${pct}%)`;
-                            }
+                            if (clockEl) clockEl.style.setProperty('--progress', `${getMatchProgress(seconds, status)}%`);
                         }
                     });
                 }, 1000);
-
                 if (liveFetchInterval) clearInterval(liveFetchInterval);
                 liveFetchInterval = setInterval(async () => {
                     const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
@@ -1015,13 +1005,19 @@
                 const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
                 const comp = match.championship ? match.championship.title : '';
                 const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
+                
                 const streamEvent = findStreamEvent(match);
-                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+                const compLogoUrl = match.championship?.image ? IMG_BASE_CHAMP + match.championship.image : '';
+                const homeLogoUrl = IMG_BASE_TEAM + home.image;
+                const awayLogoUrl = IMG_BASE_TEAM + away.image;
+                
+                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+                
                 html += `<div class="col-12 col-md-6 col-lg-4 mb-3">
                     <div class="card p-3 match-card" data-match-id="${match.match_id}">
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="text-center">
-                                <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
+                                <img src="${homeLogoUrl}" class="team-img" alt="${home.title}" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">
                                 <div class="small" onclick="openTeamModal(${home.row_id})" style="cursor:pointer;">${home.title}</div>
                             </div>
                             <div class="text-center">
@@ -1029,7 +1025,7 @@
                                 ${playBtn}
                             </div>
                             <div class="text-center">
-                                <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
+                                <img src="${awayLogoUrl}" class="team-img" alt="${away.title}" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">
                                 <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                             </div>
                         </div>
@@ -1861,4 +1857,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                                                                                                                        </html>
+                                                                                                                                                                                                                                                                                   </html>
