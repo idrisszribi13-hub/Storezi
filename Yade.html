@@ -178,7 +178,6 @@
     <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="newsModalTitle">News Detail</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="newsModalBody"></div></div></div></div>
     <div class="modal fade" id="refereeModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="refereeModalTitle">Referee Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="refereeModalBody"></div></div></div></div>
 
-    <!-- Stream Player Modal with Championship Info -->
     <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
@@ -220,7 +219,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // ========== Settings ==========
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
 
@@ -434,7 +432,6 @@
             return mapping[pos] || pos || 'Unknown';
         }
 
-        // ========== Streaming Service ==========
         async function loadStreamEvents() {
             try {
                 const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
@@ -511,7 +508,7 @@
                 streamMatchInfo.textContent = '';
             }
 
-            // ✅ الإصلاح: تحويل http إلى https وعدم استخدام Worker للبث
+            // ✅ الإصلاح: عدم استخدام Worker للبث، استخدم الرابط مباشرة
             let finalStreamUrl = streamUrl;
             if (finalStreamUrl.startsWith('http://')) {
                 finalStreamUrl = finalStreamUrl.replace('http://', 'https://');
@@ -519,7 +516,7 @@
 
             if (Hls.isSupported()) {
                 const hls = new Hls();
-                hls.loadSource(finalStreamUrl);
+                hls.loadSource(finalStreamUrl); // استخدم finalStreamUrl
                 hls.attachMedia(videoElement);
                 hls.on(Hls.Events.ERROR, (event, data) => {
                     if (data.fatal) {
@@ -547,18 +544,21 @@
             }, { once: true });
         }
 
-        // ========== Live & Today Matches ==========
         function getLiveSeconds(match) {
+            const now = Math.floor(Date.now() / 1000);
             if (liveSecondsBase[match.match_id]) {
-                const { baseSeconds, lastFetchTime } = liveSecondsBase[match.match_id];
-                return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
+                const { baseSeconds, lastFetchTime, status, ex_time } = liveSecondsBase[match.match_id];
+                if (status === 2) return baseSeconds; // HT: توقف
+                if (status === 1 || status === 3) {
+                    let elapsed = baseSeconds + (now - lastFetchTime);
+                    if (ex_time && elapsed > (elapsed > 2700 ? 5400 : 2700)) {
+                        elapsed += ex_time * 60;
+                    }
+                    return elapsed;
+                }
             }
-            if (match.minutes) {
-                return match.minutes;
-            }
-            if (match.match_timestamp) {
-                return Math.floor(Date.now() / 1000 - match.match_timestamp);
-            }
+            if (match.minutes) return match.minutes;
+            if (match.match_timestamp) return now - match.match_timestamp;
             return 0;
         }
 
@@ -569,11 +569,9 @@
             const mm = String(minutes).padStart(2, '0');
             const ss = String(secs).padStart(2, '0');
 
-            // عرض الوقت الإضافي بعد 90 دقيقة
             if (minutes > 90) {
                 return `90+${minutes - 90}'`;
             }
-            // عرض الوقت الإضافي في الشوط الأول (45+) إذا كانت الدقائق بين 45 و90؟ نعتبر الشوط الثاني
             if (minutes > 45) {
                 return `2HF ${mm}:${ss}`;
             }
@@ -715,8 +713,10 @@
                 const nowTs = Date.now();
                 liveMatches.forEach(m => {
                     liveSecondsBase[m.match_id] = {
-                        baseSeconds: m.minutes || Math.floor(nowTs/1000 - m.match_timestamp),
-                        lastFetchTime: nowTs
+                        baseSeconds: m.minutes ? m.minutes : Math.floor(nowTs/1000 - m.match_timestamp),
+                        lastFetchTime: nowTs,
+                        status: m.status,
+                        ex_time: m.ex_time || 0
                     };
                 });
 
@@ -745,20 +745,21 @@
                     const nowTs2 = Date.now();
                     liveMatches.forEach(m => {
                         liveSecondsBase[m.match_id] = {
-                            baseSeconds: m.minutes || Math.floor(nowTs2/1000 - m.match_timestamp),
-                            lastFetchTime: nowTs2
+                            baseSeconds: m.minutes ? m.minutes : Math.floor(nowTs2/1000 - m.match_timestamp),
+                            lastFetchTime: nowTs2,
+                            status: m.status,
+                            ex_time: m.ex_time || 0
                         };
                     });
                     await loadStreamEvents();
                     renderLiveAndToday();
-                }, 25000);
+                }, 10000); // التحديث من المصدر كل 10 ثوانٍ
 
             } catch (err) {
                 console.error('Failed to load live/today matches:', err);
             }
         }
 
-        // ========== Load Championships ==========
         async function loadChampionships() {
             try {
                 showLoading();
@@ -981,6 +982,8 @@
                     }
                 } else if (info.status === 4) {
                     timerElement.innerHTML = `<span class="match-timer">Full Time</span>`;
+                } else if (info.status === 2) {
+                    timerElement.innerHTML = `<span class="match-timer">HT</span>`;
                 } else {
                     let seconds = getLiveSeconds(info);
                     timerElement.innerHTML = `<span class="match-timer">${formatLiveTime(seconds)}</span>`;
@@ -1802,4 +1805,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                         </html>
+                                                                                                                                                                                              </html>
