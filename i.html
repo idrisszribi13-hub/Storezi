@@ -901,7 +901,13 @@
     </div>
 
     <script>
-        // ===== Configuration =====
+        // ===== CONFIGURATION =====
+        // 👇 IMPORTANT: Change this to your external proxy or Supabase function URL
+        const PROXY_BASE = 'https://api.allorigins.win/raw?url='; // Works as CORS proxy
+        // Example alternatives:
+        // const PROXY_BASE = 'https://corsproxy.io/?';
+        // const PROXY_BASE = 'https://your-supabase-function-url/';
+
         const API_BASE = 'https://api-en.ysscores.com/api/info';
         const IMG_PLAYER = 'https://imgs.ysscores.com/player/150/';
         const IMG_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
@@ -1021,6 +1027,16 @@
             return text.length > maxLength ? text.substring(0, maxLength) + '…' : text;
         }
 
+        // ===== Proxy Fetch Helper =====
+        async function proxiedFetch(url) {
+            const proxyUrl = PROXY_BASE + encodeURIComponent(url);
+            const response = await fetch(proxyUrl);
+            if (!response.ok) {
+                throw new Error(`Proxy fetch failed with status ${response.status}`);
+            }
+            return response.json();
+        }
+
         // ===== Render Functions =====
         function renderImportantTransfers(transfers) {
             if (!transfers || transfers.length === 0) {
@@ -1107,12 +1123,10 @@
             transfersList.insertAdjacentHTML('beforeend', transfers.map(renderTransferRow).join(''));
         }
 
-        // ===== API Calls =====
+        // ===== API Calls (via proxy) =====
         async function fetchTransfersPage(page) {
-            const url = `${API_BASE}/transfer_info_page/0?page=${page}`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
+            const apiUrl = `${API_BASE}/transfer_info_page/0?page=${page}`;
+            const data = await proxiedFetch(apiUrl);
             if (!data.status || data.status_code !== 200) {
                 throw new Error(data.message || 'API error');
             }
@@ -1120,10 +1134,8 @@
         }
 
         async function fetchPlayerInfo(playerId) {
-            const url = `${API_BASE}/player_info/${playerId}/L/60`;
-            const response = await fetch(url);
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            const data = await response.json();
+            const apiUrl = `${API_BASE}/player_info/${playerId}/L/60`;
+            const data = await proxiedFetch(apiUrl);
             if (!data.status || data.status_code !== 200) {
                 throw new Error(data.message || 'API error');
             }
@@ -1149,11 +1161,15 @@
                 if (currentPage >= lastPage) {
                     allLoaded = true;
                     loadingSentinel.innerHTML = '<div class="no-more">🏁 You\'ve reached the end of all transfers.</div>';
+                } else {
+                    loadingSentinel.innerHTML = '<div class="spinner"></div><span>Scroll to load more...</span>';
                 }
             } catch (error) {
                 console.error('Error loading transfers:', error);
                 transfersList.innerHTML =
-                    `<div class="error-message">Failed to load transfers. Please try again later.<br><small>${error.message}</small></div>`;
+                    `<div class="error-message">Failed to load transfers. Please check your proxy settings or try again later.<br><small>${error.message}</small></div>`;
+                importantGrid.innerHTML =
+                    `<div class="error-message" style="grid-column:1/-1;">Unable to load key transfers.</div>`;
                 loadingSentinel.style.display = 'none';
             }
         }
@@ -1239,7 +1255,6 @@
             const transfers = player.transfers || [];
 
             modalContent.innerHTML = `
-                <!-- Cover Image -->
                 <div class="modal-cover">
                     ${coverImg ? `<img src="${coverImg}" alt="Cover" onerror="this.style.display='none';">` : ''}
                     <div class="cover-overlay"></div>
@@ -1261,7 +1276,6 @@
                              onerror="this.style.display='none';"> ${player.team_name?.title || '—'}</span>` : ''}
                     </div>
 
-                    <!-- Stats -->
                     <div class="modal-stats">
                         <div class="stat-item">
                             <div class="stat-value">${age}</div>
@@ -1289,7 +1303,6 @@
                         </div>
                     </div>
 
-                    <!-- Transfer History -->
                     <div class="modal-history-title">
                         <span class="icon">📋</span> Transfer History
                     </div>
@@ -1337,4 +1350,4 @@
         loadInitialData();
     </script>
 </body>
-    </html>
+            </html>
