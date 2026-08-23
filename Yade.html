@@ -7,36 +7,170 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Cairo', sans-serif; background-color: #f8f9fa; }
-        .container { max-width: 1200px; }
-        .champ-select { margin: 30px 0; }
-        .nav-tabs .nav-link { font-weight: 600; }
-        .tab-content { background: #fff; border-radius: 0 0 12px 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); padding: 20px; }
+        :root {
+            --primary: #0d6efd;
+            --secondary: #6c757d;
+            --success: #198754;
+            --info: #0dcaf0;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
+        * { box-sizing: border-box; }
+        body {
+            font-family: 'Cairo', sans-serif;
+            background-color: var(--light-bg);
+            margin: 0;
+            padding: 0;
+        }
+        .container { max-width: 1200px; padding: 20px 15px; }
+        .champ-select { margin-bottom: 20px; }
+        .dropdown-toggle {
+            background: var(--card-bg);
+            border: 1px solid #ddd;
+            border-radius: var(--border-radius);
+            padding: 10px 20px;
+            font-size: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            width: 100%;
+        }
+        .dropdown-menu {
+            max-height: 400px;
+            overflow-y: auto;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            border: none;
+        }
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 15px;
+            font-size: 0.95rem;
+        }
+        .dropdown-item img { margin-left: 10px; }
+        .search-box { padding: 10px; border-bottom: 1px solid #eee; }
+        .search-box input {
+            width: 100%;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            font-size: 0.9rem;
+        }
+
+        .nav-tabs {
+            border-bottom: 2px solid #e9ecef;
+            gap: 5px;
+        }
+        .nav-tabs .nav-link {
+            border: none;
+            color: #555;
+            font-weight: 600;
+            padding: 10px 15px;
+            border-radius: 8px 8px 0 0;
+            transition: all 0.2s;
+        }
+        .nav-tabs .nav-link.active {
+            background-color: var(--card-bg);
+            color: var(--primary);
+            border-bottom: 2px solid var(--primary);
+        }
+        .tab-content {
+            background: var(--card-bg);
+            border-radius: 0 0 var(--border-radius) var(--border-radius);
+            box-shadow: var(--shadow);
+            padding: 20px;
+        }
+
+        .card {
+            border: none;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow);
+            transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-3px); }
+        .match-card, .news-card { cursor: pointer; }
+
         .team-img { width: 30px; height: 30px; object-fit: contain; }
         .player-img { width: 40px; height: 40px; object-fit: cover; border-radius: 50%; }
-        .champ-img { width: 24px; height: 24px; object-fit: contain; margin-left: 5px; }
-        .card { border: none; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
-        .table { margin-bottom: 0; }
-        .pagination { justify-content: center; margin-top: 20px; }
-        .bracket-match { border: 1px solid #dee2e6; border-radius: 8px; padding: 10px; margin: 10px 0; background: #f8f9fa; }
-        .winner { background-color: #d4edda; }
-        .loader { text-align: center; padding: 30px; }
-        .error-message { text-align: center; padding: 30px; color: #dc3545; }
-        .hidden { display: none; }
-        .news-card { cursor: pointer; transition: transform 0.2s; }
-        .news-card:hover { transform: translateY(-3px); }
-        .match-card { cursor: pointer; transition: transform 0.2s; }
-        .match-card:hover { transform: translateY(-3px); }
-        .dropdown-menu { max-height: 400px; overflow-y: auto; }
-        .dropdown-item { display: flex; align-items: center; }
-        .dropdown-item img { margin-left: 10px; }
-        .search-box { padding: 10px; }
-        .search-box input { width: 100%; padding: 5px; border: 1px solid #ccc; border-radius: 5px; }
+        .champ-img { width: 24px; height: 24px; object-fit: contain; }
+
+        .table {
+            margin-bottom: 0;
+            font-size: 0.9rem;
+        }
+        .table th {
+            background: #f8f9fa;
+            border-bottom: 2px solid #dee2e6;
+        }
+        .highlight-row {
+            background-color: #cfe2ff !important;
+            font-weight: bold;
+        }
+
+        .pitch {
+            background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            min-height: 420px;
+            color: white;
+            margin: 10px 0;
+        }
+        .pitch .team-name {
+            text-align: center;
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        .pitch-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .player-slot {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 60px;
+        }
+        .player-slot img {
+            width: 35px;
+            height: 35px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+        .player-slot .player-name {
+            font-size: 0.7rem;
+            text-align: center;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60px;
+        }
+
         .modal-body { max-height: 70vh; overflow-y: auto; }
-        .link-item { cursor: pointer; color: #0d6efd; text-decoration: underline; }
+        .link-item { cursor: pointer; color: var(--primary); text-decoration: underline; }
         .link-item:hover { color: #0a58ca; }
-        .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
-        .news-full-content img { max-width: 100%; height: auto; }
+
+        .pagination { justify-content: center; margin-top: 20px; }
+
+        @media (max-width: 768px) {
+            .container { padding: 10px; }
+            .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
+            .tab-content { padding: 10px; }
+            .pitch { min-height: 320px; }
+            .player-slot { width: 45px; }
+            .player-slot img { width: 28px; height: 28px; }
+            .player-slot .player-name { font-size: 0.6rem; max-width: 45px; }
+            .col-md-4 { margin-bottom: 10px; }
+        }
     </style>
 </head>
 <body>
@@ -110,17 +244,17 @@
         </div>
 
         <!-- مؤشر التحميل -->
-        <div id="loadingIndicator" class="loader hidden">
+        <div id="loadingIndicator" class="loader hidden text-center py-5">
             <div class="spinner-border text-primary" role="status"></div>
             <p class="mt-2">جاري التحميل...</p>
         </div>
         <!-- رسالة خطأ -->
-        <div id="errorIndicator" class="error-message hidden"></div>
+        <div id="errorIndicator" class="error-message hidden text-center text-danger py-3"></div>
     </div>
 
     <!-- Modal لتفاصيل المباراة -->
     <div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="matchModalTitle">تفاصيل المباراة</h5>
@@ -133,7 +267,7 @@
 
     <!-- Modal لمعلومات الفريق -->
     <div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="teamModalTitle">معلومات الفريق</h5>
@@ -146,7 +280,7 @@
 
     <!-- Modal لمعلومات اللاعب -->
     <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="playerModalTitle">معلومات اللاعب</h5>
@@ -159,7 +293,7 @@
 
     <!-- Modal لمعلومات المدرب -->
     <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="coachModalTitle">معلومات المدرب</h5>
@@ -172,7 +306,7 @@
 
     <!-- Modal لتفاصيل الخبر -->
     <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
+        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="newsModalTitle">تفاصيل الخبر</h5>
@@ -193,12 +327,13 @@
         const IMG_BASE_PLAYER = 'https://imgs.ysscores.com/player/150/';
         const IMG_BASE_CHAMP = 'https://imgs.ysscores.com/championship/150/';
         const IMG_BASE_COACH = 'https://imgs.ysscores.com/coach/150/';
+        const IMG_BASE_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
+        const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
 
         // متغيرات عامة
         let championshipsList = [];
         let currentChampionship = null;
         let currentTab = 'matches';
-        let teamModalData = null;
 
         // دوال مساعدة
         function showLoading() {
@@ -251,8 +386,9 @@
                 item.dataset.champType = champ.type || 1;
                 item.dataset.standings = champ.standings ? '1' : '0';
                 item.dataset.cups = champ.cups ? '1' : '0';
+                const imgSrc = champ.image ? `${IMG_BASE_CHAMP}${champ.image}` : 'https://via.placeholder.com/24';
                 item.innerHTML = `
-                    <img src="${IMG_BASE_CHAMP + champ.image}" class="champ-img" alt="${champ.title}">
+                    <img src="${imgSrc}" class="champ-img" alt="${champ.title}">
                     <span>${champ.title}</span>
                 `;
                 item.addEventListener('click', function(e) {
@@ -278,11 +414,17 @@
             const type = parseInt(element.dataset.champType);
             const standings = element.dataset.standings === '1';
             const cups = element.dataset.cups === '1';
+            const image = element.querySelector('img')?.src || '';
 
             document.getElementById('selectedChampId').value = id;
-            document.getElementById('selectedChampText').textContent = title;
+            document.getElementById('selectedChampText').innerHTML = `
+                <span class="d-flex align-items-center">
+                    ${image ? `<img src="${image}" class="champ-img" style="width:20px;height:20px;margin-left:8px;">` : ''}
+                    ${title}
+                </span>
+            `;
 
-            bootstrap.Dropdown.getInstance(document.getElementById('championshipDropdown')).hide();
+            bootstrap.Dropdown.getInstance(document.getElementById('championshipDropdown'))?.hide();
 
             currentChampionship = {
                 url_id: id,
@@ -355,11 +497,11 @@
                 let html = '';
                 if (data.data) {
                     const { online, coming, end } = data.data;
-                    html += '<h5>المباريات المباشرة</h5>';
+                    html += '<h5 class="mt-3">المباريات المباشرة</h5>';
                     html += online.data.length ? renderMatchesList(online.data) : '<p>لا توجد مباريات مباشرة</p>';
-                    html += '<h5>المباريات القادمة</h5>';
+                    html += '<h5 class="mt-4">المباريات القادمة</h5>';
                     html += coming.data.length ? renderMatchesList(coming.data) : '<p>لا توجد مباريات قادمة</p>';
-                    html += '<h5>المباريات المنتهية</h5>';
+                    html += '<h5 class="mt-4">المباريات المنتهية</h5>';
                     html += end.data.length ? renderMatchesList(end.data) : '<p>لا توجد مباريات منتهية</p>';
                 } else {
                     html = '<p>لا توجد بيانات</p>';
@@ -380,17 +522,17 @@
                 const away = match.away_team;
                 const date = match.match_date + ' ' + match.match_time;
                 html += `
-                    <div class="col-md-6 col-lg-4 mb-3">
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card p-3 match-card" data-match-id="${match.match_id}">
                             <div class="d-flex justify-content-between align-items-center">
                                 <div class="text-center">
                                     <img src="${IMG_BASE_TEAM + home.image}" class="team-img" alt="${home.title}">
-                                    <div class="link-item" data-team-id="${home.row_id}">${home.title}</div>
+                                    <div class="link-item small" data-team-id="${home.row_id}">${home.title}</div>
                                 </div>
                                 <div class="fs-5 fw-bold">${match.home_scores} - ${match.away_scores}</div>
                                 <div class="text-center">
                                     <img src="${IMG_BASE_TEAM + away.image}" class="team-img" alt="${away.title}">
-                                    <div class="link-item" data-team-id="${away.row_id}">${away.title}</div>
+                                    <div class="link-item small" data-team-id="${away.row_id}">${away.title}</div>
                                 </div>
                             </div>
                             <div class="text-center text-muted small mt-2">${date} | ${match.round || ''}</div>
@@ -462,11 +604,11 @@
                 [info.away_team.row_id]: info.away_team.title
             };
             let html = `
-                <div class="text-center mb-3">
-                    <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}">
-                    <span class="mx-2 fs-4">${info.home_scores} - ${info.away_scores}</span>
-                    <img src="${IMG_BASE_TEAM + info.away_team.image}" class="team-img" alt="${info.away_team.title}">
-                    <div class="text-muted">${info.match_date} ${info.match_time} | ${info.Stadium || ''}</div>
+                <div class="text-center mb-4">
+                    <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}" style="width:50px;height:50px;">
+                    <span class="mx-3 fs-3 fw-bold">${info.home_scores} - ${info.away_scores}</span>
+                    <img src="${IMG_BASE_TEAM + info.away_team.image}" class="team-img" alt="${info.away_team.title}" style="width:50px;height:50px;">
+                    <div class="text-muted mt-2">${info.match_date} ${info.match_time} | ${info.Stadium || ''}</div>
                     <div class="mt-2">
                         <button class="btn btn-sm btn-outline-primary" onclick="openTeamModal(${info.home_team.row_id})">${info.home_team.title}</button>
                         <button class="btn btn-sm btn-outline-primary mx-2" onclick="openTeamModal(${info.away_team.row_id})">${info.away_team.title}</button>
@@ -475,9 +617,9 @@
             `;
 
             // الأحداث
-            html += '<h6>أحداث المباراة</h6>';
+            html += '<h6 class="border-bottom pb-1">أحداث المباراة</h6>';
             if (events.length) {
-                html += '<ul class="list-group mb-3">';
+                html += '<ul class="list-group mb-4">';
                 events.forEach(ev => {
                     const player = ev.player_name ? ev.player_name.title : 'غير محدد';
                     const playerImg = ev.player_name && ev.player_name.image ? `<img src="${IMG_BASE_PLAYER + ev.player_name.image}" class="player-img me-2" style="width:25px;height:25px;">` : '';
@@ -494,11 +636,11 @@
             }
 
             // إحصائيات
-            html += '<h6>الإحصائيات</h6>';
+            html += '<h6 class="border-bottom pb-1">الإحصائيات</h6>';
             if (Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
                 const awayStats = stats[info.away_team.row_id] || {};
-                html += '<div class="row mb-3">';
+                html += '<div class="row mb-4">';
                 html += `<div class="col-6"><strong>${info.home_team.title}</strong><br>الاستحواذ: ${homeStats.ball_possession || 0}%<br>التسديدات: ${homeStats.total_shots || 0}<br>الأخطاء: ${homeStats.fouls || 0}</div>`;
                 html += `<div class="col-6 text-start"><strong>${info.away_team.title}</strong><br>الاستحواذ: ${awayStats.ball_possession || 0}%<br>التسديدات: ${awayStats.total_shots || 0}<br>الأخطاء: ${awayStats.fouls || 0}</div>`;
                 html += '</div>';
@@ -506,37 +648,21 @@
                 html += '<p>لا توجد إحصائيات</p>';
             }
 
-            // التشكيلة
-            html += '<h6>التشكيلة الأساسية</h6>';
+            // التشكيلة داخل ملعب
+            html += '<h6 class="border-bottom pb-1">التشكيلة</h6>';
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
             if (homeLineup && awayLineup) {
-                html += '<div class="row mb-3">';
-                html += `<div class="col-6"><strong>${info.home_team.title}</strong><ul>`;
-                homeLineup.lineup.forEach(p => {
-                    html += `<li class="d-flex align-items-center mb-1">
-                        <img src="${IMG_BASE_PLAYER + p.player.image}" class="player-img me-2" style="width:25px;height:25px;" onerror="this.style.display='none'">
-                        <span class="link-item" onclick="openPlayerModal(${p.player.row_id})">${p.player.title}</span>
-                        <span class="text-muted ms-2">(${p.player.position || ''})</span>
-                    </li>`;
-                });
-                html += '</ul></div>';
-                html += `<div class="col-6"><strong>${info.away_team.title}</strong><ul>`;
-                awayLineup.lineup.forEach(p => {
-                    html += `<li class="d-flex align-items-center mb-1">
-                        <img src="${IMG_BASE_PLAYER + p.player.image}" class="player-img me-2" style="width:25px;height:25px;" onerror="this.style.display='none'">
-                        <span class="link-item" onclick="openPlayerModal(${p.player.row_id})">${p.player.title}</span>
-                        <span class="text-muted ms-2">(${p.player.position || ''})</span>
-                    </li>`;
-                });
-                html += '</ul></div>';
+                html += '<div class="row">';
+                html += `<div class="col-12 col-md-6">${renderPitch(info.home_team, homeLineup, info.home_formation)}</div>`;
+                html += `<div class="col-12 col-md-6">${renderPitch(info.away_team, awayLineup, info.away_formation)}</div>`;
                 html += '</div>';
             } else {
                 html += '<p>التشكيلة غير متوفرة</p>';
             }
 
             // المواجهات المباشرة (H2H)
-            html += '<h6>المواجهات المباشرة (H2H)</h6>';
+            html += '<h6 class="border-bottom pb-1 mt-4">المواجهات المباشرة (H2H)</h6>';
             if (Object.keys(h2h).length) {
                 html += '<ul class="list-group">';
                 for (const matchId in h2h) {
@@ -557,6 +683,45 @@
             }
 
             body.innerHTML = html;
+        }
+
+        function renderPitch(team, lineupData, formation) {
+            const players = lineupData.lineup || [];
+            const formationText = formation || '4-3-3';
+            const groups = {
+                'G': [],
+                'D': [],
+                'M': [],
+                'F': []
+            };
+            players.forEach(p => {
+                const pos = p.position || 'M';
+                if (groups[pos]) groups[pos].push(p);
+                else groups['M'].push(p);
+            });
+
+            let html = `
+                <div class="pitch">
+                    <div class="team-name">
+                        <img src="${IMG_BASE_TEAM + team.image}" class="team-img" style="width:25px;height:25px;vertical-align:middle;">
+                        ${team.title} (${formationText})
+                    </div>
+            `;
+            html += `<div class="pitch-row">${renderPlayersRow(groups['G'])}</div>`;
+            html += `<div class="pitch-row">${renderPlayersRow(groups['D'])}</div>`;
+            html += `<div class="pitch-row">${renderPlayersRow(groups['M'])}</div>`;
+            html += `<div class="pitch-row">${renderPlayersRow(groups['F'])}</div>`;
+            html += '</div>';
+            return html;
+        }
+
+        function renderPlayersRow(players) {
+            return players.map(p => `
+                <div class="player-slot">
+                    <img src="${IMG_BASE_PLAYER + p.player.image}" alt="${p.player.title}" onerror="this.style.display='none'">
+                    <span class="player-name">${p.player.title}</span>
+                </div>
+            `).join('');
         }
 
         // ========== تحميل الترتيب ==========
@@ -589,13 +754,14 @@
 
         function renderStandingsTable(teams, highlightTeamId = null) {
             let html = `
-                <table class="table table-striped table-hover">
-                    <thead>
-                        <tr>
-                            <th>#</th><th>الفريق</th><th>لعب</th><th>فاز</th><th>تعادل</th><th>خسر</th><th>له</th><th>عليه</th><th>الفرق</th><th>نقاط</th>
-                        </tr>
-                    </thead>
-                    <tbody>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead>
+                            <tr>
+                                <th>#</th><th>الفريق</th><th>لعب</th><th>فاز</th><th>تعادل</th><th>خسر</th><th>له</th><th>عليه</th><th>الفرق</th><th>نقاط</th>
+                            </tr>
+                        </thead>
+                        <tbody>
             `;
             teams.forEach((team, idx) => {
                 const info = team.team_name;
@@ -610,14 +776,14 @@
                     </tr>
                 `;
             });
-            html += '</tbody></table>';
+            html += '</tbody></table></div>';
             return html;
         }
 
         function renderGroupStandings(groups) {
             let html = '';
             for (const groupName in groups) {
-                html += `<h5>المجموعة ${groupName}</h5>`;
+                html += `<h5 class="mt-3">المجموعة ${groupName}</h5>`;
                 html += renderStandingsTable(groups[groupName]);
             }
             return html;
@@ -674,10 +840,10 @@
                 const value = type === 'goals' ? p.goals : p.assist;
                 html += `
                     <li class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
+                        <div class="d-flex align-items-center">
                             <img src="${IMG_BASE_PLAYER + info.image}" class="player-img me-2" alt="${info.title}" onerror="this.style.display='none'">
                             <span class="link-item" onclick="openPlayerModal(${info.id})">${info.title}</span>
-                            <small class="text-muted">(${info.team_name})</small>
+                            <small class="text-muted ms-2">(${info.team_name})</small>
                         </div>
                         <span class="badge bg-primary rounded-pill">${value}</span>
                     </li>
@@ -739,7 +905,7 @@
             let html = '<div class="row">';
             newsArray.forEach(item => {
                 html += `
-                    <div class="col-md-4 mb-3">
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card news-card h-100" data-news-id="${item.id}" onclick="openNewsModal(${item.id})">
                             <img src="https://imgs.ysscores.com/news/350/${item.image}" class="card-img-top" alt="${item.title}" onerror="this.style.display='none'">
                             <div class="card-body">
@@ -779,7 +945,7 @@
         function renderBracket(map, lot) {
             let html = '';
             if (lot && lot.length > 0) {
-                html += '<h5>الملحق (Playoffs)</h5>';
+                html += '<h5 class="mt-3">الملحق (Playoffs)</h5>';
                 lot.forEach(match => {
                     const winner = match.winTeam ? (match.teamA.row_id == match.winTeam ? match.teamA.title : match.teamB.title) : 'غير محدد';
                     html += `<div class="bracket-match">
@@ -790,7 +956,7 @@
                 });
             }
             if (map && map.length > 0) {
-                html += '<h5>خريطة الأدوار الإقصائية</h5>';
+                html += '<h5 class="mt-4">خريطة الأدوار الإقصائية</h5>';
                 map.forEach(match => {
                     const winnerClass = match.winTeam ? 'winner' : '';
                     html += `<div class="bracket-match ${winnerClass}">
@@ -824,7 +990,7 @@
                     fetchFromProxy(teamNewsUrl).catch(() => ({ data: { data: [] } }))
                 ]);
 
-                teamModalData = {
+                const modalData = {
                     teamInfo: teamInfo.data,
                     players: players.data,
                     transfers: transfers.data,
@@ -833,7 +999,7 @@
                     teamNews: teamNews.data
                 };
 
-                renderTeamModalTabs(teamModalData);
+                renderTeamModalTabs(modalData);
                 document.getElementById('teamModalTitle').textContent = teamInfo.data.title;
                 const modal = new bootstrap.Modal(document.getElementById('teamModal'));
                 modal.show();
@@ -934,7 +1100,7 @@
             if (!matchesData) return '<p>لا توجد بيانات مباريات</p>';
             let html = '<h6>المباريات القادمة</h6>';
             html += matchesData.coming && matchesData.coming.data.length ? renderMatchesList(matchesData.coming.data) : '<p>لا توجد مباريات قادمة</p>';
-            html += '<h6>المباريات المنتهية</h6>';
+            html += '<h6 class="mt-3">المباريات المنتهية</h6>';
             html += matchesData.end && matchesData.end.data.length ? renderMatchesList(matchesData.end.data) : '<p>لا توجد مباريات منتهية</p>';
             return html;
         }
@@ -950,7 +1116,7 @@
                 if (pos === 'coach') continue;
                 const playersList = playersData[pos];
                 if (Array.isArray(playersList)) {
-                    html += `<div class="col-6"><strong>${pos}</strong><ul>`;
+                    html += `<div class="col-6 col-md-4"><strong>${pos}</strong><ul>`;
                     playersList.forEach(p => {
                         html += `<li class="d-flex align-items-center mb-1">
                             <img src="${IMG_BASE_PLAYER + p.image}" class="player-img me-2" style="width:25px;height:25px;" onerror="this.style.display='none'">
@@ -975,20 +1141,21 @@
 
             let html = '<div class="row">';
             allTransfers.forEach(t => {
-                const playerImg = t.player_name?.image ? `<img src="${IMG_BASE_PLAYER + t.player_name.image}" class="player-img me-2" style="width:30px;height:30px;" onerror="this.style.display='none'">` : '';
+                const playerImg = t.player_name?.image ? `<img src="${IMG_BASE_PLAYER + t.player_name.image}" class="player-img me-2" style="width:35px;height:35px;" onerror="this.style.display='none'">` : '';
                 const typeLabel = t.type === 0 ? 'انتقال دائم' : t.type === 1 ? 'إعارة' : t.type === 4 ? 'انتقال مجاني' : 'نوع آخر';
                 html += `
-                    <div class="col-md-6 mb-2">
-                        <div class="card p-2">
-                            <div class="d-flex align-items-center">
+                    <div class="col-12 col-md-6 col-lg-4 mb-3">
+                        <div class="card h-100 p-3">
+                            <div class="d-flex align-items-center mb-2">
                                 ${playerImg}
-                                <span class="link-item" onclick="openPlayerModal(${t.player_name.row_id})">${t.player_name?.title || 'غير معروف'}</span>
+                                <span class="fw-bold link-item" onclick="openPlayerModal(${t.player_name.row_id})">${t.player_name?.title || 'غير معروف'}</span>
                             </div>
-                            <div class="small text-muted mt-1">
-                                <div>من: <span class="link-item" onclick="openTeamModal(${t.team_out.row_id})">${t.team_out?.title}</span></div>
-                                <div>إلى: <span class="link-item" onclick="openTeamModal(${t.team_in.row_id})">${t.team_in?.title}</span></div>
-                                <div>القيمة: ${t.value || 'غير معلن'} | ${typeLabel}</div>
-                                <div>التاريخ: ${t.date_from} إلى ${t.date_to || 'الآن'}</div>
+                            <div class="small">
+                                <div><strong>من:</strong> <span class="link-item" onclick="openTeamModal(${t.team_out.row_id})">${t.team_out?.title}</span></div>
+                                <div><strong>إلى:</strong> <span class="link-item" onclick="openTeamModal(${t.team_in.row_id})">${t.team_in?.title}</span></div>
+                                <div><strong>القيمة:</strong> ${t.value || 'غير معلن'}</div>
+                                <div><strong>النوع:</strong> ${typeLabel}</div>
+                                <div><strong>التاريخ:</strong> ${t.date_from} إلى ${t.date_to || 'الآن'}</div>
                             </div>
                         </div>
                     </div>
@@ -1073,7 +1240,16 @@
 
         function renderPlayerModal(playerInfo) {
             const body = document.getElementById('playerModalBody');
-            let html = `
+            const coverUrl = playerInfo.image_cover ? IMG_BASE_PLAYER_COVER + playerInfo.image_cover : null;
+            let html = '';
+
+            if (coverUrl) {
+                html += `
+                    <div style="background: url('${coverUrl}') center/cover; height: 180px; border-radius: 12px; margin-bottom: 15px;"></div>
+                `;
+            }
+
+            html += `
                 <div class="d-flex align-items-center mb-3">
                     <img src="${IMG_BASE_PLAYER + playerInfo.image}" class="player-img me-2" style="width:60px;height:60px;">
                     <h4>${playerInfo.title}</h4>
@@ -1132,7 +1308,16 @@
 
         function renderCoachModal(coachInfo) {
             const body = document.getElementById('coachModalBody');
-            let html = `
+            const coverUrl = coachInfo.image_cover ? IMG_BASE_COACH_COVER + coachInfo.image_cover : null;
+            let html = '';
+
+            if (coverUrl) {
+                html += `
+                    <div style="background: url('${coverUrl}') center/cover; height: 180px; border-radius: 12px; margin-bottom: 15px;"></div>
+                `;
+            }
+
+            html += `
                 <div class="d-flex align-items-center mb-3">
                     <img src="${IMG_BASE_COACH + coachInfo.image}" class="player-img me-2" style="width:60px;height:60px;">
                     <h4>${coachInfo.title}</h4>
@@ -1207,4 +1392,4 @@
         loadChampionships();
     </script>
 </body>
-                        </html>
+            </html>
