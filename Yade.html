@@ -8,7 +8,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        /* تعريف الألوان والمتغيرات */
+        :root { 
+            --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; 
+            --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+        }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -81,9 +85,12 @@
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        
+        /* إشعار الهدف */
         .goal-alert { position: absolute; top: 20%; left: 50%; transform: translateX(-50%); background-color: #dc3545; color: white; padding: 10px 24px; border-radius: 30px; font-size: 1.2rem; font-weight: bold; z-index: 10; box-shadow: 0 4px 15px rgba(0,0,0,0.3); animation: goalFade 8s forwards; pointer-events: none; white-space: nowrap; }
         .penalty-alert { background-color: #fd7e14; }
         @keyframes goalFade { 0% { opacity: 0; transform: translateX(-50%) scale(0.8); } 10% { opacity: 1; transform: translateX(-50%) scale(1); } 80% { opacity: 1; } 100% { opacity: 0; } }
+        
         .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
         .play-stream-btn:hover { background-color: #146c43; }
         .video-player-modal .modal-content { background-color: #000; }
@@ -91,14 +98,27 @@
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
         .extra-time { color: #ffc107; }
 
+        /* --- تنسيق الدائرة الديناميكية الجديدة --- */
         .live-indicator { display: flex; flex-direction: column; align-items: center; }
         .live-dot { margin-bottom: 2px; }
         .live-time { display: flex; flex-direction: column; align-items: center; font-weight: bold; color: #000; }
+        
         .live-time .clock-main { font-size: 14px; line-height: 1; }
-        .live-time .clock-sub { font-size: 11px; color: #ffc107; margin-top: 2px; }
-        .match-clock { width: 56px; height: 56px; border-radius: 50%; border: 3px solid #27ae60; display: flex; justify-content: center; align-items: center; margin-top: 5px; position: relative; }
-        .clock-inner { text-align: center; }
+        .live-time .clock-sub { font-size: 11px; color: #ffc107; margin-top: 2px; } /* اللون الأصفر */
+        
+        .match-clock {
+            width: 56px; height: 56px; border-radius: 50%; 
+            background: conic-gradient(var(--success) 0%, #eaeaea 0%); /* تعبئة ديناميكية */
+            display: flex; justify-content: center; align-items: center; margin-top: 5px; position: relative;
+        }
+        /* إخفاء الجزء الداخلي لتصبح حلقة فقط */
+        .match-clock::before {
+            content: ""; position: absolute; top: 4px; left: 4px; width: 48px; height: 48px;
+            background: #fff; border-radius: 50%; z-index: 1;
+        }
+        .clock-inner { text-align: center; position: relative; z-index: 2; }
 
+        /* --- بقية تنسيقات التطبيق --- */
         .player-hero { position: relative; height: 280px; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea; }
         .player-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); opacity: 0.9; }
         .player-hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%); pointer-events: none; }
@@ -132,13 +152,17 @@
         .match-header .champ-badge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: center; font-size: 12px; color: #666; }
         .match-header .champ-badge img { width: 20px; height: 20px; }
 
-        /* CSS للأيقونات الجديدة */
+        /* عناصر الأيقونات */
         .icon-16 { width: 16px; height: 16px; vertical-align: middle; margin-right: 4px; }
         .icon-24 { width: 24px; height: 24px; vertical-align: middle; margin-right: 4px; }
+
+        /* بطاقات التفاصيل */
         .detail-card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; margin-bottom: 10px; padding: 12px 15px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #333; }
         .detail-row strong { color: #666; font-weight: 600; }
         .detail-row span { font-weight: 500; }
+        
+        /* آخر 5 مباريات */
         .last5-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .last5-container { background: #fff; border-radius: 12px; padding: 15px; border: 1px solid #eaeaea; margin-bottom: 20px; }
         .last5-columns { display: flex; justify-content: space-between; gap: 20px; }
@@ -147,6 +171,8 @@
         .dot-w { background: #28a745; }
         .dot-l { background: #dc3545; }
         .dot-d { background: #6c757d; }
+
+        /* H2H */
         .h2h-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .h2h-container { background: #fff; border-radius: 12px; padding: 20px; border: 1px solid #eaeaea; }
         .h2h-flex { display: flex; justify-content: space-between; align-items: center; }
@@ -157,6 +183,8 @@
         .h2h-stat { text-align: center; }
         .h2h-stat span.num { font-size: 20px; font-weight: bold; display: block; }
         .h2h-stat span.lbl { font-size: 12px; color: #777; display: block; }
+
+        /* الأحداث */
         .events-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .event-box { background: #fff; border-radius: 12px; padding: 10px 0; }
         .event-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
@@ -169,6 +197,8 @@
         .event-side-home img { width: 24px; height: 24px; object-fit: contain; }
         .event-side-away img { width: 24px; height: 24px; object-fit: contain; }
         .center-note { text-align: center; color: #555; font-size: 14px; padding: 15px 0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+        /* الإحصائيات */
         .stats-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .stats-container { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #eaeaea; }
         .possession-box { text-align: center; margin-bottom: 20px; }
@@ -311,7 +341,6 @@
 
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
-
         const LANG_API_BASE = { ar: 'https://api-ar.ysscores.com/api', en: 'https://api-en.ysscores.com/api', fr: 'https://api-fr.ysscores.com/api', es: 'https://api-es.ysscores.com/api', it: 'https://api-it.ysscores.com/api', pt: 'https://api-pt.ysscores.com/api', br: 'https://api-br.ysscores.com/api' };
         const LANG_NEWS_BASE = { ar: 'https://news-ar.ysscores.com/api', en: 'https://news-en.ysscores.com/api', fr: 'https://news-fr.ysscores.com/api', es: 'https://news-es.ysscores.com/api', it: 'https://news-it.ysscores.com/api', pt: 'https://news-pt.ysscores.com/api', br: 'https://news-br.ysscores.com/api' };
 
@@ -625,20 +654,38 @@
             return 0;
         }
 
+        // دالة حساب الوقت المضاف مع الأيقونة واللون
         function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
+            
             if (status === 0) return 'VS';
-            if (status === 4) return 'FT';
-            if (status === 2) return 'HT';
+            if (status === 4) return 'FT'; // نهاية المباراة (دائرة ممتلئة)
+            if (status === 2) return 'HT'; // استراحة (دائرة نصف ممتلئة)
+            
             if (totalMinutes > 90) {
                 const extraSeconds = totalSeconds - 90 * 60;
                 const extraMinutes = Math.floor(extraSeconds / 60);
                 const remainingSeconds = extraSeconds % 60;
                 const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
-                return `<img src="${ICONS.chronometer}" class="icon-16"> ${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}`;
+                
+                // إضافة اللون الأصفر للوقت الإضافي
+                return `<span class="clock-main">90'</span><span class="clock-sub">${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</span>`;
             }
-            return `<img src="${ICONS.chronometer}" class="icon-16"> ${totalMinutes}'`;
+            
+            return `<span class="clock-main">${totalMinutes}'</span>`;
+        }
+
+        // دالة حساب نسبة تعبئة الدائرة (HT = 50%، FT = 100%، غير ذلك = الوقت الحالي بالنسبة لـ 90 دقيقة)
+        function getMatchCirclePercentage(seconds, status) {
+            if (status === 4) return 100; // مباراة منتهية: دائرة ممتلئة تماماً
+            if (status === 2) return 50;  // استراحة الشوط الأول: نصف ممتلئة
+            if (status === 0) return 0;   // لم تبدأ بعد: فارغة
+
+            const minute = seconds / 60;
+            if (minute >= 90) return 100; // وقت إضافي: الدائرة ممتلئة تماماً
+
+            return Math.min(100, (minute / 90) * 100); // تعبئة تدريجية حتى 90 دقيقة
         }
 
         function renderLiveMatchCard(match) {
@@ -649,10 +696,15 @@
             const seconds = getLiveSeconds(match);
             const status = match.status || 1;
             const timeDisplay = formatLiveTime(seconds, status, match.ex_time);
+            const circlePercent = getMatchCirclePercentage(seconds, status);
+            
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
+            
+            // إضافة التعبئة الديناميكية (Conic Gradient) داخل الدائرة
             card.innerHTML = `
                 <div class="card p-3 match-card position-relative" data-match-id="${match.match_id}">
                     <div class="d-flex justify-content-between align-items-center">
@@ -665,7 +717,7 @@
                             <div class="live-indicator mt-1" data-match-id="${match.match_id}">
                                 <span class="live-dot"></span>
                                 <span class="badge bg-danger">Live</span>
-                                <div class="match-clock">
+                                <div class="match-clock" style="background: conic-gradient(var(--success) ${circlePercent}%, #eaeaea ${circlePercent}%);">
                                     <div class="clock-inner">
                                         <span class="live-time">${timeDisplay}</span>
                                     </div>
@@ -692,10 +744,12 @@
             const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'><img src="${ICONS.video}" class="icon-16"> Play</button>` : '';
+            
             let statusBadge = '';
             if (match.status === 4) statusBadge = '<span class="badge bg-secondary">FT</span>';
             else if (match.status === 1 || match.status === 2 || match.status === 3) statusBadge = '<span class="badge bg-danger">Live</span>';
             else if (match.status === 0) statusBadge = '<span class="badge bg-info">Upcoming</span>';
+            
             const scoreDisplay = match.status === 0 ? 'VS' : `${match.home_scores} - ${match.away_scores}`;
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
@@ -783,7 +837,9 @@
                 });
                 await loadStreamEvents();
                 renderLiveAndToday();
+
                 if (liveUpdateInterval) clearInterval(liveUpdateInterval);
+                // تحديث الدائرة والوقت كل ثانية
                 liveUpdateInterval = setInterval(() => {
                     document.querySelectorAll('.live-indicator').forEach(el => {
                         const matchId = el.dataset.matchId;
@@ -793,9 +849,16 @@
                             const status = match.status || 1;
                             const timeEl = el.querySelector('.live-time');
                             if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status, match.ex_time);
+                            
+                            const circleEl = el.querySelector('.match-clock');
+                            if (circleEl) {
+                                const pct = getMatchCirclePercentage(seconds, status);
+                                circleEl.style.background = `conic-gradient(var(--success) ${pct}%, #eaeaea ${pct}%)`;
+                            }
                         }
                     });
                 }, 1000);
+
                 if (liveFetchInterval) clearInterval(liveFetchInterval);
                 liveFetchInterval = setInterval(async () => {
                     const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
@@ -1077,7 +1140,6 @@
                 </div>
             `;
 
-            // قسم "Details" بأسلوب التطبيق (بطاقات بيضاء)
             infoBlock += '<h5 class="mt-4 mb-3 fw-bold">Match Details</h5>';
             infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.cup}" class="icon-16"> Competition</strong><span>${info.championship ? info.championship.title : 'N/A'} ></span></div></div>`;
             infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.flag}" class="icon-16"> Round</strong><span>${info.round || 'N/A'} ></span></div></div>`;
@@ -1095,7 +1157,6 @@
             infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.chronometer}" class="icon-16"> Time</strong><span>${timeZonePart(info.match_time)}</span></div></div>`;
             infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.chronometer}" class="icon-16"> Date</strong><span>${formatDatePart(info.match_date)}</span></div></div>`;
 
-            // قسم "آخر 5 مباريات"
             infoBlock += '<div class="last5-title">Last 5 Matches for each team</div>';
             infoBlock += '<div class="last5-container">';
             infoBlock += '<div class="last5-columns">';
@@ -1103,7 +1164,6 @@
             infoBlock += `<div>${renderLast5Dots(awayLast5, info.away_team.row_id)}</div>`;
             infoBlock += '</div></div>';
 
-            // قسم H2H
             infoBlock += '<div class="h2h-title">H2H</div>';
             infoBlock += `<div class="h2h-container">${renderH2H(h2h, info)}</div>`;
 
@@ -1179,7 +1239,6 @@
             return html;
         }
 
-        // دالة بناء الأحداث مع أيقونات خارجية
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             let html = '<div class="events-title">Events</div>';
@@ -1203,8 +1262,7 @@
                     awayLogo = `<img src="${IMG_BASE_TEAM + info.away_team.image}">`;
                 }
 
-                // أيقونات الحدث
-                let eventIcon = ICONS.flag; // افتراضي
+                let eventIcon = ICONS.flag;
                 let typeLabel = '';
                 if (ev.type === 1 || ev.type === 5) { eventIcon = ICONS.goal; typeLabel = 'Goal'; }
                 else if (ev.type === 2) { eventIcon = ICONS.yellowCard; typeLabel = 'Yellow Card'; }
@@ -1271,7 +1329,6 @@
                 let hPct = maxVal > 0 ? Math.round((hVal / maxVal) * 100) : 50;
                 let aPct = maxVal > 0 ? Math.round((aVal / maxVal) * 100) : 50;
 
-                // أيقونات حسب النوع
                 let icon = '';
                 if (field.key.includes('shots') || field.key.includes('goal') || field.key.includes('saves')) icon = `<img src="${ICONS.goal}" class="icon-16">`;
                 else if (field.key.includes('yellow')) icon = `<img src="${ICONS.yellowCard}" class="icon-16">`;
@@ -1498,7 +1555,6 @@
             players.forEach(p => {
                 const info = p.player_info;
                 const value = type === 'goals' ? p.goals : p.assist;
-                // أيقونة اللاعب بحجم 24px كما طلبت
                 html += `<li class="list-group-item d-flex justify-content-between align-items-center"><div class="d-flex align-items-center"><img src="${IMG_BASE_PLAYER + info.image}" style="width:24px;height:24px;object-fit:cover;border-radius:50%;" class="me-2" alt="${info.title}" onclick="openPlayerModal(${info.id})" style="cursor:pointer;" onerror="this.style.display='none'"><span class="link-item" onclick="openPlayerModal(${info.id})">${info.title}</span><small class="text-muted ms-2">(${info.team_name})</small></div><span class="badge bg-primary rounded-pill">${value}</span></li>`;
             });
             html += '</ul>';
@@ -1624,7 +1680,6 @@
                     html += `<div class="col-6 col-md-4"><strong>${groupName}</strong><ul>`;
                     playersList.forEach(p => {
                         const playerPos = getPositionFullName(p.position);
-                        // أيقونة اللاعب 24px
                         html += `<li class="d-flex align-items-center mb-1"><img src="${IMG_BASE_PLAYER + p.image}" style="width:24px;height:24px;object-fit:cover;border-radius:50%;" class="me-2" style="cursor:pointer;" onclick="openPlayerModal(${p.row_id})" onerror="this.style.display='none'"><span class="link-item" onclick="openPlayerModal(${p.row_id})">${p.title}</span><span class="text-muted ms-2">(${playerPos})</span></li>`;
                     });
                     html += '</ul></div>';
@@ -1806,4 +1861,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                </html>
+                                                                                                                                                                                                                                                                                                                                                                                        </html>
