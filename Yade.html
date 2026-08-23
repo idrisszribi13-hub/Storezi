@@ -240,6 +240,57 @@
         .lang-option:hover { background: #f0f0f0; }
         .lang-option img { width: 24px; height: 18px; object-fit: cover; border-radius: 2px; }
 
+        /* زر الوقت */
+        .time-float {
+            position: fixed;
+            bottom: 30px;
+            right: 100px;
+            z-index: 2000;
+        }
+        .time-btn {
+            width: 55px;
+            height: 55px;
+            border-radius: 50%;
+            background: #fff;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            font-size: 24px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.2s;
+        }
+        .time-btn:hover { transform: scale(1.1); }
+        .time-menu {
+            position: absolute;
+            bottom: 65px;
+            right: 0;
+            background: #fff;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+            overflow: hidden;
+            display: none;
+            min-width: 180px;
+        }
+        .time-menu.open { display: block; }
+        .time-option {
+            display: block;
+            padding: 8px 15px;
+            border: none;
+            background: transparent;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.95rem;
+            transition: background 0.2s;
+        }
+        .time-option:hover { background: #f0f0f0; }
+        .time-submenu {
+            display: none;
+            padding-left: 20px;
+        }
+        .time-submenu.open { display: block; }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -249,6 +300,7 @@
             .player-slot img { width: 28px; height: 28px; }
             .player-slot .player-name { font-size: 0.6rem; max-width: 45px; }
             .col-md-4 { margin-bottom: 10px; }
+            .time-float { right: 100px; }
         }
     </style>
 </head>
@@ -400,6 +452,21 @@
         </div>
     </div>
 
+    <!-- زر الوقت العائم -->
+    <div class="time-float">
+        <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
+        <div class="time-menu" id="timeMenu">
+            <button class="time-option" id="timeZoneOption">Time Zone</button>
+            <button class="time-option" id="timeFormatOption">Time Format</button>
+            <div class="time-submenu" id="timeZoneSubmenu">
+                <!-- سيتم ملؤه ديناميكيًا -->
+            </div>
+            <div class="time-submenu" id="timeFormatSubmenu">
+                <!-- سيتم ملؤه ديناميكيًا -->
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // ========== Settings ==========
@@ -442,6 +509,10 @@
         let assistsPage = 1, assistsNextUrl = null, assistsLoading = false;
         let newsPage = 1, newsNextUrl = null, newsLoading = false;
         let scorersObserver = null, assistsObserver = null, newsObserver = null;
+
+        // Time settings
+        let timezoneOffset = 0; // minutes
+        let timeFormat = '24'; // '24' or '12'
 
         // ========== Language System ==========
         const translations = {
@@ -499,7 +570,6 @@
                 const key = el.getAttribute('data-i18n');
                 if (t[key]) el.textContent = t[key];
             });
-            // Update select placeholder
             document.getElementById('champSearch')?.setAttribute('placeholder', t.search_placeholder);
         }
 
@@ -529,6 +599,112 @@
                 applyLanguage(savedLang);
                 if (LANG_API_BASE[savedLang]) API_BASE = LANG_API_BASE[savedLang];
                 if (LANG_NEWS_BASE[savedLang]) NEWS_BASE = LANG_NEWS_BASE[savedLang];
+            }
+        }
+
+        // ========== Time Settings ==========
+        function initTimeSystem() {
+            const toggle = document.getElementById('timeToggle');
+            const menu = document.getElementById('timeMenu');
+            const timeZoneOption = document.getElementById('timeZoneOption');
+            const timeFormatOption = document.getElementById('timeFormatOption');
+            const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
+            const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
+
+            // Populate timezone options
+            const zones = [-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7];
+            zones.forEach(offset => {
+                const btn = document.createElement('button');
+                btn.className = 'time-option';
+                btn.textContent = offset === 0 ? 'GMT' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
+                btn.addEventListener('click', () => {
+                    timezoneOffset = offset * 60;
+                    localStorage.setItem('timezone_offset', timezoneOffset);
+                    if (currentChampionship) switchTab(currentTab);
+                    hideTimeMenu();
+                });
+                timeZoneSubmenu.appendChild(btn);
+            });
+
+            // Populate time format options
+            const formats = [
+                { label: '24h', value: '24' },
+                { label: '12h AM/PM', value: '12' }
+            ];
+            formats.forEach(fmt => {
+                const btn = document.createElement('button');
+                btn.className = 'time-option';
+                btn.textContent = fmt.label;
+                btn.addEventListener('click', () => {
+                    timeFormat = fmt.value;
+                    localStorage.setItem('time_format', timeFormat);
+                    if (currentChampionship) switchTab(currentTab);
+                    hideTimeMenu();
+                });
+                timeFormatSubmenu.appendChild(btn);
+            });
+
+            // Toggle submenus
+            timeZoneOption.addEventListener('click', () => {
+                timeZoneSubmenu.classList.toggle('open');
+                timeFormatSubmenu.classList.remove('open');
+            });
+            timeFormatOption.addEventListener('click', () => {
+                timeFormatSubmenu.classList.toggle('open');
+                timeZoneSubmenu.classList.remove('open');
+            });
+
+            // Toggle main menu
+            toggle.addEventListener('click', (e) => {
+                e.stopPropagation();
+                menu.classList.toggle('open');
+                // Reset submenus when opening
+                timeZoneSubmenu.classList.remove('open');
+                timeFormatSubmenu.classList.remove('open');
+            });
+            document.addEventListener('click', (e) => {
+                if (!menu.contains(e.target) && e.target !== toggle) {
+                    menu.classList.remove('open');
+                    timeZoneSubmenu.classList.remove('open');
+                    timeFormatSubmenu.classList.remove('open');
+                }
+            });
+
+            // Load saved settings
+            const savedOffset = localStorage.getItem('timezone_offset');
+            if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
+            const savedFormat = localStorage.getItem('time_format');
+            if (savedFormat) timeFormat = savedFormat;
+
+            function hideTimeMenu() {
+                menu.classList.remove('open');
+                timeZoneSubmenu.classList.remove('open');
+                timeFormatSubmenu.classList.remove('open');
+            }
+        }
+
+        function formatMatchDateTime(dateStr, timeStr, timestamp) {
+            // Use timestamp if available
+            if (timestamp) {
+                const date = new Date(timestamp * 1000 + timezoneOffset * 60000);
+                return formatDate(date) + ' ' + formatTime(date);
+            }
+            // Fallback to date and time strings (assume UTC)
+            const date = new Date(dateStr + 'T' + timeStr + 'Z');
+            date.setMinutes(date.getMinutes() + timezoneOffset);
+            return formatDate(date) + ' ' + formatTime(date);
+        }
+
+        function formatDate(date) {
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
+        }
+
+        function formatTime(date) {
+            if (timeFormat === '12') {
+                return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
+            } else {
+                return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
             }
         }
 
@@ -573,7 +749,6 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (err) {
-                // Fallback to English API
                 const fallbackUrl = url.replace(/\/api-(ar|fr|es|it|pt|br)\//, '/api-en/');
                 if (fallbackUrl !== url) {
                     const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(fallbackUrl)}`;
@@ -732,12 +907,14 @@
                 let html = '';
                 if (data.data) {
                     const { online, coming, end } = data.data;
-                    html += '<h5 class="mt-3">' + translations[localStorage.getItem('preferred_language') || 'en'].live + '</h5>';
-                    html += online.data.length ? renderMatchesList(online.data) : '<p>No live matches</p>';
-                    html += '<h5 class="mt-4">' + translations[localStorage.getItem('preferred_language') || 'en'].upcoming + '</h5>';
-                    html += coming.data.length ? renderMatchesList(coming.data) : '<p>No upcoming matches</p>';
-                    html += '<h5 class="mt-4">' + translations[localStorage.getItem('preferred_language') || 'en'].finished + '</h5>';
-                    html += end.data.length ? renderMatchesList(end.data) : '<p>No finished matches</p>';
+                    const lang = localStorage.getItem('preferred_language') || 'en';
+                    const t = translations[lang];
+                    html += `<h5 class="mt-3">${t.live}</h5>`;
+                    html += online.data.length ? renderMatchesList(online.data) : `<p>${lang === 'ar' ? 'لا توجد مباريات' : 'No matches'}</p>`;
+                    html += `<h5 class="mt-4">${t.upcoming}</h5>`;
+                    html += coming.data.length ? renderMatchesList(coming.data) : `<p>${lang === 'ar' ? 'لا توجد مباريات' : 'No matches'}</p>`;
+                    html += `<h5 class="mt-4">${t.finished}</h5>`;
+                    html += end.data.length ? renderMatchesList(end.data) : `<p>${lang === 'ar' ? 'لا توجد مباريات' : 'No matches'}</p>`;
                 } else {
                     html = '<p>No data available</p>';
                 }
@@ -755,7 +932,7 @@
             matches.forEach(match => {
                 const home = match.home_team;
                 const away = match.away_team;
-                const date = match.match_date + ' ' + match.match_time;
+                const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
                 html += `
                     <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card p-3 match-card" data-match-id="${match.match_id}">
@@ -770,7 +947,7 @@
                                     <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                                 </div>
                             </div>
-                            <div class="text-center text-muted small mt-2">${date} | ${match.round || ''}</div>
+                            <div class="text-center text-muted small mt-2">${dateTime} | ${match.round || ''}</div>
                         </div>
                     </div>
                 `;
@@ -864,12 +1041,16 @@
                 [info.home_team.row_id]: info.home_team.title,
                 [info.away_team.row_id]: info.away_team.title
             };
+            const lang = localStorage.getItem('preferred_language') || 'en';
+            const t = translations[lang];
+            const dateTime = formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp);
+
             let html = `
                 <div class="text-center mb-3">
                     <img src="${IMG_BASE_TEAM + info.home_team.image}" class="team-img" alt="${info.home_team.title}" style="width:50px;height:50px;" onclick="openTeamModal(${info.home_team.row_id})">
                     <span class="mx-3 fs-3 fw-bold">${info.home_scores} - ${info.away_scores}</span>
                     <img src="${IMG_BASE_TEAM + info.away_team.image}" class="team-img" alt="${info.away_team.title}" style="width:50px;height:50px;" onclick="openTeamModal(${info.away_team.row_id})">
-                    <div class="text-muted mt-2">${info.match_date} ${info.match_time} | ${info.Stadium || ''}</div>
+                    <div class="text-muted mt-2">${dateTime} | ${info.Stadium || ''}</div>
                     <div id="matchTimer" class="mt-2"></div>
                     <div class="mt-2">
                         <button class="btn btn-sm btn-outline-primary" onclick="openTeamModal(${info.home_team.row_id})">${info.home_team.title}</button>
@@ -877,22 +1058,23 @@
                     </div>
                 </div>
             `;
+
             html += `
                 <ul class="nav nav-tabs match-modal-tabs" id="matchModalTabs" role="tablist">
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">${translations[localStorage.getItem('preferred_language') || 'en'].events}</button>
+                        <button class="nav-link active" id="events-tab" data-bs-toggle="tab" data-bs-target="#events" type="button" role="tab">${t.events}</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">${translations[localStorage.getItem('preferred_language') || 'en'].statistics}</button>
+                        <button class="nav-link" id="stats-tab" data-bs-toggle="tab" data-bs-target="#stats" type="button" role="tab">${t.statistics}</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="lineup-tab" data-bs-toggle="tab" data-bs-target="#lineup" type="button" role="tab">${translations[localStorage.getItem('preferred_language') || 'en'].lineups}</button>
+                        <button class="nav-link" id="lineup-tab" data-bs-toggle="tab" data-bs-target="#lineup" type="button" role="tab">${t.lineups}</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="h2h-tab" data-bs-toggle="tab" data-bs-target="#h2h" type="button" role="tab">${translations[localStorage.getItem('preferred_language') || 'en'].h2h}</button>
+                        <button class="nav-link" id="h2h-tab" data-bs-toggle="tab" data-bs-target="#h2h" type="button" role="tab">${t.h2h}</button>
                     </li>
                     <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="lastmatches-tab" data-bs-toggle="tab" data-bs-target="#lastmatches" type="button" role="tab">${translations[localStorage.getItem('preferred_language') || 'en'].last5}</button>
+                        <button class="nav-link" id="lastmatches-tab" data-bs-toggle="tab" data-bs-target="#lastmatches" type="button" role="tab">${t.last5}</button>
                     </li>
                 </ul>
                 <div class="tab-content match-modal-tab-content" id="matchModalTabContent">
@@ -1730,7 +1912,8 @@
 
         // ========== Initialize ==========
         initLanguageSystem();
+        initTimeSystem();
         loadChampionships();
     </script>
 </body>
-            </html>
+                    </html>
