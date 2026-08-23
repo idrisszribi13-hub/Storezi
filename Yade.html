@@ -44,7 +44,15 @@
         .table { margin-bottom: 0; font-size: 0.9rem; }
         .table th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
         .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
-        .pitch { background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%); border-radius: 12px; padding: 20px; position: relative; min-height: 420px; color: white; margin: 10px 0; }
+        .pitch {
+            background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            min-height: 420px;
+            color: white;
+            margin: 10px 0;
+        }
         .pitch .team-name { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
         .pitch-row { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; }
         .player-slot { display: flex; flex-direction: column; align-items: center; width: 60px; }
@@ -69,6 +77,7 @@
         .match-info-block { background: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
         .match-info-block .row > div { padding: 5px 0; }
         .channel-badge { display: inline-block; background: #e9ecef; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.8rem; }
+
         .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
         .lang-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .lang-btn:hover { transform: scale(1.1); }
@@ -77,6 +86,7 @@
         .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: none; background: transparent; cursor: pointer; width: 100%; font-size: 1rem; transition: background 0.2s; }
         .lang-option:hover { background: #f0f0f0; }
         .lang-option img { width: 24px; height: 18px; object-fit: cover; border-radius: 2px; }
+
         .time-float { position: fixed; bottom: 30px; right: 100px; z-index: 2000; }
         .time-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .time-btn:hover { transform: scale(1.1); }
@@ -86,17 +96,21 @@
         .time-option:hover { background: #f0f0f0; }
         .time-submenu { display: none; padding-left: 20px; }
         .time-submenu.open { display: block; }
+
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
         .goal-alert { position: absolute; top: 5px; right: 5px; background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 10; animation: fadeOut 5s forwards; }
         @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
         .penalty-alert { background-color: #fd7e14; }
+
         .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
         .play-stream-btn:hover { background-color: #146c43; }
+
         .video-player-modal .modal-content { background-color: #000; }
         .video-player-modal .modal-body { padding: 0; height: 80vh; }
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -163,7 +177,22 @@
     <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="coachModalTitle">Coach Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="coachModalBody"></div></div></div></div>
     <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="newsModalTitle">News Detail</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="newsModalBody"></div></div></div></div>
     <div class="modal fade" id="refereeModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="refereeModalTitle">Referee Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="refereeModalBody"></div></div></div></div>
-    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title" id="streamPlayerTitle">Live Stream</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><video id="streamVideo" controls autoplay></video></div></div></div></div>
+
+    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <div class="d-flex align-items-center">
+                        <img id="streamCompLogo" src="" style="width:30px;height:30px;object-fit:contain;display:none;">
+                        <span id="streamCompName" class="ms-2 me-3"></span>
+                        <span id="streamMatchInfo" class="fs-6"></span>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"><video id="streamVideo" controls autoplay></video></div>
+            </div>
+        </div>
+    </div>
 
     <div class="lang-float">
         <button class="lang-btn" id="langToggle" title="Change Language">🌐</button>
@@ -455,25 +484,53 @@
             });
         }
 
-        function openStreamPlayer(streamUrl, title) {
+        function openStreamPlayer(streamUrl, matchData) {
             const modalElement = document.getElementById('streamPlayerModal');
             const videoElement = document.getElementById('streamVideo');
             const modalTitle = document.getElementById('streamPlayerTitle');
-            modalTitle.textContent = title || 'Live Stream';
-            const finalUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl);
+            const streamCompLogo = document.getElementById('streamCompLogo');
+            const streamCompName = document.getElementById('streamCompName');
+            const streamMatchInfo = document.getElementById('streamMatchInfo');
+
+            // تأكد من أن العناصر موجودة قبل التعيين
+            if (modalTitle) modalTitle.textContent = matchData ? matchData.title : 'Live Stream';
+            if (streamCompLogo) {
+                if (matchData && matchData.compLogo) {
+                    streamCompLogo.src = matchData.compLogo;
+                    streamCompLogo.style.display = 'inline-block';
+                } else {
+                    streamCompLogo.style.display = 'none';
+                }
+            }
+            if (streamCompName) streamCompName.textContent = matchData ? (matchData.compName || '') : '';
+            if (streamMatchInfo) streamMatchInfo.textContent = matchData ? `${matchData.homeName} ${matchData.homeScore} - ${matchData.awayScore} ${matchData.awayName}` : '';
+
+            // إصلاح: تحويل http إلى https وعدم استخدام Worker للبث
+            let finalStreamUrl = streamUrl;
+            if (finalStreamUrl.startsWith('http://')) {
+                finalStreamUrl = finalStreamUrl.replace('http://', 'https://');
+            }
+
             if (Hls.isSupported()) {
                 const hls = new Hls();
-                hls.loadSource(finalUrl);
+                hls.loadSource(finalStreamUrl);
                 hls.attachMedia(videoElement);
-                hls.on(Hls.Events.ERROR, (event, data) => { if (data.fatal) console.error('HLS error:', data); });
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.error('HLS fatal error:', data);
+                        alert('Unable to play stream. Please try again later.');
+                        videoElement.pause();
+                    }
+                });
                 videoElement.addEventListener('ended', () => hls.destroy());
                 window.currentHls = hls;
             } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = finalUrl;
+                videoElement.src = finalStreamUrl;
             } else {
                 alert('Your browser does not support HLS');
                 return;
             }
+
             const modal = new bootstrap.Modal(modalElement);
             modal.show();
             modalElement.addEventListener('hidden.bs.modal', () => {
@@ -491,6 +548,7 @@
                 return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
             }
             if (match.minutes) {
+                // minutes هي ثواني من YSScores
                 return match.minutes;
             }
             if (match.match_timestamp) {
@@ -499,21 +557,49 @@
             return 0;
         }
 
-        function formatLiveTime(seconds) {
+        function formatLiveTime(seconds, status) {
             const totalSeconds = Math.max(0, seconds);
-            const minutes = Math.floor(totalSeconds / 60);
+            const totalMinutes = Math.floor(totalSeconds / 60);
             const secs = totalSeconds % 60;
-            const mm = String(minutes).padStart(2, '0');
+            const mm = String(totalMinutes).padStart(2, '0');
             const ss = String(secs).padStart(2, '0');
-            let half = '';
-            if (minutes <= 45) {
-                half = '1HF';
-            } else if (minutes <= 90) {
-                half = '2HF';
-            } else {
-                half = 'ET';
+
+            // الحالات
+            if (status === 0) {
+                // upcoming - سيتم التعامل معها في مكان آخر
+                return 'VS';
             }
-            return `${half} ${mm}:${ss}`;
+            if (status === 4) {
+                return 'FT';
+            }
+            if (status === 2) {
+                return 'HT';
+            }
+            if (status === 1) {
+                // الشوط الأول
+                return `1HF ${mm}:${ss}`;
+            }
+            if (status === 3) {
+                // الشوط الثاني
+                const secondHalfSeconds = totalSeconds - 45 * 60;
+                if (secondHalfSeconds < 0) secondHalfSeconds = 0;
+                const secondHalfMinutes = Math.floor(secondHalfSeconds / 60);
+                const secondHalfSecs = secondHalfSeconds % 60;
+                if (totalMinutes > 90) {
+                    const extraMinutes = totalMinutes - 90;
+                    return `90+${extraMinutes}'`;
+                }
+                return `2HF ${String(secondHalfMinutes).padStart(2, '0')}:${String(secondHalfSecs).padStart(2, '0')}`;
+            }
+            // default fallback
+            if (totalMinutes > 90) {
+                return `90+${totalMinutes - 90}'`;
+            }
+            if (totalMinutes > 45) {
+                const secondHalfMinutes = totalMinutes - 45;
+                return `2HF ${String(secondHalfMinutes).padStart(2, '0')}:${ss}`;
+            }
+            return `1HF ${mm}:${ss}`;
         }
 
         function renderLiveMatchCard(match) {
@@ -522,9 +608,10 @@
             const comp = match.championship ? match.championship.title : '';
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const seconds = getLiveSeconds(match);
-            const timeDisplay = formatLiveTime(seconds);
+            const status = match.status || 1; // افتراضي مباشر
+            const timeDisplay = formatLiveTime(seconds, status);
             const streamEvent = findStreamEvent(match);
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'>▶️ Play</button>` : '';
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
             card.innerHTML = `
@@ -561,7 +648,7 @@
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
             const streamEvent = findStreamEvent(match);
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'>▶️ Play</button>` : '';
             let statusBadge = '';
             if (match.status === 4) statusBadge = '<span class="badge bg-secondary">FT</span>';
             else if (match.status === 1 || match.status === 2 || match.status === 3) statusBadge = '<span class="badge bg-danger">Live</span>';
@@ -666,8 +753,9 @@
                         const match = liveMatches.find(m => m.match_id == matchId);
                         if (match) {
                             const seconds = getLiveSeconds(match);
+                            const status = match.status || 1;
                             const timeEl = el.querySelector('.live-time');
-                            if (timeEl) timeEl.textContent = formatLiveTime(seconds);
+                            if (timeEl) timeEl.textContent = formatLiveTime(seconds, status);
                         }
                     });
                 }, 1000);
@@ -765,7 +853,7 @@
             document.getElementById('matches-tab').classList.add('active');
             document.getElementById('matches').classList.add('show', 'active');
             currentTab = 'matches';
-            ['matchesContent', 'standingsContent', 'scorersContent', 'assistsContent', 'newsContent', 'bracketContent'].forEach(id => document.getElementById(id).innerHTML = '');
+            ['matchesContent','standingsContent','scorersContent','assistsContent','newsContent','bracketContent'].forEach(id => document.getElementById(id).innerHTML = '');
             scorersPage = 1; scorersNextUrl = null; scorersLoading = false;
             assistsPage = 1; assistsNextUrl = null; assistsLoading = false;
             newsPage = 1; newsNextUrl = null; newsLoading = false;
@@ -831,7 +919,7 @@
                 const comp = match.championship ? match.championship.title : '';
                 const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
                 const streamEvent = findStreamEvent(match);
-                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
+                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compLogo: compImg, compName: comp, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0 })})'>▶️ Play</button>` : '';
                 html += `
                     <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card p-3 match-card" data-match-id="${match.match_id}">
@@ -919,7 +1007,7 @@
                     timerElement.innerHTML = `<span class="match-timer">Full Time</span>`;
                 } else {
                     let seconds = getLiveSeconds(info);
-                    timerElement.innerHTML = `<span class="match-timer">${formatLiveTime(seconds)}</span>`;
+                    timerElement.innerHTML = `<span class="match-timer">${formatLiveTime(seconds, info.status)}</span>`;
                 }
             };
             updateTimer();
@@ -1738,4 +1826,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-        </html>
+</html>
