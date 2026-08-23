@@ -240,7 +240,7 @@
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
         let previousScores = {};
-        let liveSecondsBase = {}; // { matchId: { baseSeconds, lastFetchTime } }
+        let liveSecondsBase = {};
 
         let timezoneOffset = 0;
         let timeFormat = '24';
@@ -438,7 +438,7 @@
             for (const key in teamAliases) {
                 const aliases = teamAliases[key];
                 if (n === key || aliases.includes(n)) {
-                    return key; // تطبيع إلى الاسم الأساسي
+                    return key;
                 }
             }
             return n;
@@ -460,15 +460,16 @@
             const videoElement = document.getElementById('streamVideo');
             const modalTitle = document.getElementById('streamPlayerTitle');
             modalTitle.textContent = title || 'Live Stream';
+            const finalUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl);
             if (Hls.isSupported()) {
                 const hls = new Hls();
-                hls.loadSource(WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl));
+                hls.loadSource(finalUrl);
                 hls.attachMedia(videoElement);
                 hls.on(Hls.Events.ERROR, (event, data) => { if (data.fatal) console.error('HLS error:', data); });
                 videoElement.addEventListener('ended', () => hls.destroy());
                 window.currentHls = hls;
             } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl);
+                videoElement.src = finalUrl;
             } else {
                 alert('Your browser does not support HLS');
                 return;
@@ -504,14 +505,15 @@
             const secs = totalSeconds % 60;
             const mm = String(minutes).padStart(2, '0');
             const ss = String(secs).padStart(2, '0');
+            let half = '';
             if (minutes <= 45) {
-                return `${mm}:${ss}`;
+                half = '1HF';
             } else if (minutes <= 90) {
-                return `${mm}:${ss}`;
+                half = '2HF';
             } else {
-                const extraMin = minutes - 90;
-                return `90+${extraMin}:${ss}`;
+                half = 'ET';
             }
+            return `${half} ${mm}:${ss}`;
         }
 
         function renderLiveMatchCard(match) {
@@ -646,7 +648,6 @@
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
 
-                // تحديث قواعد الثواني لكل مباراة مباشرة
                 const nowTs = Date.now();
                 liveMatches.forEach(m => {
                     liveSecondsBase[m.match_id] = {
@@ -865,7 +866,6 @@
             return html;
         }
 
-        // ========== Match Details ==========
         async function openMatchDetails(matchId) {
             showLoading();
             try {
@@ -1738,4 +1738,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                   </html>
+        </html>
