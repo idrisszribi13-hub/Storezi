@@ -105,97 +105,40 @@
         @keyframes spin { to { transform: rotate(360deg); } }
         .no-more { text-align: center; padding: 30px 0; color: var(--text-muted); font-size: 0.9rem; }
 
-        /* ===== Modal (تعديل التخطيط) ===== */
+        /* Modal */
         .modal-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.7); backdrop-filter: blur(8px); z-index: 200; display: flex; align-items: center; justify-content: center; padding: 20px; opacity: 0; visibility: hidden; transition: var(--transition); }
         .modal-overlay.active { opacity:1; visibility:visible; }
         .modal-container { background: var(--bg-modal); border: 1px solid var(--border); border-radius: 16px; max-width: 620px; width: 100%; max-height: 85vh; overflow-y: auto; box-shadow: var(--shadow-lg); transform: translateY(20px) scale(0.95); transition: var(--transition); position: relative; }
         .modal-overlay.active .modal-container { transform: translateY(0) scale(1); }
         .modal-close { position: absolute; top:14px; right:14px; z-index:10; width:36px; height:36px; border-radius: 50%; background: rgba(0,0,0,0.5); border:1px solid var(--border); color: var(--text-primary); font-size:1.2rem; cursor:pointer; display:flex; align-items:center; justify-content:center; }
         .modal-close:hover { background: rgba(255,255,255,0.1); }
-
-        /* الحاوية الجديدة للرأس: صورة اللاعب على اليسار، والغلاف على اليمين */
-        .modal-header {
-            display: flex;
-            align-items: center;
-            gap: 16px;
-            padding: 20px 24px 0;
-        }
-        .modal-avatar-wrap {
-            flex-shrink: 0;
-        }
-        .modal-player-avatar {
-            width: 110px;
-            height: 110px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--border-light);
-            background: var(--bg-secondary);
-            display: block;
-        }
-        .modal-cover-wrap {
-            flex: 1;
-            min-width: 0;
-            height: 130px;
-            border-radius: var(--radius-sm);
-            overflow: hidden;
-            border: 1px solid var(--border-light);
-            background: var(--bg-secondary);
-        }
-        .modal-cover-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;      /* يمكن تغييرها إلى contain إذا أردت إظهار الصورة كاملة بدون قص */
-            display: block;
-        }
-        /* إذا أردت إظهار الكوفر كاملاً بدون قص، استخدم object-fit: contain مع خلفية */
-        /*
-        .modal-cover-img {
-            object-fit: contain;
-        }
-        */
-
-        .modal-body {
-            padding: 16px 24px 24px;
-            position: relative;
-        }
-        .modal-player-name {
-            font-size: 1.5rem;
-            font-weight: 800;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 8px;
-        }
-        .modal-player-name .country-flag { width: 24px; height: 18px; border-radius: 3px; object-fit: cover; border: 1px solid var(--border); }
-        .modal-player-meta {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex-wrap: wrap;
-            margin-top: 6px;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-        }
-        .modal-player-meta .pos-badge { font-weight: 700; font-size: 0.75rem; padding: 3px 10px; border-radius: 14px; background: var(--accent-blue-bg); color: var(--accent-blue); }
-        .modal-player-meta .foot-badge { font-weight: 600; font-size: 0.75rem; padding: 3px 10px; border-radius: 14px; background: var(--bg-secondary); border: 1px solid var(--border); color: var(--text-secondary); }
-        .modal-player-meta .team-badge-link { display: flex; align-items: center; gap: 6px; font-size: 0.8rem; color: var(--text-secondary); background: var(--bg-secondary); border: 1px solid var(--border); padding: 3px 10px; border-radius: 14px; }
-        .modal-player-meta .team-badge-link img { width: 18px; height: 18px; border-radius: 50%; object-fit: cover; }
-        .modal-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 10px; margin-top: 20px; padding: 16px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: var(--radius-sm); }
-        .stat-item { text-align: center; }
-        .stat-item .stat-value { font-weight: 800; font-size: 1.1rem; }
-        .stat-item .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-top: 2px; }
-        .modal-history-title { font-size: 0.95rem; font-weight: 700; margin-top: 20px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .modal-cover { position: relative; height: 200px; border-radius: 16px 16px 0 0; overflow: hidden; background: var(--bg-secondary); }
+        .modal-cover img { width:100%; height:100%; object-fit: cover; opacity:0.85; }
+        .modal-cover .cover-overlay { position:absolute; bottom:0; left:0; right:0; height:60%; background: linear-gradient(to top, var(--bg-modal) 20%, transparent 100%); }
+        .modal-body { padding: 0 24px 24px; position: relative; }
+        .modal-player-avatar { width:110px; height:110px; border-radius:50%; border:4px solid var(--bg-modal); object-fit:cover; background: var(--bg-secondary); margin-top:-55px; position:relative; z-index:5; box-shadow: 0 4px 16px rgba(0,0,0,0.4); }
+        .modal-player-name { font-size:1.5rem; font-weight:800; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:8px; }
+        .modal-player-name .country-flag { width:24px; height:18px; border-radius:3px; object-fit:cover; border:1px solid var(--border); }
+        .modal-player-meta { display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:6px; font-size:0.85rem; color: var(--text-secondary); }
+        .modal-player-meta .pos-badge { font-weight:700; font-size:0.75rem; padding:3px 10px; border-radius:14px; background: var(--accent-blue-bg); color: var(--accent-blue); }
+        .modal-player-meta .foot-badge { font-weight:600; font-size:0.75rem; padding:3px 10px; border-radius:14px; background: var(--bg-secondary); border:1px solid var(--border); color: var(--text-secondary); }
+        .modal-player-meta .team-badge-link { display:flex; align-items:center; gap:6px; font-size:0.8rem; color: var(--text-secondary); background: var(--bg-secondary); border:1px solid var(--border); padding:3px 10px; border-radius:14px; }
+        .modal-player-meta .team-badge-link img { width:18px; height:18px; border-radius:50%; object-fit:cover; }
+        .modal-stats { display:grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap:10px; margin-top:20px; padding:16px; background: var(--bg-secondary); border:1px solid var(--border); border-radius: var(--radius-sm); }
+        .stat-item { text-align:center; }
+        .stat-item .stat-value { font-weight:800; font-size:1.1rem; }
+        .stat-item .stat-label { font-size:0.7rem; color: var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; margin-top:2px; }
+        .modal-history-title { font-size:0.95rem; font-weight:700; margin-top:20px; margin-bottom:12px; display:flex; align-items:center; gap:8px; }
         .modal-history-title .icon { color: var(--accent-orange); }
-        .transfer-history-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; padding-right: 4px; }
-        .history-item { display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); transition: var(--transition); font-size: 0.82rem; }
+        .transfer-history-list { display:flex; flex-direction:column; gap:8px; max-height:300px; overflow-y:auto; padding-right:4px; }
+        .history-item { display:flex; align-items:center; gap:10px; padding:10px 14px; background: var(--bg-card); border:1px solid var(--border); border-radius: var(--radius-sm); transition: var(--transition); font-size:0.82rem; }
         .history-item:hover { border-color: var(--border-light); }
-        .history-item .h-badge { width: 24px; height: 24px; border-radius: 50%; object-fit: cover; background: var(--bg-secondary); flex-shrink: 0; }
-        .history-item .h-info { flex: 1; min-width: 0; }
-        .history-item .h-team { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .history-item .h-dates { font-size: 0.7rem; color: var(--text-muted); }
-        .history-item .h-trans { font-size: 0.65rem; font-weight: 700; padding: 2px 8px; border-radius: 10px; text-transform: uppercase; letter-spacing: 0.3px; flex-shrink: 0; }
-        .history-item .h-value { font-size: 0.75rem; font-weight: 700; color: var(--accent-orange); flex-shrink: 0; min-width: 55px; text-align: right; }
+        .history-item .h-badge { width:24px; height:24px; border-radius:50%; object-fit:cover; background: var(--bg-secondary); flex-shrink:0; }
+        .history-item .h-info { flex:1; min-width:0; }
+        .history-item .h-team { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .history-item .h-dates { font-size:0.7rem; color: var(--text-muted); }
+        .history-item .h-trans { font-size:0.65rem; font-weight:700; padding:2px 8px; border-radius:10px; text-transform:uppercase; letter-spacing:0.3px; flex-shrink:0; }
+        .history-item .h-value { font-size:0.75rem; font-weight:700; color: var(--accent-orange); flex-shrink:0; min-width:55px; text-align:right; }
         .history-item.active-transfer { border-color: var(--accent-green); background: rgba(16,185,129,0.06); }
 
         /* Responsive */
@@ -211,12 +154,9 @@
             .transfer-row .player-name { font-size:0.92rem; }
             .transfer-row .teams-line { font-size:0.78rem; }
             .modal-container { max-height:90vh; border-radius:12px; }
-            /* تعديلات الهيدر في الجوال */
-            .modal-header { flex-direction: column; align-items: flex-start; gap: 12px; padding: 16px 16px 0; }
-            .modal-avatar-wrap { align-self: flex-start; }
-            .modal-player-avatar { width: 80px; height: 80px; border-width: 3px; }
-            .modal-cover-wrap { height: 100px; width: 100%; }
-            .modal-body { padding: 12px 16px 16px; }
+            .modal-cover { height:150px; border-radius:12px 12px 0 0; }
+            .modal-player-avatar { width:80px; height:80px; margin-top:-40px; border-width:3px; }
+            .modal-body { padding:0 16px 16px; }
             .modal-player-name { font-size:1.2rem; }
             .modal-stats { grid-template-columns: repeat(3,1fr); padding:12px; gap:8px; }
         }
@@ -515,7 +455,7 @@
         }, { rootMargin: '200px', threshold: 0.1 });
         observer.observe(loadingSentinel);
 
-        // ===== نافذة اللاعب (مع التعديل الجديد) =====
+        // ===== نافذة اللاعب =====
         async function openPlayerModal(playerId) {
             if (!playerId) return;
             playerModal.classList.add('active');
@@ -538,17 +478,15 @@
             const age = calculateAge(player.birth_day);
             const transfers = player.transfers || [];
 
-            // تخطيط جديد: رأس يحتوي على الأفاتار والكوفر جنباً إلى جنب
             modalContent.innerHTML = `
-                <div class="modal-header">
-                    <div class="modal-avatar-wrap">
-                        <img class="modal-player-avatar" src="${avatarImg}" alt="${player.title || 'Player'}" onerror="this.style.display='none'; this.parentElement.innerHTML='<div style="width:110px;height:110px;border-radius:50%;background:var(--bg-secondary);display:flex;align-items:center;justify-content:center;font-size:2rem;border:3px solid var(--border-light);">👤</div>';">
-                    </div>
-                    <div class="modal-cover-wrap">
-                        ${coverImg ? `<img class="modal-cover-img" src="${coverImg}" alt="Cover" onerror="this.style.display='none';">` : '<div style="width:100%;height:100%;display:flex;align-items:center;justify-content:center;color:var(--text-muted);">No cover available</div>'}
-                    </div>
+                <div class="modal-cover">
+                    ${coverImg ? `<img src="${coverImg}" alt="Cover" onerror="this.style.display='none';">` : ''}
+                    <div class="cover-overlay"></div>
                 </div>
                 <div class="modal-body">
+                    <img class="modal-player-avatar" src="${avatarImg}" alt="${player.title || 'Player'}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                    <span style="display:none;width:110px;height:110px;border-radius:50%;background:var(--bg-secondary);align-items:center;justify-content:center;font-size:2rem;margin-top:-55px;border:4px solid var(--bg-modal);box-shadow:0 4px 16px rgba(0,0,0,0.4);position:relative;z-index:5;">👤</span>
+
                     <div class="modal-player-name">
                         ${player.title || 'Unknown'}
                         ${countryImg ? `<img class="country-flag" src="${countryImg}" alt="${player.country?.title || ''}" onerror="this.style.display='none';">` : ''}
