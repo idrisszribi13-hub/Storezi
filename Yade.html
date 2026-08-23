@@ -21,76 +21,20 @@
             --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
         }
         * { box-sizing: border-box; }
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: var(--light-bg);
-            margin: 0;
-            padding: 0;
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
         .champ-select { margin-bottom: 20px; }
-        .dropdown-toggle {
-            background: var(--card-bg);
-            border: 1px solid #ddd;
-            border-radius: var(--border-radius);
-            padding: 10px 20px;
-            font-size: 1rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            width: 100%;
-        }
-        .dropdown-menu {
-            max-height: 400px;
-            overflow-y: auto;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            border: none;
-        }
-        .dropdown-item {
-            display: flex;
-            align-items: center;
-            padding: 8px 15px;
-            font-size: 0.95rem;
-        }
+        .dropdown-toggle { background: var(--card-bg); border: 1px solid #ddd; border-radius: var(--border-radius); padding: 10px 20px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; width: 100%; }
+        .dropdown-menu { max-height: 400px; overflow-y: auto; border-radius: var(--border-radius); box-shadow: var(--shadow); border: none; }
+        .dropdown-item { display: flex; align-items: center; padding: 8px 15px; font-size: 0.95rem; }
         .dropdown-item img { margin-right: 10px; }
         .search-box { padding: 10px; border-bottom: 1px solid #eee; }
-        .search-box input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-        .nav-tabs {
-            border-bottom: 2px solid #e9ecef;
-            gap: 5px;
-        }
-        .nav-tabs .nav-link {
-            border: none;
-            color: #555;
-            font-weight: 600;
-            padding: 10px 15px;
-            border-radius: 8px 8px 0 0;
-            transition: all 0.2s;
-        }
-        .nav-tabs .nav-link.active {
-            background-color: var(--card-bg);
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-        }
-        .tab-content {
-            background: var(--card-bg);
-            border-radius: 0 0 var(--border-radius) var(--border-radius);
-            box-shadow: var(--shadow);
-            padding: 20px;
-        }
-        .card {
-            border: none;
-            border-radius: var(--border-radius);
-            box-shadow: var(--shadow);
-            transition: transform 0.2s;
-        }
+        .search-box input { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 0.9rem; }
+        .nav-tabs { border-bottom: 2px solid #e9ecef; gap: 5px; }
+        .nav-tabs .nav-link { border: none; color: #555; font-weight: 600; padding: 10px 15px; border-radius: 8px 8px 0 0; transition: all 0.2s; }
+        .nav-tabs .nav-link.active { background-color: var(--card-bg); color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .tab-content { background: var(--card-bg); border-radius: 0 0 var(--border-radius) var(--border-radius); box-shadow: var(--shadow); padding: 20px; }
+        .card { border: none; border-radius: var(--border-radius); box-shadow: var(--shadow); transition: transform 0.2s; }
         .card:hover { transform: translateY(-3px); }
         .match-card, .news-card { cursor: pointer; }
         .team-img { width: 30px; height: 30px; object-fit: contain; }
@@ -100,294 +44,59 @@
         .table { margin-bottom: 0; font-size: 0.9rem; }
         .table th { background: #f8f9fa; border-bottom: 2px solid #dee2e6; }
         .highlight-row { background-color: #cfe2ff !important; font-weight: bold; }
-        .pitch {
-            background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            min-height: 420px;
-            color: white;
-            margin: 10px 0;
-        }
-        .pitch .team-name {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-        .pitch-row {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .player-slot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 60px;
-        }
-        .player-slot img {
-            width: 35px;
-            height: 35px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-        .player-slot .player-name {
-            font-size: 0.7rem;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60px;
-        }
+        .pitch { background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%); border-radius: 12px; padding: 20px; position: relative; min-height: 420px; color: white; margin: 10px 0; }
+        .pitch .team-name { text-align: center; font-weight: bold; margin-bottom: 10px; font-size: 1.1rem; }
+        .pitch-row { display: flex; justify-content: space-around; align-items: center; margin-bottom: 15px; }
+        .player-slot { display: flex; flex-direction: column; align-items: center; width: 60px; }
+        .player-slot img { width: 35px; height: 35px; object-fit: cover; border-radius: 50%; border: 2px solid white; }
+        .player-slot .player-name { font-size: 0.7rem; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; }
         .modal-body { max-height: 70vh; overflow-y: auto; }
         .link-item { cursor: pointer; color: var(--primary); text-decoration: underline; }
         .link-item:hover { color: #0a58ca; }
         .pagination { justify-content: center; margin-top: 20px; }
-        .loader {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: rgba(255,255,255,0.8);
-            z-index: 9999;
-            pointer-events: none;
-        }
+        .loader { position: fixed; top: 0; left: 0; width: 100%; height: 100%; display: flex; justify-content: center; align-items: center; background: rgba(255,255,255,0.8); z-index: 9999; pointer-events: none; }
         .loader.hidden { display: none; }
         .loader .spinner-border { pointer-events: auto; }
         .scroll-sentinel { height: 1px; }
-        .match-timer {
-            font-size: 1.2rem;
-            font-weight: bold;
-            color: #fff;
-            background: #2c3e50;
-            padding: 6px 12px;
-            border-radius: 8px;
-            display: inline-block;
-        }
+        .match-timer { font-size: 1.2rem; font-weight: bold; color: #fff; background: #2c3e50; padding: 6px 12px; border-radius: 8px; display: inline-block; }
         .countdown { background: #e74c3c; }
-        .match-modal-tabs {
-            border-bottom: 2px solid #e9ecef;
-            gap: 5px;
-        }
-        .match-modal-tabs .nav-link {
-            border: none;
-            color: #555;
-            font-weight: 600;
-            padding: 8px 12px;
-            border-radius: 6px 6px 0 0;
-            transition: all 0.2s;
-        }
-        .match-modal-tabs .nav-link.active {
-            background-color: #f8f9fa;
-            color: var(--primary);
-            border-bottom: 2px solid var(--primary);
-        }
-        .match-modal-tab-content {
-            padding: 15px 0;
-        }
-        .video-link {
-            color: var(--danger);
-            text-decoration: none;
-            margin-left: 5px;
-        }
+        .match-modal-tabs { border-bottom: 2px solid #e9ecef; gap: 5px; }
+        .match-modal-tabs .nav-link { border: none; color: #555; font-weight: 600; padding: 8px 12px; border-radius: 6px 6px 0 0; transition: all 0.2s; }
+        .match-modal-tabs .nav-link.active { background-color: #f8f9fa; color: var(--primary); border-bottom: 2px solid var(--primary); }
+        .match-modal-tab-content { padding: 15px 0; }
+        .video-link { color: var(--danger); text-decoration: none; margin-left: 5px; }
         .video-link:hover { color: #a00; }
-        .match-info-block {
-            background: #f8f9fa;
-            border-radius: 8px;
-            padding: 10px;
-            margin-bottom: 15px;
-        }
-        .match-info-block .row > div {
-            padding: 5px 0;
-        }
-        .channel-badge {
-            display: inline-block;
-            background: #e9ecef;
-            border-radius: 4px;
-            padding: 2px 8px;
-            margin: 2px;
-            font-size: 0.8rem;
-        }
-
-        /* زر اللغة */
-        .lang-float {
-            position: fixed;
-            bottom: 30px;
-            right: 30px;
-            z-index: 2000;
-        }
-        .lang-btn {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
+        .match-info-block { background: #f8f9fa; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
+        .match-info-block .row > div { padding: 5px 0; }
+        .channel-badge { display: inline-block; background: #e9ecef; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.8rem; }
+        .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
+        .lang-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .lang-btn:hover { transform: scale(1.1); }
-        .lang-menu {
-            position: absolute;
-            bottom: 65px;
-            right: 0;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            overflow: hidden;
-            display: none;
-            min-width: 180px;
-        }
+        .lang-menu { position: absolute; bottom: 65px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); overflow: hidden; display: none; min-width: 180px; }
         .lang-menu.open { display: block; }
-        .lang-option {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 10px 15px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            width: 100%;
-            font-size: 1rem;
-            transition: background 0.2s;
-        }
+        .lang-option { display: flex; align-items: center; gap: 10px; padding: 10px 15px; border: none; background: transparent; cursor: pointer; width: 100%; font-size: 1rem; transition: background 0.2s; }
         .lang-option:hover { background: #f0f0f0; }
         .lang-option img { width: 24px; height: 18px; object-fit: cover; border-radius: 2px; }
-
-        /* زر الوقت */
-        .time-float {
-            position: fixed;
-            bottom: 30px;
-            right: 100px;
-            z-index: 2000;
-        }
-        .time-btn {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
+        .time-float { position: fixed; bottom: 30px; right: 100px; z-index: 2000; }
+        .time-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .time-btn:hover { transform: scale(1.1); }
-        .time-menu {
-            position: absolute;
-            bottom: 65px;
-            right: 0;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0,0,0,0.2);
-            overflow: hidden;
-            display: none;
-            min-width: 180px;
-        }
+        .time-menu { position: absolute; bottom: 65px; right: 0; background: #fff; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.2); overflow: hidden; display: none; min-width: 180px; }
         .time-menu.open { display: block; }
-        .time-option {
-            display: block;
-            padding: 8px 15px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            width: 100%;
-            font-size: 0.95rem;
-            transition: background 0.2s;
-        }
+        .time-option { display: block; padding: 8px 15px; border: none; background: transparent; cursor: pointer; width: 100%; font-size: 0.95rem; transition: background 0.2s; }
         .time-option:hover { background: #f0f0f0; }
-        .time-submenu {
-            display: none;
-            padding-left: 20px;
-        }
+        .time-submenu { display: none; padding-left: 20px; }
         .time-submenu.open { display: block; }
-
-        /* Live match score */
-        .live-score {
-            color: #dc3545;
-            font-weight: bold;
-        }
-        /* Blinking dot */
-        .live-dot {
-            width: 8px;
-            height: 8px;
-            background-color: #dc3545;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 5px;
-            animation: blink 1.2s infinite;
-        }
-        @keyframes blink {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0; }
-        }
-        /* Goal alert badge */
-        .goal-alert {
-            position: absolute;
-            top: 5px;
-            right: 5px;
-            background-color: #dc3545;
-            color: white;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 0.8rem;
-            font-weight: bold;
-            z-index: 10;
-            animation: fadeOut 5s forwards;
-        }
-        @keyframes fadeOut {
-            0% { opacity: 1; }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
-        }
-        .penalty-alert {
-            background-color: #fd7e14;
-        }
-
-        /* زر تشغيل البث */
-        .play-stream-btn {
-            background-color: #198754;
-            color: white;
-            border: none;
-            border-radius: 20px;
-            padding: 4px 10px;
-            font-size: 0.8rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            margin-top: 5px;
-        }
-        .play-stream-btn:hover {
-            background-color: #146c43;
-        }
-
-        /* مشغل الفيديو */
-        .video-player-modal .modal-content {
-            background-color: #000;
-        }
-        .video-player-modal .modal-body {
-            padding: 0;
-            height: 80vh;
-        }
-        .video-player-modal video {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
+        .live-score { color: #dc3545; font-weight: bold; }
+        .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
+        .goal-alert { position: absolute; top: 5px; right: 5px; background-color: #dc3545; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; z-index: 10; animation: fadeOut 5s forwards; }
+        @keyframes fadeOut { 0% { opacity: 1; } 80% { opacity: 1; } 100% { opacity: 0; } }
+        .penalty-alert { background-color: #fd7e14; }
+        .play-stream-btn { background-color: #198754; color: white; border: none; border-radius: 20px; padding: 4px 10px; font-size: 0.8rem; cursor: pointer; transition: background 0.2s; margin-top: 5px; }
+        .play-stream-btn:hover { background-color: #146c43; }
+        .video-player-modal .modal-content { background-color: #000; }
+        .video-player-modal .modal-body { padding: 0; height: 80vh; }
+        .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -405,7 +114,6 @@
     <div class="container py-5">
         <h1 class="text-center mb-4 fw-bold" data-i18n="title">🏆 Football Center</h1>
 
-        <!-- Championship Selection -->
         <div class="champ-select">
             <label class="fw-bold" data-i18n="select_champ">Select Championship:</label>
             <div class="dropdown">
@@ -413,16 +121,13 @@
                     <span id="selectedChampText">Select Championship</span>
                 </button>
                 <div class="dropdown-menu w-100" aria-labelledby="championshipDropdown">
-                    <div class="search-box">
-                        <input type="text" id="champSearch" placeholder="Search championship..." class="form-control">
-                    </div>
+                    <div class="search-box"><input type="text" id="champSearch" placeholder="Search championship..." class="form-control"></div>
                     <div id="champList"></div>
                 </div>
             </div>
             <input type="hidden" id="selectedChampId" value="">
         </div>
 
-        <!-- Live & Today Matches Section -->
         <div id="liveTodaySection" class="mt-4">
             <h3 class="mb-3">Live Matches</h3>
             <div id="liveMatchesContainer" class="row"></div>
@@ -430,146 +135,36 @@
             <div id="todayMatchesContainer" class="row"></div>
         </div>
 
-        <!-- Main Tabs -->
         <ul class="nav nav-tabs" id="mainTabs" role="tablist" style="display:none;">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" data-i18n="matches">Matches</button>
-            </li>
-            <li class="nav-item" role="presentation" id="standingsTabItem">
-                <button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab" data-i18n="standings">Standings</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="scorers-tab" data-bs-toggle="tab" data-bs-target="#scorers" type="button" role="tab" data-i18n="scorers">Top Scorers</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="assists-tab" data-bs-toggle="tab" data-bs-target="#assists" type="button" role="tab" data-i18n="assists">Assists</button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab" data-i18n="news">News</button>
-            </li>
-            <li class="nav-item" role="presentation" id="bracketTabItem" style="display:none;">
-                <button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab" data-i18n="bracket">Bracket</button>
-            </li>
+            <li class="nav-item" role="presentation"><button class="nav-link active" id="matches-tab" data-bs-toggle="tab" data-bs-target="#matches" type="button" role="tab" data-i18n="matches">Matches</button></li>
+            <li class="nav-item" role="presentation" id="standingsTabItem"><button class="nav-link" id="standings-tab" data-bs-toggle="tab" data-bs-target="#standings" type="button" role="tab" data-i18n="standings">Standings</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="scorers-tab" data-bs-toggle="tab" data-bs-target="#scorers" type="button" role="tab" data-i18n="scorers">Top Scorers</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="assists-tab" data-bs-toggle="tab" data-bs-target="#assists" type="button" role="tab" data-i18n="assists">Assists</button></li>
+            <li class="nav-item" role="presentation"><button class="nav-link" id="news-tab" data-bs-toggle="tab" data-bs-target="#news" type="button" role="tab" data-i18n="news">News</button></li>
+            <li class="nav-item" role="presentation" id="bracketTabItem" style="display:none;"><button class="nav-link" id="bracket-tab" data-bs-toggle="tab" data-bs-target="#bracket" type="button" role="tab" data-i18n="bracket">Bracket</button></li>
         </ul>
 
-        <!-- Main Tab Content -->
         <div class="tab-content" id="mainTabsContent" style="display:none;">
-            <div class="tab-pane fade show active" id="matches" role="tabpanel">
-                <div id="matchesContent" class="mt-3"></div>
-            </div>
-            <div class="tab-pane fade" id="standings" role="tabpanel">
-                <div id="standingsContent" class="mt-3"></div>
-            </div>
-            <div class="tab-pane fade" id="scorers" role="tabpanel">
-                <div id="scorersContent" class="mt-3"></div>
-                <div id="scorersSentinel" class="scroll-sentinel"></div>
-            </div>
-            <div class="tab-pane fade" id="assists" role="tabpanel">
-                <div id="assistsContent" class="mt-3"></div>
-                <div id="assistsSentinel" class="scroll-sentinel"></div>
-            </div>
-            <div class="tab-pane fade" id="news" role="tabpanel">
-                <div id="newsContent" class="mt-3"></div>
-                <div id="newsSentinel" class="scroll-sentinel"></div>
-            </div>
-            <div class="tab-pane fade" id="bracket" role="tabpanel">
-                <div id="bracketContent" class="mt-3"></div>
-            </div>
+            <div class="tab-pane fade show active" id="matches" role="tabpanel"><div id="matchesContent" class="mt-3"></div></div>
+            <div class="tab-pane fade" id="standings" role="tabpanel"><div id="standingsContent" class="mt-3"></div></div>
+            <div class="tab-pane fade" id="scorers" role="tabpanel"><div id="scorersContent" class="mt-3"></div><div id="scorersSentinel" class="scroll-sentinel"></div></div>
+            <div class="tab-pane fade" id="assists" role="tabpanel"><div id="assistsContent" class="mt-3"></div><div id="assistsSentinel" class="scroll-sentinel"></div></div>
+            <div class="tab-pane fade" id="news" role="tabpanel"><div id="newsContent" class="mt-3"></div><div id="newsSentinel" class="scroll-sentinel"></div></div>
+            <div class="tab-pane fade" id="bracket" role="tabpanel"><div id="bracketContent" class="mt-3"></div></div>
         </div>
 
-        <!-- Loading Indicator -->
-        <div id="loadingIndicator" class="loader hidden text-center py-5">
-            <div class="spinner-border text-primary" role="status"></div>
-            <p class="mt-2" data-i18n="loading">Loading...</p>
-        </div>
-        <!-- Error Message -->
+        <div id="loadingIndicator" class="loader hidden text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2" data-i18n="loading">Loading...</p></div>
         <div id="errorIndicator" class="error-message hidden text-center text-danger py-3"></div>
     </div>
 
-    <!-- Modals -->
-    <div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="matchModalTitle">Match Details</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="matchModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="teamModalTitle">Team Info</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="teamModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="playerModalTitle">Player Info</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="playerModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="coachModalTitle">Coach Info</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="coachModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="newsModalTitle">News Detail</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="newsModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <!-- Referee Modal -->
-    <div class="modal fade" id="refereeModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="refereeModalTitle">Referee Info</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body" id="refereeModalBody"></div>
-            </div>
-        </div>
-    </div>
-    <!-- Stream Player Modal -->
-    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <h5 class="modal-title" id="streamPlayerTitle">Live Stream</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <video id="streamVideo" controls autoplay></video>
-                </div>
-            </div>
-        </div>
-    </div>
+    <div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="matchModalTitle">Match Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="matchModalBody"></div></div></div></div>
+    <div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="teamModalTitle">Team Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="teamModalBody"></div></div></div></div>
+    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="playerModalTitle">Player Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="playerModalBody"></div></div></div></div>
+    <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="coachModalTitle">Coach Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="coachModalBody"></div></div></div></div>
+    <div class="modal fade" id="newsModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="newsModalTitle">News Detail</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="newsModalBody"></div></div></div></div>
+    <div class="modal fade" id="refereeModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="refereeModalTitle">Referee Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body" id="refereeModalBody"></div></div></div></div>
+    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true"><div class="modal-dialog modal-xl modal-dialog-centered"><div class="modal-content"><div class="modal-header bg-dark text-white"><h5 class="modal-title" id="streamPlayerTitle">Live Stream</h5><button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button></div><div class="modal-body"><video id="streamVideo" controls autoplay></video></div></div></div></div>
 
-    <!-- زر اللغة العائم -->
     <div class="lang-float">
         <button class="lang-btn" id="langToggle" title="Change Language">🌐</button>
         <div class="lang-menu" id="langMenu">
@@ -583,7 +178,6 @@
         </div>
     </div>
 
-    <!-- زر الوقت العائم -->
     <div class="time-float">
         <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
         <div class="time-menu" id="timeMenu">
@@ -628,12 +222,10 @@
         const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
         const IMG_BASE_REFEREE = 'https://imgs.ysscores.com/referee/150/';
 
-        // Streaming
         const STREAM_API_URL = 'https://admin.golive-pro.online/api/public/events?tz=1';
         const WORKER_PROXY_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
         let streamEvents = [];
 
-        // State
         let championshipsList = [];
         let currentChampionship = null;
         let currentTab = 'matches';
@@ -643,18 +235,16 @@
         let newsPage = 1, newsNextUrl = null, newsLoading = false;
         let scorersObserver = null, assistsObserver = null, newsObserver = null;
 
-        // Live & Today State
         let liveMatches = [];
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
         let previousScores = {};
+        let liveSecondsBase = {}; // { matchId: { baseSeconds, lastFetchTime } }
 
-        // Time settings
-        let timezoneOffset = 0; // minutes
-        let timeFormat = '24'; // '24' or '12'
+        let timezoneOffset = 0;
+        let timeFormat = '24';
 
-        // ========== Language System ==========
         const translations = {
             ar: { dir: 'rtl', title: 'مركز كرة القدم', select_champ: 'اختر البطولة', search_placeholder: 'ابحث عن بطولة...', matches: 'المباريات', standings: 'الترتيب', scorers: 'الهدافون', assists: 'الصناع', news: 'الأخبار', bracket: 'خريطة المواجهات', live: 'مباشر', upcoming: 'القادمة', finished: 'المنتهية', events: 'الأحداث', statistics: 'الإحصائيات', lineups: 'التشكيلة', h2h: 'المواجهات المباشرة', last5: 'آخر 5', coach: 'المدرب', absences: 'الغيابات', close: 'إغلاق', loading: 'جاري التحميل...' },
             en: { dir: 'ltr', title: 'Football Center', select_champ: 'Select Championship', search_placeholder: 'Search championship...', matches: 'Matches', standings: 'Standings', scorers: 'Top Scorers', assists: 'Assists', news: 'News', bracket: 'Bracket', live: 'Live', upcoming: 'Upcoming', finished: 'Finished', events: 'Events', statistics: 'Statistics', lineups: 'Lineups', h2h: 'H2H', last5: 'Last 5', coach: 'Coach', absences: 'Absences', close: 'Close', loading: 'Loading...' },
@@ -704,7 +294,6 @@
             }
         }
 
-        // ========== Time Settings ==========
         function initTimeSystem() {
             const toggle = document.getElementById('timeToggle');
             const menu = document.getElementById('timeMenu');
@@ -762,7 +351,6 @@
             }
         }
 
-        // ========== Modal Backdrop Fix ==========
         function cleanupModalBackdrops() {
             document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
             document.body.classList.remove('modal-open');
@@ -772,7 +360,6 @@
         document.addEventListener('hidden.bs.modal', cleanupModalBackdrops);
         document.addEventListener('show.bs.modal', cleanupModalBackdrops);
 
-        // ========== Helpers ==========
         function showLoading() {
             loadingCount++;
             const loader = document.getElementById('loadingIndicator');
@@ -831,17 +418,39 @@
             }
         }
 
+        const teamAliases = {
+            'manchester united': ['man utd', 'man u', 'man united', 'manchester u'],
+            'man city': ['manchester city', 'manchester c'],
+            'tottenham': ['tottenham hotspur', 'spurs'],
+            'arsenal': ['arsenal fc'],
+            'chelsea': ['chelsea fc'],
+            'liverpool': ['liverpool fc'],
+            'newcastle': ['newcastle united', 'newcastle utd'],
+            'aston villa': ['aston villa fc'],
+            'brighton': ['brighton and hove albion', 'brighton & hove albion'],
+            'leeds': ['leeds united', 'leeds utd'],
+            'manchester': ['man utd', 'man united']
+        };
+
+        function normalizeTeamName(name) {
+            if (!name) return '';
+            let n = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            for (const key in teamAliases) {
+                const aliases = teamAliases[key];
+                if (n === key || aliases.includes(n)) {
+                    return key; // تطبيع إلى الاسم الأساسي
+                }
+            }
+            return n;
+        }
+
         function findStreamEvent(match) {
             if (!streamEvents.length || !match.home_team || !match.away_team) return null;
-            const normalize = str => {
-                if (!str) return '';
-                return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-            };
-            const home = normalize(match.home_team.title || match.home_team.full_title);
-            const away = normalize(match.away_team.title || match.away_team.full_title);
+            const home = normalizeTeamName(match.home_team.title || match.home_team.full_title);
+            const away = normalizeTeamName(match.away_team.title || match.away_team.full_title);
             return streamEvents.find(event => {
-                const eventHome = normalize(event.homeName);
-                const eventAway = normalize(event.awayName);
+                const eventHome = normalizeTeamName(event.homeName);
+                const eventAway = normalizeTeamName(event.awayName);
                 return eventHome === home && eventAway === away;
             });
         }
@@ -875,66 +484,45 @@
         }
 
         // ========== Live & Today Matches ==========
+        function getLiveSeconds(match) {
+            if (liveSecondsBase[match.match_id]) {
+                const { baseSeconds, lastFetchTime } = liveSecondsBase[match.match_id];
+                return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
+            }
+            if (match.minutes) {
+                return match.minutes;
+            }
+            if (match.match_timestamp) {
+                return Math.floor(Date.now() / 1000 - match.match_timestamp);
+            }
+            return 0;
+        }
+
+        function formatLiveTime(seconds) {
+            const totalSeconds = Math.max(0, seconds);
+            const minutes = Math.floor(totalSeconds / 60);
+            const secs = totalSeconds % 60;
+            const mm = String(minutes).padStart(2, '0');
+            const ss = String(secs).padStart(2, '0');
+            if (minutes <= 45) {
+                return `${mm}:${ss}`;
+            } else if (minutes <= 90) {
+                return `${mm}:${ss}`;
+            } else {
+                const extraMin = minutes - 90;
+                return `90+${extraMin}:${ss}`;
+            }
+        }
+
         function renderLiveMatchCard(match) {
             const home = match.home_team;
             const away = match.away_team;
             const comp = match.championship ? match.championship.title : '';
             const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
-
-            // استخدام بيانات YSScores مباشرة
-            let minute = 0;
-            let half = '1st Half';
-            let extra = '';
-
-            // `minutes` هو عدد الثواني منذ بداية المباراة (أو صفر إذا غير متاح)
-            if (match.minutes) {
-                const totalSeconds = match.minutes;
-                let totalMinutes = Math.floor(totalSeconds / 60);
-                if (totalMinutes <= 45) {
-                    minute = totalMinutes;
-                    half = '1st Half';
-                } else if (totalMinutes <= 90) {
-                    minute = totalMinutes;
-                    half = '2nd Half';
-                } else {
-                    minute = 90; // سنعرض 90+ لاحقًا
-                    half = 'ET';
-                }
-                // استخدام ex_time إذا كان موجوداً
-                if (match.ex_time !== null && match.ex_time !== undefined) {
-                    extra = `+${match.ex_time}`;
-                }
-            } else {
-                // احسب من timestamp إذا كانت المباراة مباشرة
-                const elapsedSeconds = Math.floor(Date.now() / 1000 - match.match_timestamp);
-                let totalMinutes = Math.floor(elapsedSeconds / 60);
-                if (totalMinutes <= 45) {
-                    minute = totalMinutes;
-                    half = '1st Half';
-                } else if (totalMinutes <= 90) {
-                    minute = totalMinutes;
-                    half = '2nd Half';
-                } else {
-                    minute = 90;
-                    half = 'ET';
-                }
-                if (match.ex_time !== null && match.ex_time !== undefined) {
-                    extra = `+${match.ex_time}`;
-                }
-            }
-
-            let timeDisplay = '';
-            if (half === 'HT') timeDisplay = 'HT';
-            else if (half === 'FT') timeDisplay = 'FT';
-            else if (half === 'ET') timeDisplay = `ET ${minute > 90 ? minute - 90 : 0}${extra}'`;
-            else {
-                if (minute >= 90) timeDisplay = `90${extra}'`;
-                else timeDisplay = `${minute}${extra}' ${half}`;
-            }
-
+            const seconds = getLiveSeconds(match);
+            const timeDisplay = formatLiveTime(seconds);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
-
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
             card.innerHTML = `
@@ -958,9 +546,7 @@
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small mt-2">
-                        ${compImg} ${comp} | ${match.match_date} ${match.match_time}
-                    </div>
+                    <div class="text-center text-muted small mt-2">${compImg} ${comp} | ${match.match_date} ${match.match_time}</div>
                 </div>
             `;
             return card;
@@ -974,19 +560,11 @@
             const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
-
-            // حالة المباراة
             let statusBadge = '';
-            if (match.status === 4) {
-                statusBadge = '<span class="badge bg-secondary">FT</span>';
-            } else if (match.status === 1 || match.status === 2 || match.status === 3) {
-                statusBadge = '<span class="badge bg-danger">Live</span>';
-            } else if (match.status === 0) {
-                statusBadge = '<span class="badge bg-info">Upcoming</span>';
-            }
-
+            if (match.status === 4) statusBadge = '<span class="badge bg-secondary">FT</span>';
+            else if (match.status === 1 || match.status === 2 || match.status === 3) statusBadge = '<span class="badge bg-danger">Live</span>';
+            else if (match.status === 0) statusBadge = '<span class="badge bg-info">Upcoming</span>';
             const scoreDisplay = match.status === 0 ? 'VS' : `${match.home_scores} - ${match.away_scores}`;
-
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
             card.innerHTML = `
@@ -1006,9 +584,7 @@
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small mt-2">
-                        ${compImg} ${comp} | ${dateTime}
-                    </div>
+                    <div class="text-center text-muted small mt-2">${compImg} ${comp} | ${dateTime}</div>
                 </div>
             `;
             return card;
@@ -1019,16 +595,10 @@
             const todayContainer = document.getElementById('todayMatchesContainer');
             liveContainer.innerHTML = '';
             todayContainer.innerHTML = '';
-            if (liveMatches.length === 0) {
-                liveContainer.innerHTML = '<div class="col-12"><p>No live matches currently.</p></div>';
-            } else {
-                liveMatches.forEach(match => liveContainer.appendChild(renderLiveMatchCard(match)));
-            }
-            if (todayMatches.length === 0) {
-                todayContainer.innerHTML = '<div class="col-12"><p>No matches today.</p></div>';
-            } else {
-                todayMatches.forEach(match => todayContainer.appendChild(renderTodayMatchCard(match)));
-            }
+            if (liveMatches.length === 0) liveContainer.innerHTML = '<div class="col-12"><p>No live matches currently.</p></div>';
+            else liveMatches.forEach(match => liveContainer.appendChild(renderLiveMatchCard(match)));
+            if (todayMatches.length === 0) todayContainer.innerHTML = '<div class="col-12"><p>No matches today.</p></div>';
+            else todayMatches.forEach(match => todayContainer.appendChild(renderTodayMatchCard(match)));
             document.querySelectorAll('#liveMatchesContainer .match-card, #todayMatchesContainer .match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.classList.contains('team-img') || e.target.classList.contains('small') || e.target.classList.contains('play-stream-btn')) return;
@@ -1073,61 +643,47 @@
                 const today = new Date().toISOString().slice(0, 10);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${today}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
-                // تصفية: إزالة المباريات المباشرة من قائمة اليوم
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
+
+                // تحديث قواعد الثواني لكل مباراة مباشرة
+                const nowTs = Date.now();
+                liveMatches.forEach(m => {
+                    liveSecondsBase[m.match_id] = {
+                        baseSeconds: m.minutes || Math.floor(nowTs/1000 - m.match_timestamp),
+                        lastFetchTime: nowTs
+                    };
+                });
 
                 await loadStreamEvents();
                 renderLiveAndToday();
 
-                // تحديث الوقت كل ثانية
                 if (liveUpdateInterval) clearInterval(liveUpdateInterval);
                 liveUpdateInterval = setInterval(() => {
                     document.querySelectorAll('.live-indicator').forEach(el => {
                         const matchId = el.dataset.matchId;
                         const match = liveMatches.find(m => m.match_id == matchId);
                         if (match) {
-                            // إعادة حساب الوقت بنفس منطق renderLiveMatchCard
-                            let minute = 0;
-                            let half = '1st Half';
-                            let extra = '';
-                            if (match.minutes) {
-                                const totalSeconds = match.minutes;
-                                let totalMinutes = Math.floor(totalSeconds / 60);
-                                if (totalMinutes <= 45) { minute = totalMinutes; half = '1st Half'; }
-                                else if (totalMinutes <= 90) { minute = totalMinutes; half = '2nd Half'; }
-                                else { minute = 90; half = 'ET'; }
-                                if (match.ex_time !== null && match.ex_time !== undefined) extra = `+${match.ex_time}`;
-                            } else {
-                                const elapsedSeconds = Math.floor(Date.now() / 1000 - match.match_timestamp);
-                                let totalMinutes = Math.floor(elapsedSeconds / 60);
-                                if (totalMinutes <= 45) { minute = totalMinutes; half = '1st Half'; }
-                                else if (totalMinutes <= 90) { minute = totalMinutes; half = '2nd Half'; }
-                                else { minute = 90; half = 'ET'; }
-                                if (match.ex_time !== null && match.ex_time !== undefined) extra = `+${match.ex_time}`;
-                            }
-                            let timeDisplay = '';
-                            if (half === 'HT') timeDisplay = 'HT';
-                            else if (half === 'FT') timeDisplay = 'FT';
-                            else if (half === 'ET') timeDisplay = `ET ${minute > 90 ? minute - 90 : 0}${extra}'`;
-                            else {
-                                if (minute >= 90) timeDisplay = `90${extra}'`;
-                                else timeDisplay = `${minute}${extra}' ${half}`;
-                            }
+                            const seconds = getLiveSeconds(match);
                             const timeEl = el.querySelector('.live-time');
-                            if (timeEl) timeEl.textContent = timeDisplay;
+                            if (timeEl) timeEl.textContent = formatLiveTime(seconds);
                         }
                     });
                 }, 1000);
 
-                // تحديث النتائج كل 25 ثانية
                 if (liveFetchInterval) clearInterval(liveFetchInterval);
                 liveFetchInterval = setInterval(async () => {
                     const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
                     const newLiveMatches = newLiveData.data || [];
                     handleScoreChanges(liveMatches, newLiveMatches);
                     liveMatches = newLiveMatches;
-                    // تحديث قائمة البث
+                    const nowTs2 = Date.now();
+                    liveMatches.forEach(m => {
+                        liveSecondsBase[m.match_id] = {
+                            baseSeconds: m.minutes || Math.floor(nowTs2/1000 - m.match_timestamp),
+                            lastFetchTime: nowTs2
+                        };
+                    });
                     await loadStreamEvents();
                     renderLiveAndToday();
                 }, 25000);
@@ -1235,7 +791,6 @@
             btn.addEventListener('click', function(e) { const target = this.getAttribute('data-bs-target').substring(1); switchTab(target); });
         });
 
-        // ========== Matches ==========
         async function loadMatches() {
             if (!currentChampionship) return;
             showLoading();
@@ -1293,9 +848,7 @@
                                     <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                                 </div>
                             </div>
-                            <div class="text-center text-muted small mt-2">
-                                ${compImg} ${comp} | ${dateTime} | ${match.round || ''}
-                            </div>
+                            <div class="text-center text-muted small mt-2">${compImg} ${comp} | ${dateTime} | ${match.round || ''}</div>
                         </div>
                     </div>
                 `;
@@ -1324,10 +877,7 @@
                 const statsUrl = `${API_BASE}/matches/statics_match/${matchId}`;
                 const h2hUrl = `${API_BASE}/matches/h2h/${matchId}/L/60`;
                 const [eventData, lineupData, statsData, h2hData, homeMatches, awayMatches] = await Promise.all([
-                    fetchFromProxy(eventUrl),
-                    fetchFromProxy(lineupUrl),
-                    fetchFromProxy(statsUrl),
-                    fetchFromProxy(h2hUrl).catch(() => ({ data: {} })),
+                    fetchFromProxy(eventUrl), fetchFromProxy(lineupUrl), fetchFromProxy(statsUrl), fetchFromProxy(h2hUrl).catch(() => ({ data: {} })),
                     fetchFromProxy(`${API_BASE}/matches/team_matches/${info.home_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
                     fetchFromProxy(`${API_BASE}/matches/team_matches/${info.away_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
                 ]);
@@ -1354,9 +904,8 @@
             const timerElement = document.getElementById('matchTimer');
             if (!timerElement) return;
             const updateTimer = () => {
-                const now = Date.now();
                 if (info.status === 0) {
-                    const diff = info.match_timestamp * 1000 - now;
+                    const diff = info.match_timestamp * 1000 - Date.now();
                     if (diff > 0) {
                         const days = Math.floor(diff / (1000 * 60 * 60 * 24));
                         const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
@@ -1369,24 +918,8 @@
                 } else if (info.status === 4) {
                     timerElement.innerHTML = `<span class="match-timer">Full Time</span>`;
                 } else {
-                    // Live match
-                    let totalMinutes = 0;
-                    if (info.minutes) {
-                        totalMinutes = Math.floor(info.minutes / 60);
-                    } else {
-                        totalMinutes = Math.floor((now / 1000) - info.match_timestamp / 60);
-                    }
-                    let extra = '';
-                    if (info.ex_time !== null && info.ex_time !== undefined) {
-                        extra = `+${info.ex_time}`;
-                    }
-                    if (totalMinutes <= 45) {
-                        timerElement.innerHTML = `<span class="match-timer">${totalMinutes}${extra}'</span>`;
-                    } else if (totalMinutes <= 90) {
-                        timerElement.innerHTML = `<span class="match-timer">${totalMinutes}${extra}'</span>`;
-                    } else {
-                        timerElement.innerHTML = `<span class="match-timer">90+${totalMinutes - 90}'</span>`;
-                    }
+                    let seconds = getLiveSeconds(info);
+                    timerElement.innerHTML = `<span class="match-timer">${formatLiveTime(seconds)}</span>`;
                 }
             };
             updateTimer();
@@ -1408,9 +941,7 @@
             infoBlock += '</div>';
             infoBlock += `<div class="mt-2"><strong>Date:</strong> ${dateTime}</div>`;
             if (info.channel_commm && info.channel_commm.length > 0) {
-                infoBlock += '<div class="mt-2"><strong>Channels:</strong> ';
-                infoBlock += info.channel_commm.map(c => `${c.channel_name} (${c.commentator_name || 'Unknown'})`).join('، ');
-                infoBlock += '</div>';
+                infoBlock += '<div class="mt-2"><strong>Channels:</strong> ' + info.channel_commm.map(c => `${c.channel_name} (${c.commentator_name || 'Unknown'})`).join('، ') + '</div>';
             }
             if (info.referees) {
                 const ref = info.referees;
@@ -1587,9 +1118,7 @@
             }
             html += '</div>';
             if (injuredPlayers && injuredPlayers.length > 0) {
-                html += '<div class="mt-2">';
-                html += '<strong class="text-danger">Absences</strong>';
-                html += '<ul class="list-unstyled">';
+                html += '<div class="mt-2"><strong class="text-danger">Absences</strong><ul class="list-unstyled">';
                 injuredPlayers.forEach(inj => {
                     html += `
                         <li class="d-flex align-items-center mb-1">
@@ -1599,8 +1128,7 @@
                         </li>
                     `;
                 });
-                html += '</ul>';
-                html += '</div>';
+                html += '</ul></div>';
             } else {
                 html += '<p class="text-muted">No absences</p>';
             }
@@ -1645,7 +1173,6 @@
             return html;
         }
 
-        // ========== Standings ==========
         async function loadStandings() {
             if (!currentChampionship) return;
             showLoading();
@@ -1692,7 +1219,6 @@
             return html;
         }
 
-        // ========== Infinite Scroll Setup ==========
         function setupInfiniteScroll(sentinelId, loadMoreFunction) {
             const sentinel = document.getElementById(sentinelId);
             if (!sentinel) return;
@@ -1711,7 +1237,6 @@
             }
         }
 
-        // ========== Scorers ==========
         async function loadScorers(page = 1) {
             if (!currentChampionship) return;
             if (scorersLoading) return;
@@ -1743,7 +1268,6 @@
             }
         }
 
-        // ========== Assists ==========
         async function loadAssists(page = 1) {
             if (!currentChampionship) return;
             if (assistsLoading) return;
@@ -1775,7 +1299,6 @@
             }
         }
 
-        // ========== News ==========
         async function loadNews(page = 1) {
             if (!currentChampionship) return;
             if (newsLoading) return;
@@ -1839,7 +1362,6 @@
             return html;
         }
 
-        // ========== Bracket ==========
         async function loadBracket() {
             if (!currentChampionship) return;
             showLoading();
@@ -1876,7 +1398,6 @@
             return html;
         }
 
-        // ========== Team Modal ==========
         async function openTeamModal(teamId) {
             showLoading();
             try {
@@ -2044,7 +1565,6 @@
             return html;
         }
 
-        // ========== Player Modal ==========
         async function openPlayerModal(playerId) {
             showLoading();
             try {
@@ -2099,7 +1619,6 @@
             return html;
         }
 
-        // ========== Coach Modal ==========
         async function openCoachModal(coachId) {
             showLoading();
             try {
@@ -2140,7 +1659,6 @@
             return html;
         }
 
-        // ========== News Modal ==========
         async function openNewsModal(newsId) {
             showLoading();
             try {
@@ -2179,7 +1697,6 @@
             body.innerHTML = html;
         }
 
-        // ========== Referee Modal ==========
         async function openRefereeModal(refereeId) {
             showLoading();
             try {
@@ -2214,7 +1731,6 @@
             body.innerHTML = html;
         }
 
-        // ========== Initialize ==========
         initLanguageSystem();
         initTimeSystem();
         loadChampionships();
@@ -2222,4 +1738,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-    </html>
+                                                                                                                                                                                                                                                                                   </html>
