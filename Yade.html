@@ -8,8 +8,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        /* ... (الأنماط الأساسية كما هي) ... */
-        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        :root {
+            --primary: #0d6efd;
+            --secondary: #6c757d;
+            --success: #198754;
+            --info: #0dcaf0;
+            --warning: #ffc107;
+            --danger: #dc3545;
+            --light-bg: #f4f6f9;
+            --card-bg: #ffffff;
+            --border-radius: 12px;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+        }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -134,6 +144,57 @@
         .match-header .champ-badge { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); display: flex; gap: 5px; align-items: center; font-size: 12px; color: #666; }
         .match-header .champ-badge img { width: 20px; height: 20px; }
 
+        /* تنسيقات الأحداث المشابهة للتطبيق */
+        .events-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
+        .event-box { background: #fff; border-radius: 12px; padding: 10px 0; }
+        .event-row { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f0f0f0; }
+        
+        .event-time-cell { display: flex; justify-content: center; align-items: center; width: 60px; flex-shrink: 0; }
+        .event-time-circle { display: flex; justify-content: center; align-items: center; width: 45px; height: 45px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; font-weight: bold; position: relative; font-size: 14px; }
+        .event-time-circle small { position: absolute; top: 2px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #dc3545; font-weight: normal; }
+        
+        /* تنسيق قسم الفريقين */
+        .event-side { display: flex; align-items: center; width: 40px; }
+        .event-side-right { justify-content: flex-end; }
+        .event-side-left { justify-content: flex-start; }
+        .event-side img { width: 24px; height: 24px; object-fit: contain; }
+
+        /* تنسيق الوسط (المعلومات) */
+        .event-info-center { flex: 1; display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 0 10px; }
+        .event-player { font-size: 14px; font-weight: 600; color: #111; display: flex; align-items: center; justify-content: center; gap: 6px; }
+        .event-sub { font-size: 13px; color: #777; margin-top: 2px; }
+        .event-icon { width: 16px; height: 16px; object-fit: contain; }
+
+        /* تنسيقات النصف (Half Time) */
+        .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
+        .kickoff-divider, .fulltime-divider { text-align: center; padding: 12px; color: #666; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
+
+        /* تنسيقات Lineup */
+        .lineup-tabs { display: flex; justify-content: center; gap: 10px; margin-bottom: 20px; }
+        .lineup-tab { border: none; background: #f1f3f5; color: #666; padding: 8px 20px; border-radius: 30px; font-weight: 700; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; gap: 5px; }
+        .lineup-tab.active { background: #27ae60; color: white; }
+        .lineup-tab img { width: 20px; height: 20px; object-fit: contain; }
+
+        .lineup-pitch { background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%); border-radius: 12px; padding: 15px; position: relative; min-height: 480px; }
+        .lineup-pitch .team-name { text-align: center; font-weight: bold; margin-bottom: 15px; font-size: 1.1rem; color: #fff; display: flex; justify-content: center; align-items: center; gap: 5px; }
+        .lineup-row { display: flex; justify-content: space-around; align-items: center; margin-bottom: 20px; }
+        .lineup-player { display: flex; flex-direction: column; align-items: center; width: 60px; position: relative; }
+        .lineup-player-img { width: 45px; height: 45px; object-fit: cover; border-radius: 50%; border: 2px solid white; background: #fff; }
+        .lineup-player-num { position: absolute; top: -5px; right: 0; background: #000; color: #fff; width: 18px; height: 18px; border-radius: 50%; font-size: 10px; display: flex; align-items: center; justify-content: center; font-weight: bold; }
+        .lineup-player-name { font-size: 11px; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60px; color: #fff; font-weight: 600; margin-top: 2px; text-shadow: 0 1px 2px rgba(0,0,0,0.8); }
+        .lineup-player-rate { position: absolute; bottom: -5px; background: #f39c12; color: #000; font-size: 10px; padding: 1px 4px; border-radius: 4px; font-weight: bold; }
+        .lineup-player-icons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+        .lineup-player-icons img { width: 14px; height: 14px; position: absolute; left: -5px; top: -5px; }
+
+        .lineup-subs { margin-top: 10px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; }
+        .lineup-subs h6 { color: #fff; text-align: center; margin-bottom: 8px; font-weight: bold; }
+        .sub-item { display: flex; align-items: center; gap: 8px; padding: 5px; color: #fff; font-size: 13px; }
+        .sub-item img { width: 25px; height: 25px; border-radius: 50%; border: 1px solid white; }
+        .sub-item .sub-in-out { margin-left: auto; font-size: 11px; opacity: 0.8; }
+        
+        .coach-section, .absences-section { margin-top: 15px; padding: 10px; border: 1px solid #eaeaea; border-radius: 8px; background: #fff; }
+        .coach-section strong, .absences-section strong { display: block; margin-bottom: 8px; }
+
         .detail-card { background: #fff; border: 1px solid #eaeaea; border-radius: 12px; margin-bottom: 10px; padding: 12px 15px; }
         .detail-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; color: #333; }
         .detail-row strong { color: #666; font-weight: 600; }
@@ -156,18 +217,6 @@
         .h2h-stat { text-align: center; }
         .h2h-stat span.num { font-size: 20px; font-weight: bold; display: block; }
         .h2h-stat span.lbl { font-size: 12px; color: #777; display: block; }
-        .events-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
-        .event-box { background: #fff; border-radius: 12px; padding: 10px 0; }
-        .event-row { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f0f0f0; }
-        .event-time { display: flex; justify-content: center; align-items: center; width: 50px; height: 50px; border-radius: 50%; background: #e8f5e9; color: #2e7d32; font-weight: bold; position: relative; }
-        .event-time small { position: absolute; top: 5px; left: 50%; transform: translateX(-50%); font-size: 10px; color: #dc3545; font-weight: normal; }
-        .event-info { flex: 1; padding: 0 15px; text-align: center; }
-        .event-info .player-name { font-size: 15px; font-weight: 600; color: #000; }
-        .event-info .player-sub { font-size: 13px; color: #777; }
-        .event-side-home, .event-side-away { width: 60px; display: flex; justify-content: center; }
-        .event-side-home img { width: 24px; height: 24px; object-fit: contain; }
-        .event-side-away img { width: 24px; height: 24px; object-fit: contain; }
-        .center-note { text-align: center; color: #555; font-size: 14px; padding: 15px 0; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
         .stats-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .stats-container { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #eaeaea; }
         .possession-box { text-align: center; margin-bottom: 20px; }
@@ -182,11 +231,6 @@
         .stat-line { height: 6px; width: 100%; background: #eaeaea; border-radius: 4px; overflow: hidden; margin-bottom: 15px; position: relative; }
         .stat-line-home { height: 100%; position: absolute; left: 0; background: #0984e3; }
         .stat-line-away { height: 100%; position: absolute; right: 0; background: #6c5ce7; }
-
-        /* أنماط أيقونات الهيدر في المشغل */
-        .stream-teams { display: flex; align-items: center; gap: 10px; }
-        .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
-        .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
 
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -352,7 +396,6 @@
         let previousScores = {};
         let liveSecondsBase = {};
 
-        // تعيين المنطقة الزمنية الافتراضية إلى تلقائي (0) لمنع إضافة ساعة مزدوجة
         let timezoneOffset = 0;
         let timeFormat = '24';
 
@@ -439,10 +482,8 @@
             function hideTimeMenu() { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); }
         }
 
-        // تصحيح حساب الوقت: استخدام توقيت الجهاز مباشرة بدون إزاحة مزدوجة
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
             const date = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
-            // إضافة الإزاحة فقط إذا قام المستخدم بضبطها يدوياً
             date.setMinutes(date.getMinutes() + timezoneOffset);
             return formatDate(date) + ' ' + formatTime(date);
         }
@@ -526,7 +567,6 @@
             }
         }
 
-        // إضافة أسماء بديلة لفريق PSG ليتعرف عليه السيرفر
         const teamAliases = {
             'manchester united': ['man utd', 'man u', 'man united', 'manchester u'],
             'man city': ['manchester city', 'manchester c'],
@@ -575,7 +615,6 @@
             const streamHomeLogo = document.getElementById('streamHomeLogo');
             const streamAwayLogo = document.getElementById('streamAwayLogo');
 
-            // إعدادات الأيقونات والصور بشكل صحيح
             if (matchData && matchData.compLogoUrl) {
                 streamCompLogo.src = matchData.compLogoUrl;
                 streamCompLogo.style.display = 'inline-block';
@@ -586,7 +625,6 @@
             if (streamCompName) streamCompName.textContent = matchData ? (matchData.compName || '') : '';
             if (streamMatchInfo) streamMatchInfo.textContent = matchData ? `${matchData.homeName} ${matchData.homeScore} - ${matchData.awayScore} ${matchData.awayName}` : '';
 
-            // عرض صور الفريقين
             if (matchData && matchData.homeLogoUrl) {
                 streamHomeLogo.src = matchData.homeLogoUrl;
                 streamHomeLogo.style.display = 'inline-block';
@@ -650,16 +688,14 @@
             return 0;
         }
 
-        // حساب نسبة تقدم الدائرة بناءً على الوقت والحالة
         function getMatchProgress(seconds, status) {
-            if (status === 0) return 0; // لم تبدأ
-            if (status === 4) return 100; // انتهت
-            if (status === 2) return 50; // استراحة
+            if (status === 0) return 0;
+            if (status === 4) return 100;
+            if (status === 2) return 50;
             const mins = seconds / 60;
             return Math.min(100, (mins / 90) * 100);
         }
 
-        // دالة عرض الوقت (90' كبيرة و +x:xx / y صفراء مع أيقونة)
         function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
@@ -1109,7 +1145,6 @@
 
         function renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5) {
             const body = document.getElementById('matchModalBody');
-            const teamMap = { [info.home_team.row_id]: info.home_team.title, [info.away_team.row_id]: info.away_team.title };
             const lang = localStorage.getItem('preferred_language') || 'en';
             const t = translations[lang];
             const dateTime = formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp);
@@ -1235,48 +1270,111 @@
             return html;
         }
 
+        // دالة الأحداث المطابقة للتطبيق
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
+            
+            // تحديد الفريق المضيف والضيف لتحديد الاتجاه
+            const homeId = info.home_team.row_id;
+            const awayId = info.away_team.row_id;
+            
             let html = '<div class="events-title">Events</div>';
             html += '<div class="event-box">';
-            html += `<div class="center-note"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
+
+            // Kick-Off في البداية
+            html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
+
+            // إضافة Half Time إذا كان موجوداً في البيانات أو تم تحديد الوقت
+            let halftimeAdded = false;
             
             events.forEach(ev => {
-                const player = ev.player_name ? ev.player_name.title : 'Unknown';
-                const subPlayer = ev.assist_player_name ? `<div class="player-sub"><img src="${ICONS.flag}" class="icon-16"> ${ev.assist_player_name.title}</div>` : (ev.event_type_name ? `<div class="player-sub">${ev.event_type_name}</div>` : '');
-                
-                let homeClass = '';
-                let awayClass = '';
-                let homeLogo = '';
-                let awayLogo = '';
-
-                if (ev.team_id && ev.team_id == info.home_team.row_id) {
-                    homeClass = 'event-side-home';
-                    homeLogo = `<img src="${IMG_BASE_TEAM + info.home_team.image}">`;
-                } else if (ev.team_id && ev.team_id == info.away_team.row_id) {
-                    awayClass = 'event-side-away';
-                    awayLogo = `<img src="${IMG_BASE_TEAM + info.away_team.image}">`;
+                // تحقق مما إذا كان هذا حدث نصف الوقت
+                if (ev.event_type_name === "Half Time" || ev.type === 3) {
+                    html += `<div class="halftime-divider"><img src="${ICONS.flag}" class="icon-16"> Half Time</div>`;
+                    halftimeAdded = true;
                 }
 
-                let eventIcon = ICONS.flag;
-                let typeLabel = '';
-                if (ev.type === 1 || ev.type === 5) { eventIcon = ICONS.goal; typeLabel = 'Goal'; }
-                else if (ev.type === 2) { eventIcon = ICONS.yellowCard; typeLabel = 'Yellow Card'; }
-                else if (ev.type === 6) { eventIcon = ICONS.redCard; typeLabel = 'Red Card'; }
-                else if (ev.type === 8) { eventIcon = ICONS.shirt; typeLabel = 'Substitution'; }
+                // تحديد الفريق الذي ينتمي إليه الحدث
+                let isHome = false;
+                let isAway = false;
+                if (ev.team_id) {
+                    isHome = (ev.team_id == homeId);
+                    isAway = (ev.team_id == awayId);
+                }
+                // إذا لم يحدد الفريق، نعتمد على افتراضيات أخرى
 
-                html += `<div class="event-row">
-                    <div class="${homeClass}">${homeLogo}</div>
-                    <div class="event-info">
-                        <div class="player-name"><img src="${eventIcon}" class="icon-16"> ${player}</div>
-                        ${subPlayer}
+                let sideHtml = '';
+                let icon = ICONS.flag;
+                let typeText = '';
+                
+                // تحديد الأيقونات والاحتفالات
+                if (ev.type === 1 || ev.type === 5) {
+                    icon = ICONS.goal;
+                    typeText = 'Goal';
+                    if (ev.type === 5 || ev.event_type_name === "Penalty") {
+                        typeText = 'Penalty Scored';
+                    }
+                } else if (ev.type === 2) { icon = ICONS.yellowCard; typeText = 'Yellow Card'; }
+                else if (ev.type === 6) { icon = ICONS.redCard; typeText = 'Red Card'; }
+                else if (ev.type === 8) { icon = ICONS.shirt; typeText = 'Substitution'; }
+                else if (ev.type === 14) { icon = ICONS.video; typeText = 'Video'; }
+                else { icon = ICONS.flag; typeText = 'Unknown'; }
+                
+                // بناء اسم اللاعب
+                let playerName = ev.player_name ? ev.player_name.title : 'Unknown';
+                let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
+                let isPenalty = (ev.event_type_name && ev.event_type_name.includes('Penalty')) || ev.type === 5;
+                let fullTypeText = isPenalty ? 'Penalty Scored' : typeText;
+
+                // فيديو رابط
+                let videoBtn = '';
+                if (ev.event_video) {
+                    videoBtn = `<a href="${ev.event_video}" target="_blank"><img src="${ICONS.video}" class="icon-16" style="cursor:pointer;"></a>`;
+                }
+
+                // ترتيب الفريق (يمين أو يسار)
+                let teamLeftHtml = '';
+                let teamRightHtml = '';
+                
+                if (isHome) {
+                    teamLeftHtml = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}"></div>`;
+                    teamRightHtml = '';
+                } else if (isAway) {
+                    teamLeftHtml = '';
+                    teamRightHtml = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}"></div>`;
+                } else {
+                    teamLeftHtml = '';
+                    teamRightHtml = '';
+                }
+
+                html += `
+                <div class="event-row">
+                    ${teamLeftHtml}
+                    <div class="event-time-cell">
+                        <div class="event-time-circle">
+                            <small>${ev.time_added ? '+' + ev.time_added : ''}</small>
+                            ${ev.time_minute}'
+                        </div>
                     </div>
-                    <div class="event-time">${ev.time_minute}'</div>
-                    <div class="${awayClass}">${awayLogo}</div>
+                    <div class="event-info-center">
+                        <div class="event-player">
+                            <img src="${icon}" class="event-icon">
+                            <span>${playerName}</span>
+                            ${videoBtn}
+                        </div>
+                        <div class="event-sub">
+                            ${subName ? subName : (fullTypeText ? fullTypeText : '')}
+                        </div>
+                    </div>
+                    ${teamRightHtml}
                 </div>`;
             });
 
-            if (info.status === 4) html += `<div class="center-note"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
+            // Full-Time في النهاية
+            if (info.status === 4) {
+                html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
+            }
+
             html += '</div>';
             return html;
         }
@@ -1325,12 +1423,6 @@
                 let hPct = maxVal > 0 ? Math.round((hVal / maxVal) * 100) : 50;
                 let aPct = maxVal > 0 ? Math.round((aVal / maxVal) * 100) : 50;
 
-                let icon = '';
-                if (field.key.includes('shots') || field.key.includes('goal') || field.key.includes('saves')) icon = `<img src="${ICONS.goal}" class="icon-16">`;
-                else if (field.key.includes('yellow')) icon = `<img src="${ICONS.yellowCard}" class="icon-16">`;
-                else if (field.key.includes('red')) icon = `<img src="${ICONS.redCard}" class="icon-16">`;
-                else if (field.key.includes('offside')) icon = `<img src="${ICONS.flag}" class="icon-16">`;
-
                 if (field.key === 'passes_percentage') {
                     hVal = hVal + '%';
                     aVal = aVal + '%';
@@ -1340,7 +1432,7 @@
 
                 html += `<div class="stat-row">
                     <div class="home-val">${hVal}</div>
-                    <div class="stat-label">${icon} ${field.label}</div>
+                    <div class="stat-label">${field.label}</div>
                     <div class="away-val">${aVal}</div>
                 </div>
                 <div class="stat-line">
@@ -1353,6 +1445,7 @@
             return html;
         }
 
+        // دالة التشكيلات الجديدة
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -1361,57 +1454,124 @@
             const injureds = lineups.lineup_injureds || {};
             const homeInjured = injureds[info.home_team.row_id] || [];
             const awayInjured = injureds[info.away_team.row_id] || [];
+            
             if (!homeLineup || !awayLineup) return '<p>Lineups not available</p>';
-            return `<div class="row">
-                <div class="col-12 col-md-6 mb-4">${renderPitch(info.home_team, homeLineup, info.home_formation)}${renderCoachAndInjuries(homeCoach, homeInjured)}</div>
-                <div class="col-12 col-md-6 mb-4">${renderPitch(info.away_team, awayLineup, info.away_formation)}${renderCoachAndInjuries(awayCoach, awayInjured)}</div>
-            </div>`;
+
+            // HTML للخطة
+            let html = `
+            <div class="lineup-tabs">
+                <button class="lineup-tab active" data-team="home">
+                    <img src="${IMG_BASE_TEAM + info.home_team.image}"> ${info.home_team.title}
+                </button>
+                <button class="lineup-tab" data-team="away">
+                    ${info.away_team.title} <img src="${IMG_BASE_TEAM + info.away_team.image}">
+                </button>
+            </div>
+            <div id="lineup-content">
+                ${renderPitchNew(info.home_team, homeLineup, info.home_formation, homeCoach, homeInjured)}
+            </div>
+            <script>
+                document.querySelectorAll('.lineup-tab').forEach(tab => {
+                    tab.addEventListener('click', function() {
+                        document.querySelectorAll('.lineup-tab').forEach(t => t.classList.remove('active'));
+                        this.classList.add('active');
+                        if (this.dataset.team === 'home') {
+                            document.getElementById('lineup-content').innerHTML = \`${renderPitchNew(info.home_team, homeLineup, info.home_formation, homeCoach, homeInjured)}\`;
+                        } else {
+                            document.getElementById('lineup-content').innerHTML = \`${renderPitchNew(info.away_team, awayLineup, info.away_formation, awayCoach, awayInjured)}\`;
+                        }
+                    });
+                });
+            <\/script>`;
+
+            return html;
         }
 
-        function renderPitch(team, lineupData, formation) {
+        function renderPitchNew(team, lineupData, formation, coach, injured) {
             const players = lineupData.lineup || [];
+            const subs = lineupData.substitutions || [];
             const formationText = formation || '4-3-3';
-            const groups = { 'G': [], 'D': [], 'M': [], 'F': [] };
+            const groups = { 'G': [], 'D': [], 'M': [], 'F': [], 'S': [] }; // S للسوب
             players.forEach(p => {
                 const pos = p.position || 'M';
                 if (groups[pos]) groups[pos].push(p);
                 else groups['M'].push(p);
             });
-            let html = `<div class="pitch">
-                <div class="team-name"><img src="${IMG_BASE_TEAM + team.image}" class="team-img" style="width:25px;height:25px;vertical-align:middle;cursor:pointer;" onclick="openTeamModal(${team.row_id})"> ${team.title} (${formationText})</div>
-                <div class="pitch-row">${renderPlayersRow(groups['G'])}</div>
-                <div class="pitch-row">${renderPlayersRow(groups['D'])}</div>
-                <div class="pitch-row">${renderPlayersRow(groups['M'])}</div>
-                <div class="pitch-row">${renderPlayersRow(groups['F'])}</div>
+            
+            // إضافة البدلاء إلى قائمة S لكن لا نعرضها في الملعب
+            // نعرضها في قسم البدلاء
+
+            let html = `<div class="lineup-pitch">
+                <div class="team-name">
+                    <img src="${IMG_BASE_TEAM + team.image}" class="team-img" style="width:25px;height:25px;vertical-align:middle;cursor:pointer;" onclick="openTeamModal(${team.row_id})">
+                    ${team.title} (${formationText})
+                </div>
+                <div class="lineup-row">${renderLineupPlayersRow(groups['G'])}</div>
+                <div class="lineup-row">${renderLineupPlayersRow(groups['D'])}</div>
+                <div class="lineup-row">${renderLineupPlayersRow(groups['M'])}</div>
+                <div class="lineup-row">${renderLineupPlayersRow(groups['F'])}</div>
             </div>`;
-            return html;
-        }
 
-        function renderPlayersRow(players) {
-            return players.map(p => `<div class="player-slot">
-                <img src="${IMG_BASE_PLAYER + p.player.image}" alt="${p.player.title}" onclick="openPlayerModal(${p.player.row_id})" style="cursor:pointer;" onerror="this.style.display='none'">
-                <span class="player-name">${p.player.title}</span>
-                <small style="color:#fff; font-size:0.6rem;">${getPositionFullName(p.position)}</small>
-            </div>`).join('');
-        }
+            // مدرب
+            html += `<div class="coach-section">
+                <strong>Coach</strong>
+                <div class="d-flex align-items-center">
+                    <img src="${IMG_BASE_COACH + coach.image}" class="player-img me-2" style="width:35px;height:35px;cursor:pointer;" onclick="openCoachModal(${coach.id})">
+                    <span class="link-item" onclick="openCoachModal(${coach.id})">${coach.title}</span>
+                </div>
+            </div>`;
 
-        function renderCoachAndInjuries(coach, injuredPlayers) {
-            let html = '<div class="mt-2 mb-2">';
-            if (coach) {
-                html += `<div class="d-flex align-items-center mb-2">
-                    <img src="${IMG_BASE_COACH + coach.image}" class="player-img me-2" style="width:35px;height:35px;cursor:pointer;" onclick="openCoachModal(${coach.id})" title="${coach.title}">
-                    <div><strong>Coach</strong><br><span class="link-item" onclick="openCoachModal(${coach.id})">${coach.title}</span></div>
+            // الغيابات
+            if (injured && injured.length > 0) {
+                html += `<div class="absences-section">
+                    <strong class="text-danger"><img src="${ICONS.firstAid}" class="icon-16"> Absences</strong>
+                    <ul class="list-unstyled">
+                        ${injured.map(inj => `
+                        <li class="d-flex align-items-center mb-1">
+                            <img src="${IMG_BASE_PLAYER + inj.player.image}" class="player-img me-2" style="width:25px;height:25px;cursor:pointer;" onclick="openPlayerModal(${inj.player.row_id})">
+                            <span class="link-item" onclick="openPlayerModal(${inj.player.row_id})">${inj.player.title}</span>
+                            <span class="text-muted ms-2">- ${inj.type_name || 'Unknown'}</span>
+                        </li>`).join('')}
+                    </ul>
                 </div>`;
-            } else html += '<p class="text-muted">Coach: Not available</p>';
-            html += '</div>';
-            if (injuredPlayers && injuredPlayers.length > 0) {
-                html += '<div class="mt-2"><strong class="text-danger"><img src="' + ICONS.firstAid + '" class="icon-16"> Absences</strong><ul class="list-unstyled">';
-                injuredPlayers.forEach(inj => {
-                    html += `<li class="d-flex align-items-center mb-1"><img src="${IMG_BASE_PLAYER + inj.player.image}" class="player-img me-2" style="width:25px;height:25px;cursor:pointer;" onclick="openPlayerModal(${inj.player.row_id})" title="${inj.player.title}"><span class="link-item" onclick="openPlayerModal(${inj.player.row_id})">${inj.player.title}</span><span class="text-muted ms-2">- ${inj.type_name || 'Unknown'}</span></li>`;
-                });
-                html += '</ul></div>';
-            } else html += '<p class="text-muted">No absences</p>';
+            }
+
+            // البدلاء
+            if (subs.length > 0) {
+                html += `<div class="lineup-subs">
+                    <h6><img src="${ICONS.shirt}" class="icon-16"> Substitutions</h6>
+                    ${subs.map(sub => `
+                    <div class="sub-item">
+                        <img src="${IMG_BASE_PLAYER + sub.player.image}" class="player-img" onclick="openPlayerModal(${sub.player.row_id})">
+                        <span>${sub.player.title}</span>
+                        <span class="sub-in-out">${sub.substitute_time ? "In " + sub.substitute_time + "'" : 'On Bench'}</span>
+                    </div>`).join('')}
+                </div>`;
+            }
+
             return html;
+        }
+
+        function renderLineupPlayersRow(players) {
+            return players.map(p => {
+                // إيجاد الأيقونات
+                let icons = '';
+                if (p.yellow) icons += `<img src="${ICONS.yellowCard}" style="left:0px; top:0px;">`;
+                if (p.red) icons += `<img src="${ICONS.redCard}" style="left:-5px; top:20px;">`;
+                if (p.goal) icons += `<img src="${ICONS.goal}" style="left:5px; top:5px;">`;
+                
+                // تقييم اللاعب
+                let ratingClass = '';
+                let ratingDisplay = p.rating || '';
+                
+                return `<div class="lineup-player">
+                    <div class="lineup-player-num">${p.player.player_number || ''}</div>
+                    <img src="${IMG_BASE_PLAYER + p.player.image}" class="lineup-player-img" onclick="openPlayerModal(${p.player.row_id})">
+                    <div class="lineup-player-name">${p.player.title}</div>
+                    ${ratingDisplay ? `<div class="lineup-player-rate">${ratingDisplay}</div>` : ''}
+                    ${icons ? `<div class="lineup-player-icons">${icons}</div>` : ''}
+                </div>`;
+            }).join('');
         }
 
         async function loadStandings() {
@@ -1857,4 +2017,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                   </html>
+                                                                                                                                                                                                                       </html>
