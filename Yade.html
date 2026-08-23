@@ -8,18 +8,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        :root {
-            --primary: #0d6efd;
-            --secondary: #6c757d;
-            --success: #198754;
-            --info: #0dcaf0;
-            --warning: #ffc107;
-            --danger: #dc3545;
-            --light-bg: #f4f6f9;
-            --card-bg: #ffffff;
-            --border-radius: 12px;
-            --shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-        }
+        /* ... (الأنماط الأساسية كما هي) ... */
+        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -164,6 +154,10 @@
         .event-player { font-size: 14px; font-weight: 600; color: #111; display: flex; align-items: center; justify-content: center; gap: 6px; }
         .event-sub { font-size: 13px; color: #777; margin-top: 2px; }
         .event-icon { width: 16px; height: 16px; object-fit: contain; }
+
+        /* أسهم التبديل */
+        .in-arrow { color: #28a745; font-weight: bold; }
+        .out-arrow { color: #dc3545; font-weight: bold; }
 
         /* تنسيقات النصف (Half Time) */
         .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
@@ -346,7 +340,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // إعداد رابط الأيقونات
         const ICON_BASE = 'https://zi-store.online/ico/';
         const ICONS = {
             chronometer: ICON_BASE + 'chronometer.png',
@@ -363,10 +356,8 @@
 
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
-
         const LANG_API_BASE = { ar: 'https://api-ar.ysscores.com/api', en: 'https://api-en.ysscores.com/api', fr: 'https://api-fr.ysscores.com/api', es: 'https://api-es.ysscores.com/api', it: 'https://api-it.ysscores.com/api', pt: 'https://api-pt.ysscores.com/api', br: 'https://api-br.ysscores.com/api' };
         const LANG_NEWS_BASE = { ar: 'https://news-ar.ysscores.com/api', en: 'https://news-en.ysscores.com/api', fr: 'https://news-fr.ysscores.com/api', es: 'https://news-es.ysscores.com/api', it: 'https://news-it.ysscores.com/api', pt: 'https://news-pt.ysscores.com/api', br: 'https://news-br.ysscores.com/api' };
-
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
         const IMG_BASE_TEAM = 'https://imgs.ysscores.com/teams/150/';
         const IMG_BASE_PLAYER = 'https://imgs.ysscores.com/player/150/';
@@ -375,7 +366,6 @@
         const IMG_BASE_PLAYER_COVER = 'https://imgs.ysscores.com/player/cover/';
         const IMG_BASE_COACH_COVER = 'https://imgs.ysscores.com/coach/cover/';
         const IMG_BASE_REFEREE = 'https://imgs.ysscores.com/referee/150/';
-
         const STREAM_API_URL = 'https://admin.golive-pro.online/api/public/events?tz=1';
         const WORKER_PROXY_URL = 'https://dry-truth-a84e.idriss-zribi13.workers.dev/';
         let streamEvents = [];
@@ -388,14 +378,12 @@
         let assistsPage = 1, assistsNextUrl = null, assistsLoading = false;
         let newsPage = 1, newsNextUrl = null, newsLoading = false;
         let scorersObserver = null, assistsObserver = null, newsObserver = null;
-
         let liveMatches = [];
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
         let previousScores = {};
         let liveSecondsBase = {};
-
         let timezoneOffset = 0;
         let timeFormat = '24';
 
@@ -1270,110 +1258,125 @@
             return html;
         }
 
-        // دالة الأحداث المطابقة للتطبيق
+        // دالة الأحداث المطابقة 100% للتطبيق
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             
-            // تحديد الفريق المضيف والضيف لتحديد الاتجاه
             const homeId = info.home_team.row_id;
             const awayId = info.away_team.row_id;
             
             let html = '<div class="events-title">Events</div>';
             html += '<div class="event-box">';
 
-            // Kick-Off في البداية
+            // Kick-Off
             html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
 
-            // إضافة Half Time إذا كان موجوداً في البيانات أو تم تحديد الوقت
-            let halftimeAdded = false;
-            
             events.forEach(ev => {
-                // تحقق مما إذا كان هذا حدث نصف الوقت
-                if (ev.event_type_name === "Half Time" || ev.type === 3) {
-                    html += `<div class="halftime-divider"><img src="${ICONS.flag}" class="icon-16"> Half Time</div>`;
-                    halftimeAdded = true;
-                }
-
-                // تحديد الفريق الذي ينتمي إليه الحدث
-                let isHome = false;
-                let isAway = false;
-                if (ev.team_id) {
-                    isHome = (ev.team_id == homeId);
-                    isAway = (ev.team_id == awayId);
-                }
-                // إذا لم يحدد الفريق، نعتمد على افتراضيات أخرى
-
-                let sideHtml = '';
-                let icon = ICONS.flag;
-                let typeText = '';
-                
-                // تحديد الأيقونات والاحتفالات
-                if (ev.type === 1 || ev.type === 5) {
-                    icon = ICONS.goal;
-                    typeText = 'Goal';
-                    if (ev.type === 5 || ev.event_type_name === "Penalty") {
-                        typeText = 'Penalty Scored';
+                // الحالات الخاصة (بداية، نهاية، استراحة)
+                if (ev.type === 100) {
+                    if (ev.status === 2) {
+                        let homeScore = info.home_scores || 0;
+                        let awayScore = info.away_scores || 0;
+                        if (info.fh_scores) {
+                            homeScore = info.fh_scores[0]?.home_scores || homeScore;
+                            awayScore = info.fh_scores[0]?.away_scores || awayScore;
+                        }
+                        html += `<div class="halftime-divider"><img src="${ICONS.flag}" class="icon-16"> ${homeScore} - ${awayScore}<br>Half Time</div>`;
+                    } else if (ev.status === 3) {
+                        html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
                     }
-                } else if (ev.type === 2) { icon = ICONS.yellowCard; typeText = 'Yellow Card'; }
-                else if (ev.type === 6) { icon = ICONS.redCard; typeText = 'Red Card'; }
-                else if (ev.type === 8) { icon = ICONS.shirt; typeText = 'Substitution'; }
-                else if (ev.type === 14) { icon = ICONS.video; typeText = 'Video'; }
-                else { icon = ICONS.flag; typeText = 'Unknown'; }
-                
-                // بناء اسم اللاعب
-                let playerName = ev.player_name ? ev.player_name.title : 'Unknown';
-                let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
-                let isPenalty = (ev.event_type_name && ev.event_type_name.includes('Penalty')) || ev.type === 5;
-                let fullTypeText = isPenalty ? 'Penalty Scored' : typeText;
-
-                // فيديو رابط
-                let videoBtn = '';
-                if (ev.event_video) {
-                    videoBtn = `<a href="${ev.event_video}" target="_blank"><img src="${ICONS.video}" class="icon-16" style="cursor:pointer;"></a>`;
+                    return;
                 }
 
-                // ترتيب الفريق (يمين أو يسار)
+                // تحديد الفريق
+                let isHome = ev.team_id == homeId;
+                let isAway = ev.team_id == awayId;
+                
                 let teamLeftHtml = '';
                 let teamRightHtml = '';
-                
                 if (isHome) {
                     teamLeftHtml = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}"></div>`;
-                    teamRightHtml = '';
                 } else if (isAway) {
-                    teamLeftHtml = '';
                     teamRightHtml = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}"></div>`;
-                } else {
-                    teamLeftHtml = '';
-                    teamRightHtml = '';
                 }
 
+                // استخراج الأيقونات والنصوص
+                let icon = ICONS.flag;
+                let typeText = '';
+                let videoBtn = '';
+
+                if (ev.event_video) {
+                    videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
+                }
+
+                // أنواع الأحداث
+                if (ev.type === 1) {
+                    icon = ICONS.goal;
+                    typeText = ev.status_name || 'Goal';
+                    if (ev.type === 1 && ev.status === 13) typeText = 'Goal';
+                } else if (ev.type === 2) {
+                    icon = ICONS.yellowCard;
+                    typeText = 'Yellow Card';
+                } else if (ev.type === 6) {
+                    icon = ICONS.redCard;
+                    typeText = 'Red Card';
+                } else if (ev.type === 5) {
+                    icon = ICONS.goal;
+                    typeText = 'Penalty Scored';
+                } else if (ev.type === 8) {
+                    // التبديلات: اللاعب الداخل هو player_name، والخارج هو assist_player_name
+                    icon = ICONS.shirt;
+                    typeText = 'Substitution';
+                } else if (ev.type === 21) {
+                    icon = ICONS.flag;
+                    typeText = 'Missed Chance';
+                } else if (ev.type === 22) {
+                    icon = ICONS.flag; // أو أيقونة مخصصة للعارضة
+                    typeText = 'Crossbar';
+                }
+
+                // أسماء اللاعبين
+                let playerName = ev.player_name ? ev.player_name.title : '';
+                let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
+
+                // تبديل منطق اللاعبين للـ Substitutions
+                let finalPlayerHtml = '';
+                let finalSubHtml = '';
+
+                if (ev.type === 8) {
+                    // الداخل خارج
+                    const outPlayer = ev.assist_player_name ? ev.assist_player_name.title : '';
+                    const inPlayer = ev.player_name ? ev.player_name.title : '';
+                    finalPlayerHtml = `<span class="in-arrow">&#8594;</span> <span>${inPlayer}</span>`;
+                    finalSubHtml = `<span class="out-arrow">&#8592;</span> <span>${outPlayer}</span>`;
+                } else {
+                    finalPlayerHtml = `<span>${playerName || typeText}</span>`;
+                    finalSubHtml = `<span>${subName ? subName : typeText}</span>`;
+                }
+
+                // دمج كل شيء
                 html += `
                 <div class="event-row">
                     ${teamLeftHtml}
                     <div class="event-time-cell">
                         <div class="event-time-circle">
-                            <small>${ev.time_added ? '+' + ev.time_added : ''}</small>
+                            <small>${ev.time_plus ? '+' + ev.time_plus : ''}</small>
                             ${ev.time_minute}'
                         </div>
                     </div>
                     <div class="event-info-center">
                         <div class="event-player">
                             <img src="${icon}" class="event-icon">
-                            <span>${playerName}</span>
+                            ${finalPlayerHtml}
                             ${videoBtn}
                         </div>
                         <div class="event-sub">
-                            ${subName ? subName : (fullTypeText ? fullTypeText : '')}
+                            ${finalSubHtml}
                         </div>
                     </div>
                     ${teamRightHtml}
                 </div>`;
             });
-
-            // Full-Time في النهاية
-            if (info.status === 4) {
-                html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
-            }
 
             html += '</div>';
             return html;
@@ -1457,7 +1460,6 @@
             
             if (!homeLineup || !awayLineup) return '<p>Lineups not available</p>';
 
-            // HTML للخطة
             let html = `
             <div class="lineup-tabs">
                 <button class="lineup-tab active" data-team="home">
@@ -1491,15 +1493,12 @@
             const players = lineupData.lineup || [];
             const subs = lineupData.substitutions || [];
             const formationText = formation || '4-3-3';
-            const groups = { 'G': [], 'D': [], 'M': [], 'F': [], 'S': [] }; // S للسوب
+            const groups = { 'G': [], 'D': [], 'M': [], 'F': [], 'S': [] };
             players.forEach(p => {
                 const pos = p.position || 'M';
                 if (groups[pos]) groups[pos].push(p);
                 else groups['M'].push(p);
             });
-            
-            // إضافة البدلاء إلى قائمة S لكن لا نعرضها في الملعب
-            // نعرضها في قسم البدلاء
 
             let html = `<div class="lineup-pitch">
                 <div class="team-name">
@@ -1512,7 +1511,6 @@
                 <div class="lineup-row">${renderLineupPlayersRow(groups['F'])}</div>
             </div>`;
 
-            // مدرب
             html += `<div class="coach-section">
                 <strong>Coach</strong>
                 <div class="d-flex align-items-center">
@@ -1521,7 +1519,6 @@
                 </div>
             </div>`;
 
-            // الغيابات
             if (injured && injured.length > 0) {
                 html += `<div class="absences-section">
                     <strong class="text-danger"><img src="${ICONS.firstAid}" class="icon-16"> Absences</strong>
@@ -1536,7 +1533,6 @@
                 </div>`;
             }
 
-            // البدلاء
             if (subs.length > 0) {
                 html += `<div class="lineup-subs">
                     <h6><img src="${ICONS.shirt}" class="icon-16"> Substitutions</h6>
@@ -1554,14 +1550,11 @@
 
         function renderLineupPlayersRow(players) {
             return players.map(p => {
-                // إيجاد الأيقونات
                 let icons = '';
                 if (p.yellow) icons += `<img src="${ICONS.yellowCard}" style="left:0px; top:0px;">`;
                 if (p.red) icons += `<img src="${ICONS.redCard}" style="left:-5px; top:20px;">`;
                 if (p.goal) icons += `<img src="${ICONS.goal}" style="left:5px; top:5px;">`;
                 
-                // تقييم اللاعب
-                let ratingClass = '';
                 let ratingDisplay = p.rating || '';
                 
                 return `<div class="lineup-player">
@@ -2017,4 +2010,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                       </html>
+    </html>
