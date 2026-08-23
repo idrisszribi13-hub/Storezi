@@ -825,9 +825,9 @@
         // ========== Streaming Service ==========
         async function loadStreamEvents() {
             try {
-                const proxiedUrl = WORKER_PROXY_URL + encodeURIComponent(STREAM_API_URL);
-                const response = await fetch(proxiedUrl);
-                if (!response.ok) throw new Error('Failed to fetch stream events');
+                const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
+                const response = await fetch(fullUrl);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 streamEvents = data || [];
             } catch (err) {
@@ -838,12 +838,15 @@
 
         function findStreamEvent(match) {
             if (!streamEvents.length || !match.home_team || !match.away_team) return null;
-            const normalize = str => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-            const home = normalize(match.home_team.title);
-            const away = normalize(match.away_team.title);
+            const normalize = str => {
+                if (!str) return '';
+                return str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            };
+            const home = normalize(match.home_team.title || match.home_team.full_title);
+            const away = normalize(match.away_team.title || match.away_team.full_title);
             return streamEvents.find(event => {
-                const eventHome = normalize(event.homeName || '');
-                const eventAway = normalize(event.awayName || '');
+                const eventHome = normalize(event.homeName);
+                const eventAway = normalize(event.awayName);
                 return eventHome === home && eventAway === away;
             });
         }
@@ -855,13 +858,13 @@
             modalTitle.textContent = title || 'Live Stream';
             if (Hls.isSupported()) {
                 const hls = new Hls();
-                hls.loadSource(WORKER_PROXY_URL + streamUrl);
+                hls.loadSource(WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl));
                 hls.attachMedia(videoElement);
                 hls.on(Hls.Events.ERROR, (event, data) => { if (data.fatal) console.error('HLS error:', data); });
                 videoElement.addEventListener('ended', () => hls.destroy());
                 window.currentHls = hls;
             } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = WORKER_PROXY_URL + streamUrl;
+                videoElement.src = WORKER_PROXY_URL + '?url=' + encodeURIComponent(streamUrl);
             } else {
                 alert('Your browser does not support HLS');
                 return;
@@ -894,8 +897,8 @@
         function findApiLiveMatch(match) {
             if (!apiLiveMatches.length || !match.home_team || !match.away_team) return null;
             const normalize = str => str.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-            const home = normalize(match.home_team.title);
-            const away = normalize(match.away_team.title);
+            const home = normalize(match.home_team.title || match.home_team.full_title);
+            const away = normalize(match.away_team.title || match.away_team.full_title);
             return apiLiveMatches.find(api => {
                 const apiHome = normalize(api.teams.home.name);
                 const apiAway = normalize(api.teams.away.name);
@@ -908,22 +911,52 @@
             const home = match.home_team;
             const away = match.away_team;
             const comp = match.championship ? match.championship.title : '';
+            const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
+
             const apiLive = findApiLiveMatch(match);
             let minute = 0;
             let half = '1st Half';
+
             if (apiLive && apiLive.fixture.status) {
                 const status = apiLive.fixture.status.short;
-                if (status === '1H') { minute = apiLive.fixture.status.elapsed || 0; half = '1st Half'; }
-                else if (status === 'HT') { half = 'HT'; minute = 0; }
-                else if (status === '2H') { minute = apiLive.fixture.status.elapsed || 0; half = '2nd Half'; }
-                else if (status === 'ET') { minute = apiLive.fixture.status.elapsed || 0; half = 'ET'; }
-                else if (status === 'FT') { half = 'FT'; minute = 0; }
+                const elapsed = apiLive.fixture.status.elapsed || 0;
+                if (status === '1H') {
+                    minute = elapsed;
+                    half = '1st Half';
+                } else if (status === 'HT') {
+                    half = 'HT';
+                    minute = 45;
+                } else if (status === '2H') {
+                    let total = 45 + elapsed;
+                    if (total > 90) {
+                        minute = 90 + (total - 90);
+                        half = '2nd Half';
+                    } else {
+                        minute = total;
+                        half = '2nd Half';
+                    }
+                } else if (status === 'ET') {
+                    minute = 90 + elapsed;
+                    half = 'ET';
+                } else if (status === 'FT') {
+                    half = 'FT';
+                    minute = 90;
+                }
             } else {
                 minute = match.minutes ? Math.floor(match.minutes / 60) : 0;
                 if (minute > 45) { half = '2nd Half'; minute = minute - 45; }
             }
+
+            let timeDisplay = '';
+            if (half === 'HT') timeDisplay = 'HT';
+            else if (half === 'FT') timeDisplay = 'FT';
+            else if (half === 'ET') timeDisplay = `ET ${minute - 90}'`;
+            else if (minute > 90) timeDisplay = `90+${minute - 90}'`;
+            else timeDisplay = `${minute}' ${half}`;
+
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
+
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
             card.innerHTML = `
@@ -938,7 +971,7 @@
                             <div class="live-indicator mt-1" data-match-id="${match.match_id}">
                                 <span class="live-dot"></span>
                                 <span class="badge bg-danger">Live</span>
-                                <span class="badge bg-secondary live-time">${minute}' ${half}</span>
+                                <span class="badge bg-secondary live-time">${timeDisplay}</span>
                             </div>
                             ${playBtn}
                         </div>
@@ -947,7 +980,9 @@
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small mt-2">${comp} | ${match.match_date} ${match.match_time}</div>
+                    <div class="text-center text-muted small mt-2">
+                        ${compImg} ${comp} | ${match.match_date} ${match.match_time}
+                    </div>
                 </div>
             `;
             return card;
@@ -957,9 +992,11 @@
             const home = match.home_team;
             const away = match.away_team;
             const comp = match.championship ? match.championship.title : '';
+            const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
             const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
             const streamEvent = findStreamEvent(match);
             const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
+
             const card = document.createElement('div');
             card.className = 'col-12 col-md-6 col-lg-4 mb-3';
             card.innerHTML = `
@@ -978,7 +1015,9 @@
                             <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small mt-2">${dateTime} | ${comp}</div>
+                    <div class="text-center text-muted small mt-2">
+                        ${compImg} ${comp} | ${dateTime}
+                    </div>
                 </div>
             `;
             return card;
@@ -1047,7 +1086,7 @@
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
                 todayMatches = todayData.data || [];
 
-                // جلب بيانات الوقت من API-Sports
+                await loadStreamEvents();
                 await fetchLiveMatchesFromApiSports();
 
                 renderLiveAndToday();
@@ -1063,17 +1102,24 @@
                             let half = '1st Half';
                             if (apiLive && apiLive.fixture.status) {
                                 const status = apiLive.fixture.status.short;
-                                if (status === '1H') { minute = apiLive.fixture.status.elapsed || 0; half = '1st Half'; }
-                                else if (status === 'HT') { half = 'HT'; minute = 0; }
-                                else if (status === '2H') { minute = apiLive.fixture.status.elapsed || 0; half = '2nd Half'; }
-                                else if (status === 'ET') { minute = apiLive.fixture.status.elapsed || 0; half = 'ET'; }
-                                else if (status === 'FT') { half = 'FT'; minute = 0; }
+                                const elapsed = apiLive.fixture.status.elapsed || 0;
+                                if (status === '1H') { minute = elapsed; half = '1st Half'; }
+                                else if (status === 'HT') { half = 'HT'; minute = 45; }
+                                else if (status === '2H') { let total = 45 + elapsed; if (total > 90) { minute = 90 + (total - 90); half = '2nd Half'; } else { minute = total; half = '2nd Half'; } }
+                                else if (status === 'ET') { minute = 90 + elapsed; half = 'ET'; }
+                                else if (status === 'FT') { half = 'FT'; minute = 90; }
                             } else {
                                 minute = match.minutes ? Math.floor(match.minutes / 60) : 0;
                                 if (minute > 45) { half = '2nd Half'; minute = minute - 45; }
                             }
+                            let timeDisplay = '';
+                            if (half === 'HT') timeDisplay = 'HT';
+                            else if (half === 'FT') timeDisplay = 'FT';
+                            else if (half === 'ET') timeDisplay = `ET ${minute - 90}'`;
+                            else if (minute > 90) timeDisplay = `90+${minute - 90}'`;
+                            else timeDisplay = `${minute}' ${half}`;
                             const timeEl = el.querySelector('.live-time');
-                            if (timeEl) timeEl.textContent = `${minute}' ${half}`;
+                            if (timeEl) timeEl.textContent = timeDisplay;
                         }
                     });
                 }, 1000);
@@ -1085,9 +1131,9 @@
                     handleScoreChanges(liveMatches, newLiveMatches);
                     liveMatches = newLiveMatches;
                     await loadStreamEvents();
-                    await fetchLiveMatchesFromApiSports(); // تحديث API-Sports كل 25 ثانية هنا؟ نعم
+                    await fetchLiveMatchesFromApiSports();
                     renderLiveAndToday();
-                }, 25000); // 25 ثانية
+                }, 25000);
 
             } catch (err) {
                 console.error('Failed to load live/today matches:', err);
@@ -1229,8 +1275,10 @@
                 const home = match.home_team;
                 const away = match.away_team;
                 const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
+                const comp = match.championship ? match.championship.title : '';
+                const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
                 const streamEvent = findStreamEvent(match);
-                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${match.championship?.title || ''}')">▶️ Play</button>` : '';
+                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick="openStreamPlayer('${streamEvent.sources[0]?.streamUrl}', '${comp}')">▶️ Play</button>` : '';
                 html += `
                     <div class="col-12 col-md-6 col-lg-4 mb-3">
                         <div class="card p-3 match-card" data-match-id="${match.match_id}">
@@ -1248,7 +1296,9 @@
                                     <div class="small" onclick="openTeamModal(${away.row_id})" style="cursor:pointer;">${away.title}</div>
                                 </div>
                             </div>
-                            <div class="text-center text-muted small mt-2">${dateTime} | ${match.round || ''}</div>
+                            <div class="text-center text-muted small mt-2">
+                                ${compImg} ${comp} | ${dateTime} | ${match.round || ''}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1329,16 +1379,25 @@
                 }
                 if (apiLive && apiLive.fixture.status) {
                     const status = apiLive.fixture.status.short;
-                    if (status === '1H') timerElement.innerHTML = `<span class="match-timer">${apiLive.fixture.status.elapsed}'</span>`;
+                    const elapsed = apiLive.fixture.status.elapsed || 0;
+                    if (status === '1H') timerElement.innerHTML = `<span class="match-timer">${elapsed}'</span>`;
                     else if (status === 'HT') timerElement.innerHTML = `<span class="match-timer">HT</span>`;
-                    else if (status === '2H') timerElement.innerHTML = `<span class="match-timer">${apiLive.fixture.status.elapsed}'</span>`;
-                    else if (status === 'ET') timerElement.innerHTML = `<span class="match-timer">ET ${apiLive.fixture.status.elapsed}'</span>`;
+                    else if (status === '2H') {
+                        let total = 45 + elapsed;
+                        if (total > 90) timerElement.innerHTML = `<span class="match-timer">90+${total - 90}'</span>`;
+                        else timerElement.innerHTML = `<span class="match-timer">${total}'</span>`;
+                    }
+                    else if (status === 'ET') timerElement.innerHTML = `<span class="match-timer">ET ${elapsed}'</span>`;
                     else if (status === 'FT') timerElement.innerHTML = `<span class="match-timer">FT</span>`;
                 } else {
                     let minute = liveData && liveData.minutes ? Math.floor(liveData.minutes / 60) : Math.floor((Date.now() / 1000 - info.match_timestamp) / 60);
-                    let half = '1st Half';
-                    if (minute > 45) { half = '2nd Half'; minute = minute - 45; }
-                    timerElement.innerHTML = `<span class="match-timer">${minute}' ${half}</span>`;
+                    if (minute > 45) {
+                        let total = minute;
+                        if (total > 90) timerElement.innerHTML = `<span class="match-timer">90+${total - 90}'</span>`;
+                        else timerElement.innerHTML = `<span class="match-timer">${total}'</span>`;
+                    } else {
+                        timerElement.innerHTML = `<span class="match-timer">${minute}'</span>`;
+                    }
                 }
             };
             updateTimer();
@@ -2174,4 +2233,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                    </html>
+    </html>
