@@ -255,6 +255,18 @@
         .prev-chip .close-x { color: #999; font-size: 14px; margin-left: 5px; cursor: pointer; }
         .prev-chip .close-x:hover { color: #dc3545; }
 
+        /* التقويم */
+        .date-nav { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; gap: 15px; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #eaeaea; }
+        .date-label { font-size: 16px; font-weight: 700; color: #333; }
+        .date-btn { background: #f8f9fa; border: 1px solid #eaeaea; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
+        .calendar-btn { background: #e8f5e9; border: 1px solid #27ae60; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .calendar-btn img, .date-btn img { width: 20px; height: 20px; object-fit: contain; }
+        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
+        .cal-day { padding: 10px; border-radius: 50%; cursor: pointer; font-size: 14px; }
+        .cal-day.selected { background: #27ae60; color: white; font-weight: bold; }
+        .cal-day.empty { pointer-events: none; }
+        .filter-btn { width: 100%; background: #27ae60; color: white; border: none; border-radius: 30px; padding: 12px; font-size: 16px; font-weight: bold; margin-top: 20px; }
+
         @media (max-width: 768px) {
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
@@ -278,7 +290,7 @@
         <h1 class="text-center mb-4 fw-bold" data-i18n="title">🏆 Football Center</h1>
 
         <!-- شريط التنقل بالتاريخ -->
-        <div class="date-nav d-flex justify-content-center align-items-center gap-3 mb-3">
+        <div class="date-nav">
             <button class="date-btn" id="prevDateBtn">&#10094;</button>
             <div class="date-label" id="dateLabel"></div>
             <button class="calendar-btn" id="openCalendarBtn"><img src="https://zi-store.online/ico/schedule.png"></button>
@@ -349,12 +361,16 @@
                         <img src="https://zi-store.online/ico/schedule.png" style="width:20px; height:20px;" alt="search">
                         <input type="text" id="globalSearchInput" placeholder="Search...">
                     </div>
+
                     <div class="search-title">Most Searched Teams</div>
                     <div class="circular-scroll" id="searchTeamsContainer"></div>
+
                     <div class="search-title">Most Searched Championships</div>
                     <div class="circular-scroll" id="searchChampsContainer"></div>
+
                     <div class="search-title">Most Searched Players</div>
                     <div class="circular-scroll" id="searchPlayersContainer"></div>
+
                     <div class="search-title">Previous Search</div>
                     <div class="prev-search-container" id="prevSearchContainer"></div>
                 </div>
@@ -376,6 +392,27 @@
                     <div class="cal-grid" id="calGrid"></div>
                     <button class="filter-btn mt-3" onclick="applyCalendarFilter()">Filter</button>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Stream -->
+    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header bg-dark text-white">
+                    <div class="d-flex align-items-center">
+                        <img id="streamCompLogo" src="" style="display:none;" class="stream-logo">
+                        <span id="streamCompName" class="me-3"></span>
+                        <div class="stream-teams">
+                            <img id="streamHomeLogo" src="" style="display:none;">
+                            <span id="streamMatchInfo" class="fs-6"></span>
+                            <img id="streamAwayLogo" src="" style="display:none;">
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body"><video id="streamVideo" controls autoplay></video></div>
             </div>
         </div>
     </div>
@@ -407,24 +444,14 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // إعداد الأيقونات
         const ICON_BASE = 'https://zi-store.online/ico/';
         const ICONS = {
-            chronometer: ICON_BASE + 'chronometer.png',
-            clock: ICON_BASE + 'clock.png',
-            arena: ICON_BASE + 'arena.png',
-            schedule: ICON_BASE + 'schedule.png',
-            play: ICON_BASE + 'play.png',
-            penaltyKick: ICON_BASE + 'penalty-kick.png',
-            substitutePlayer: ICON_BASE + 'substitute-player.png',
-            firstAid: ICON_BASE + 'first-aid-kit.png',
-            cup: ICON_BASE + 'football-cup.png',
-            flag: ICON_BASE + 'football-flag.png',
-            goal: ICON_BASE + 'goal.png',
-            redCard: ICON_BASE + 'red-card.png',
-            shirt: ICON_BASE + 'shirt.png',
-            video: ICON_BASE + 'video-camera.png',
-            whistle: ICON_BASE + 'whistle.png',
-            yellowCard: ICON_BASE + 'yellow-card.png'
+            clock: ICON_BASE + 'clock.png', arena: ICON_BASE + 'arena.png', schedule: ICON_BASE + 'schedule.png',
+            play: ICON_BASE + 'play.png', penaltyKick: ICON_BASE + 'penalty-kick.png', substitutePlayer: ICON_BASE + 'substitute-player.png',
+            firstAid: ICON_BASE + 'first-aid-kit.png', cup: ICON_BASE + 'football-cup.png', flag: ICON_BASE + 'football-flag.png',
+            goal: ICON_BASE + 'goal.png', redCard: ICON_BASE + 'red-card.png', shirt: ICON_BASE + 'shirt.png',
+            video: ICON_BASE + 'video-camera.png', whistle: ICON_BASE + 'whistle.png', yellowCard: ICON_BASE + 'yellow-card.png'
         };
 
         let API_BASE = 'https://api-en.ysscores.com/api';
@@ -460,7 +487,7 @@
         let timezoneOffset = 0;
         let timeFormat = '24';
 
-        // ===== إعدادات التاريخ الحالي والتنقل =====
+        // إعدادات التاريخ
         let selectedDate = new Date();
         let calViewDate = new Date();
         let selectedCalDate = null;
@@ -503,12 +530,7 @@
 
         const translations = {
             ar: { dir: 'rtl', title: 'مركز كرة القدم', select_champ: 'اختر البطولة', search_placeholder: 'ابحث عن بطولة...', matches: 'المباريات', standings: 'الترتيب', scorers: 'الهدافون', assists: 'الصناع', news: 'الأخبار', bracket: 'خريطة المواجهات', live: 'مباشر', upcoming: 'القادمة', finished: 'المنتهية', events: 'الأحداث', statistics: 'الإحصائيات', lineups: 'التشكيلة', h2h: 'المواجهات المباشرة', last5: 'آخر 5', coach: 'المدرب', absences: 'الغيابات', close: 'إغلاق', loading: 'جاري التحميل...' },
-            en: { dir: 'ltr', title: 'Football Center', select_champ: 'Select Championship', search_placeholder: 'Search championship...', matches: 'Matches', standings: 'Standings', scorers: 'Top Scorers', assists: 'Assists', news: 'News', bracket: 'Bracket', live: 'Live', upcoming: 'Upcoming', finished: 'Finished', events: 'Events', statistics: 'Statistics', lineups: 'Lineups', h2h: 'H2H', last5: 'Last 5', coach: 'Coach', absences: 'Absences', close: 'Close', loading: 'Loading...' },
-            fr: { dir: 'ltr', title: 'Centre de Football', select_champ: 'Sélectionner le championnat', search_placeholder: 'Rechercher un championnat...', matches: 'Matchs', standings: 'Classement', scorers: 'Buteurs', assists: 'Passes décisives', news: 'Actualités', bracket: 'Tableau', live: 'En direct', upcoming: 'À venir', finished: 'Terminés', events: 'Événements', statistics: 'Statistiques', lineups: 'Compositions', h2h: 'H2H', last5: '5 derniers', coach: 'Entraîneur', absences: 'Absents', close: 'Fermer', loading: 'Chargement...' },
-            es: { dir: 'ltr', title: 'Centro de Fútbol', select_champ: 'Seleccionar campeonato', search_placeholder: 'Buscar campeonato...', matches: 'Partidos', standings: 'Clasificación', scorers: 'Goleadores', assists: 'Asistencias', news: 'Noticias', bracket: 'Cuadro', live: 'En vivo', upcoming: 'Próximos', finished: 'Terminados', events: 'Eventos', statistics: 'Estadísticas', lineups: 'Alineaciones', h2h: 'H2H', last5: 'Últimos 5', coach: 'Entrenador', absences: 'Ausencias', close: 'Cerrar', loading: 'Cargando...' },
-            it: { dir: 'ltr', title: 'Centro Calcio', select_champ: 'Seleziona campionato', search_placeholder: 'Cerca campionato...', matches: 'Partite', standings: 'Classifica', scorers: 'Marcatori', assists: 'Assist', news: 'Notizie', bracket: 'Tabellone', live: 'In diretta', upcoming: 'Prossimi', finished: 'Terminate', events: 'Eventi', statistics: 'Statistiche', lineups: 'Formazioni', h2h: 'H2H', last5: 'Ultime 5', coach: 'Allenatore', absences: 'Assenti', close: 'Chiudi', loading: 'Caricamento...' },
-            pt: { dir: 'ltr', title: 'Centro de Futebol', select_champ: 'Selecionar campeonato', search_placeholder: 'Pesquisar campeonato...', matches: 'Jogos', standings: 'Classificação', scorers: 'Artilheiros', assists: 'Assistências', news: 'Notícias', bracket: 'Chaveamento', live: 'Ao vivo', upcoming: 'Próximos', finished: 'Encerrados', events: 'Eventos', statistics: 'Estatísticas', lineups: 'Escalações', h2h: 'H2H', last5: 'Últimos 5', coach: 'Treinador', absences: 'Ausentes', close: 'Fechar', loading: 'Carregando...' },
-            br: { dir: 'ltr', title: 'Central de Futebol', select_champ: 'Selecionar campeonato', search_placeholder: 'Pesquisar campeonato...', matches: 'Jogos', standings: 'Classificação', scorers: 'Artilheiros', assists: 'Assistências', news: 'Notícias', bracket: 'Chaveamento', live: 'Ao vivo', upcoming: 'Próximos', finished: 'Encerrados', events: 'Eventos', statistics: 'Estatísticas', lineups: 'Escalações', h2h: 'H2H', last5: 'Últimos 5', coach: 'Treinador', absences: 'Ausentes', close: 'Fechar', loading: 'Carregando...' }
+            en: { dir: 'ltr', title: 'Football Center', select_champ: 'Select Championship', search_placeholder: 'Search championship...', matches: 'Matches', standings: 'Standings', scorers: 'Top Scorers', assists: 'Assists', news: 'News', bracket: 'Bracket', live: 'Live', upcoming: 'Upcoming', finished: 'Finished', events: 'Events', statistics: 'Statistics', lineups: 'Lineups', h2h: 'H2H', last5: 'Last 5', coach: 'Coach', absences: 'Absences', close: 'Close', loading: 'Loading...' }
         };
 
         function applyLanguage(lang) {
@@ -539,7 +561,9 @@
             toggle.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
             document.addEventListener('click', () => menu.classList.remove('open'));
             menu.addEventListener('click', (e) => e.stopPropagation());
-            document.querySelectorAll('.lang-option').forEach(btn => { btn.addEventListener('click', () => setLanguage(btn.dataset.lang)); });
+            document.querySelectorAll('.lang-option').forEach(btn => {
+                btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
+            });
             const savedLang = localStorage.getItem('preferred_language');
             if (savedLang && translations[savedLang]) {
                 applyLanguage(savedLang);
@@ -833,7 +857,7 @@
             return `<div class="clock-main">${totalMinutes}'</div>`;
         }
 
-        // ===== البطاقات الجديدة (بتصميم الخط الزمني الثابت) =====
+        // ===== بناء البطاقات الجديدة بتصميم التطبيق =====
         function renderLiveMatchCard(match) {
             const home = match.home_team;
             const away = match.away_team;
@@ -979,14 +1003,14 @@
             setTimeout(() => { if (alert.parentNode) alert.remove(); }, 8000);
         }
 
-        // ===== إصلاح مشكلة منتصف الليل: استخدام التاريخ المحلي وليس GMT =====
+        // إصلاح جذري لمشكلة الوقت (استخدام التوقيت المحلي)
         async function loadLiveAndTodayMatches() {
             try {
                 const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
                 const liveData = await fetchFromProxy(liveUrl);
                 liveMatches = liveData.data || [];
                 
-                // استخدام التاريخ المحدد (المحلي)
+                // استخدام التاريخ الحقيقي للمستخدم (وليس UTC)
                 const dateStr = getLocalDateStr(selectedDate);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
@@ -1405,7 +1429,7 @@
             return html;
         }
 
-        // دالة الأحداث - إصلاح النتيجة في HT
+        // دالة الأحداث
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             
@@ -1453,13 +1477,29 @@
                     videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
                 }
 
-                if (ev.type === 1) { icon = ICONS.goal; typeText = ev.status_name || 'Goal'; }
-                else if (ev.type === 2) { icon = ICONS.yellowCard; typeText = 'Yellow Card'; }
-                else if (ev.type === 6) { icon = ICONS.redCard; typeText = 'Red Card'; }
-                else if (ev.type === 5) { icon = ICONS.penaltyKick; typeText = 'Penalty Scored'; }
-                else if (ev.type === 8) { icon = ICONS.substitutePlayer; typeText = 'Substitution'; }
-                else if (ev.type === 21) { icon = ICONS.flag; typeText = 'Missed Chance'; }
-                else if (ev.type === 22) { icon = ICONS.flag; typeText = 'Crossbar'; }
+                if (ev.type === 1) {
+                    icon = ICONS.goal;
+                    typeText = ev.status_name || 'Goal';
+                    if (ev.type === 1 && ev.status === 13) typeText = 'Goal';
+                } else if (ev.type === 2) {
+                    icon = ICONS.yellowCard;
+                    typeText = 'Yellow Card';
+                } else if (ev.type === 6) {
+                    icon = ICONS.redCard;
+                    typeText = 'Red Card';
+                } else if (ev.type === 5) {
+                    icon = ICONS.penaltyKick;
+                    typeText = 'Penalty Scored';
+                } else if (ev.type === 8) {
+                    icon = ICONS.substitutePlayer;
+                    typeText = 'Substitution';
+                } else if (ev.type === 21) {
+                    icon = ICONS.flag;
+                    typeText = 'Missed Chance';
+                } else if (ev.type === 22) {
+                    icon = ICONS.flag;
+                    typeText = 'Crossbar';
+                }
 
                 let playerName = ev.player_name ? ev.player_name.title : '';
                 let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
@@ -1570,7 +1610,7 @@
             return html;
         }
 
-        // إصلاح التبويب Lineup
+        // دالة التشكيلات
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -2133,31 +2173,25 @@
             body.innerHTML = html;
         }
 
-        // ===== إضافة نظام البحث الكامل =====
+        // ===== نظام البحث الكامل =====
         async function loadSearchData() {
             const searchUrl = `${API_BASE}/search_result`;
             const data = await fetchFromProxy(searchUrl);
             const searchData = data.data;
 
-            const teamsContainer = document.getElementById('searchTeamsContainer');
-            teamsContainer.innerHTML = '';
+            document.getElementById('searchTeamsContainer').innerHTML = '';
             (searchData.teams || []).forEach(team => {
-                const img = team.name.image ? `<img src="${IMG_BASE_TEAM + team.name.image}">` : '';
-                teamsContainer.innerHTML += `<div class="circle-item" onclick="openTeamModal(${team.name.row_id})">${img}<span>${team.name.title}</span></div>`;
+                document.getElementById('searchTeamsContainer').innerHTML += `<div class="circle-item" onclick="openTeamModal(${team.name.row_id})"><img src="${IMG_BASE_TEAM + team.name.image}"><span>${team.name.title}</span></div>`;
             });
 
-            const champsContainer = document.getElementById('searchChampsContainer');
-            champsContainer.innerHTML = '';
+            document.getElementById('searchChampsContainer').innerHTML = '';
             (searchData.championship || []).forEach(champ => {
-                const img = champ.name.image ? `<img src="${IMG_BASE_CHAMP + champ.name.image}">` : '';
-                champsContainer.innerHTML += `<div class="circle-item" onclick="quickSelectChampionship('${champ.name.url_id}', '${champ.name.title.replace(/'/g, "\\'")}', ${champ.name.type || 1})">${img}<span>${champ.name.title}</span></div>`;
+                document.getElementById('searchChampsContainer').innerHTML += `<div class="circle-item" onclick="quickSelectChampionship('${champ.name.url_id}', '${champ.name.title.replace(/'/g, "\\'")}', ${champ.name.type || 1})"><img src="${IMG_BASE_CHAMP + champ.name.image}"><span>${champ.name.title}</span></div>`;
             });
 
-            const playersContainer = document.getElementById('searchPlayersContainer');
-            playersContainer.innerHTML = '';
+            document.getElementById('searchPlayersContainer').innerHTML = '';
             (searchData.player || []).forEach(player => {
-                const img = player.name.image ? `<img src="${IMG_BASE_PLAYER + player.name.image}">` : '';
-                playersContainer.innerHTML += `<div class="circle-item" onclick="openPlayerModal(${player.name.row_id})">${img}<span>${player.name.title}</span></div>`;
+                document.getElementById('searchPlayersContainer').innerHTML += `<div class="circle-item" onclick="openPlayerModal(${player.name.row_id})"><img src="${IMG_BASE_PLAYER + player.name.image}"><span>${player.name.title}</span></div>`;
             });
 
             renderPreviousSearch();
@@ -2230,10 +2264,15 @@
             });
         });
 
-        // ===== ربط أزرار التقويم =====
-        document.getElementById('prevDateBtn').onclick = () => changeDate(-1);
-        document.getElementById('nextDateBtn').onclick = () => changeDate(1);
-        document.getElementById('openCalendarBtn').onclick = () => { calViewDate = new Date(selectedDate); selectedCalDate = new Date(selectedDate); renderCalendar(); new bootstrap.Modal(document.getElementById('calendarModal')).show(); };
+        // ===== ربط أزرار التاريخ والتقويم =====
+        document.getElementById('prevDateBtn').addEventListener('click', () => changeDate(-1));
+        document.getElementById('nextDateBtn').addEventListener('click', () => changeDate(1));
+        document.getElementById('openCalendarBtn').addEventListener('click', () => {
+            calViewDate = new Date(selectedDate);
+            selectedCalDate = new Date(selectedDate);
+            renderCalendar();
+            new bootstrap.Modal(document.getElementById('calendarModal')).show();
+        });
 
         // ===== فحص منتصف الليل =====
         setInterval(() => {
@@ -2253,4 +2292,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-            </html>
+                                                                                                                                                                                                                                                                                      </html>
