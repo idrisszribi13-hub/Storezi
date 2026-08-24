@@ -59,6 +59,30 @@
         .match-info-block .row > div { padding: 5px 0; }
         .channel-badge { display: inline-block; background: #e9ecef; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.8rem; }
 
+        /* ===== الهيدر الجديد (بدون أزرار عائمة) ===== */
+        .app-header {
+            background: #fff;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            padding: 10px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 1500;
+            margin-bottom: 20px;
+        }
+        .app-header h1 { font-size: 1.5rem; margin: 0; font-weight: 800; }
+        .header-actions { display: flex; align-items: center; gap: 12px; }
+        .header-btn {
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: #f8f9fa; border: 1px solid #eee;
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 1.2rem; transition: all 0.2s;
+        }
+        .header-btn:hover { background: #e9ecef; }
+
         .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
         .lang-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .lang-btn:hover { transform: scale(1.1); }
@@ -168,9 +192,6 @@
 
         .in-arrow { color: #28a745; font-weight: bold; }
         .out-arrow { color: #dc3545; font-weight: bold; }
-
-        /* إضافة اللون الأزرق للوقت الإضافي */
-        .extra-time-blue { color: #007bff; font-weight: bold; }
 
         .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
         .kickoff-divider, .fulltime-divider { text-align: center; padding: 12px; color: #666; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
@@ -291,9 +312,30 @@
     </style>
 </head>
 <body>
-    <div class="container py-5">
-        <h1 class="text-center mb-4 fw-bold" data-i18n="title">🏆 Football Center</h1>
+    <!-- ===== الهيدر الجديد (بدون أزرار عائمة) ===== -->
+    <div class="app-header">
+        <h1>🏆 Football Center</h1>
+        <div class="header-actions">
+            <button class="header-btn" id="searchToggleBtn" title="بحث">🔍</button>
+            <button class="header-btn" id="langToggle" title="اللغة">🌐</button>
+            <button class="header-btn" id="timeToggle" title="الوقت">🕒</button>
+            <div class="dropdown">
+                <button class="header-btn" id="moreMenuBtn" title="المزيد">⋮</button>
+                <div class="dropdown-menu dropdown-menu-end" id="moreMenu">
+                    <a href="#" class="dropdown-item">الملف الشخصي</a>
+                    <a href="#" class="dropdown-item">الإعدادات</a>
+                    <a href="#" class="dropdown-item">تسجيل الخروج</a>
+                </div>
+            </div>
+            <div class="user-avatar" id="userAvatar" onclick="googleLogin()" title="تسجيل الدخول عبر جوجل">
+                <img src="https://via.placeholder.com/40" alt="User" id="userImg">
+                <span id="userName">تسجيل الدخول</span>
+            </div>
+        </div>
+    </div>
 
+    <div class="container py-5">
+        <!-- شريط التنقل بالتاريخ -->
         <div class="date-nav">
             <button class="date-btn" id="prevDateBtn">&#10094;</button>
             <div class="date-label" id="dateLabel"></div>
@@ -417,30 +459,7 @@
         </div>
     </div>
 
-    <div class="search-trigger" id="searchToggleBtn" title="Search">🔍</div>
-    <div class="lang-float">
-        <button class="lang-btn" id="langToggle" title="Change Language">🌐</button>
-        <div class="lang-menu" id="langMenu">
-            <button class="lang-option" data-lang="ar"><img src="https://flagcdn.com/sa.svg" alt="AR"> العربية</button>
-            <button class="lang-option" data-lang="en"><img src="https://flagcdn.com/gb.svg" alt="EN"> English</button>
-            <button class="lang-option" data-lang="fr"><img src="https://flagcdn.com/fr.svg" alt="FR"> Français</button>
-            <button class="lang-option" data-lang="es"><img src="https://flagcdn.com/es.svg" alt="ES"> Español</button>
-            <button class="lang-option" data-lang="it"><img src="https://flagcdn.com/it.svg" alt="IT"> Italiano</button>
-            <button class="lang-option" data-lang="pt"><img src="https://flagcdn.com/pt.svg" alt="PT"> Português</button>
-            <button class="lang-option" data-lang="br"><img src="https://flagcdn.com/br.svg" alt="BR"> Brasileiro</button>
-        </div>
-    </div>
-
-    <div class="time-float">
-        <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
-        <div class="time-menu" id="timeMenu">
-            <button class="time-option" id="timeZoneOption">Time Zone</button>
-            <button class="time-option" id="timeFormatOption">Time Format</button>
-            <div class="time-submenu" id="timeZoneSubmenu"></div>
-            <div class="time-submenu" id="timeFormatSubmenu"></div>
-        </div>
-    </div>
-
+    <!-- (تم حذف الأزرار العائمة من الأسفل لأنها في الهيدر الآن) -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const ICON_BASE = 'https://zi-store.online/ico/';
@@ -834,7 +853,6 @@
             return markers;
         }
 
-        // ===== تعديل دالة عرض الوقت لإظهار الوقت الإضافي باللون الأزرق =====
         function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
@@ -1230,10 +1248,8 @@
             return html;
         }
 
-        // ===== الإصلاح الجذري لفتح تفاصيل المباراة =====
         async function openMatchDetails(matchId) {
             showLoading();
-            // استخدام Promise.allSettled لضمان عدم فشل النافذة إذا فشل جزء من البيانات
             const results = await Promise.allSettled([
                 fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
                 fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`),
@@ -1244,13 +1260,8 @@
                 fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
             ]);
 
-            // استخراج البيانات أو استخدام قيم فارغة عند الفشل
             const info = results[0].status === 'fulfilled' ? results[0].value.data : null;
-            if (!info) {
-                showError('Match info not available');
-                hideLoading();
-                return;
-            }
+            if (!info) { hideLoading(); return; }
             
             const events = results[1].status === 'fulfilled' ? results[1].value.data.events || [] : [];
             const lineups = results[2].status === 'fulfilled' ? results[2].value.data || {} : {};
@@ -1258,9 +1269,6 @@
             const h2h = results[4].status === 'fulfilled' ? results[4].value.data || {} : {};
             const homeLast5 = (results[5].status === 'fulfilled' && results[5].value.data.end) ? results[5].value.data.end.data.slice(0, 5) : [];
             const awayLast5 = (results[6].status === 'fulfilled' && results[6].value.data.end) ? results[6].value.data.end.data.slice(0, 5) : [];
-
-            // إخفاء رسالة الخطأ إن ظهرت
-            document.getElementById('errorIndicator').classList.add('hidden');
 
             renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5);
             document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
@@ -1280,12 +1288,10 @@
                     const info = infoData.data;
                     const liveScoreEl = document.querySelector('#matchModalBody .match-score');
                     const liveTimerEl = document.querySelector('#matchModalBody .match-timer');
-                    const liveTimelineFillEl = document.querySelector('#matchModalBody .timeline-fill');
                     const homeTeamImgEl = document.querySelector('#matchModalBody .home-team-img');
                     const awayTeamImgEl = document.querySelector('#matchModalBody .away-team-img');
                     if (liveScoreEl) liveScoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
                     if (liveTimerEl) liveTimerEl.innerHTML = formatLiveTime(getLiveSeconds(info), info.status, info.ex_time);
-                    if (liveTimelineFillEl) liveTimelineFillEl.style.width = `${getMatchProgress(getLiveSeconds(info), info.status)}%`;
                     if (homeTeamImgEl) homeTeamImgEl.src = IMG_BASE_TEAM + info.home_team.image;
                     if (awayTeamImgEl) awayTeamImgEl.src = IMG_BASE_TEAM + info.away_team.image;
                 } catch (e) {}
@@ -1314,11 +1320,6 @@
                         <div class="match-center-side">
                             <div class="match-score">${info.home_scores} - ${info.away_scores}</div>
                             <div class="match-timer">${formatLiveTime(getLiveSeconds(info), info.status, info.ex_time)}</div>
-                            <div class="timeline-container">
-                                <div class="timeline-fill" style="width: ${getMatchProgress(getLiveSeconds(info), info.status)}%"></div>
-                                ${info.status === 2 ? '<div class="ht-marker"></div>' : ''}
-                                ${getGoalMarkers(info)}
-                            </div>
                         </div>
                         <div class="match-team-side">
                             <img src="${IMG_BASE_TEAM + info.away_team.image}" class="away-team-img" onclick="openTeamModal(${info.away_team.row_id})" style="cursor:pointer;">
@@ -1329,21 +1330,12 @@
             `;
 
             infoBlock += '<h5 class="mt-4 mb-3 fw-bold">Match Details</h5>';
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.cup}" class="icon-16"> Competition</strong><span>${info.championship ? info.championship.title : 'N/A'} ></span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.schedule}" class="icon-16"> Round</strong><span>${info.round || 'N/A'} ></span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.arena}" class="icon-16"> Stadium</strong><span>${info.Stadium || 'N/A'} ></span></div></div>`;
-            if (info.channel_commm && info.channel_commm.length > 0) {
-                info.channel_commm.forEach(c => {
-                    infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.video}" class="icon-16"> Channel</strong><span>${c.channel_name} ></span></div></div>`;
-                    if (c.commentator_name) infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" class="icon-16"> Commentator</strong><span>${c.commentator_name} ></span></div></div>`;
-                });
-            }
-            if (info.referees) {
-                const ref = info.referees;
-                infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" class="icon-16"> Referee</strong><span class="link-item" onclick="openRefereeModal(${ref.id})">${ref.title} ></span></div></div>`;
-            }
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Time</strong><span>${timeZonePart(info.match_time)}</span></div></div>`;
-            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.schedule}" class="icon-16"> Date</strong><span>${formatDatePart(info.match_date)}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong>Competition</strong><span>${info.championship ? info.championship.title : 'N/A'}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong>Round</strong><span>${info.round || 'N/A'}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.arena}" style="width:16px;height:16px;"> Stadium</strong><span>${info.Stadium || 'N/A'}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" style="width:16px;height:16px;"> Referee</strong><span class="link-item" onclick="openRefereeModal(${info.referees?.id})">${info.referees?.title}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" style="width:16px;height:16px;"> Time</strong><span>${timeZonePart(info.match_time)}</span></div></div>`;
+            infoBlock += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.schedule}" style="width:16px;height:16px;"> Date</strong><span>${formatDatePart(info.match_date)}</span></div></div>`;
 
             infoBlock += '<div class="last5-title">Last 5 Matches for each team</div>';
             infoBlock += '<div class="last5-container">';
@@ -1390,14 +1382,10 @@
             let dotsHtml = '<div class="last5-dots">';
             matches.forEach(match => {
                 let isWin = false;
-                if (match.home_team.row_id == teamId) {
-                    isWin = match.home_scores > match.away_scores;
-                } else {
-                    isWin = match.away_scores > match.home_scores;
-                }
+                if (match.home_team.row_id == teamId) { isWin = match.home_scores > match.away_scores; }
+                else { isWin = match.away_scores > match.home_scores; }
                 let draw = match.home_scores == match.away_scores;
-                let cls = 'dot-d';
-                let txt = 'D';
+                let cls = 'dot-d', txt = 'D';
                 if (isWin) { cls = 'dot-w'; txt = 'W'; }
                 else if (!draw) { cls = 'dot-l'; txt = 'L'; }
                 dotsHtml += `<div class="last5-dot ${cls}">${txt}</div>`;
@@ -2288,4 +2276,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-    </html>
+                                                                        </html>
