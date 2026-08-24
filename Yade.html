@@ -144,48 +144,6 @@
             background-color: #cfe2ff !important;
             font-weight: bold;
         }
-        .pitch {
-            background: linear-gradient(180deg, #2e7d32 0%, #388e3c 50%, #2e7d32 100%);
-            border-radius: 12px;
-            padding: 20px;
-            position: relative;
-            min-height: 420px;
-            color: white;
-            margin: 10px 0;
-        }
-        .pitch .team-name {
-            text-align: center;
-            font-weight: bold;
-            margin-bottom: 10px;
-            font-size: 1.1rem;
-        }
-        .pitch-row {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-bottom: 15px;
-        }
-        .player-slot {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 60px;
-        }
-        .player-slot img {
-            width: 35px;
-            height: 35px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid white;
-        }
-        .player-slot .player-name {
-            font-size: 0.7rem;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60px;
-        }
         .modal-body {
             max-height: 70vh;
             overflow-y: auto;
@@ -339,63 +297,6 @@
             height: 18px;
             object-fit: cover;
             border-radius: 2px;
-        }
-        .time-float {
-            position: fixed;
-            bottom: 30px;
-            right: 100px;
-            z-index: 2000;
-        }
-        .time-btn {
-            width: 55px;
-            height: 55px;
-            border-radius: 50%;
-            background: #fff;
-            border: 2px solid #ddd;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            font-size: 24px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s;
-        }
-        .time-btn:hover {
-            transform: scale(1.1);
-        }
-        .time-menu {
-            position: absolute;
-            bottom: 65px;
-            right: 0;
-            background: #fff;
-            border-radius: 12px;
-            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
-            overflow: hidden;
-            display: none;
-            min-width: 180px;
-        }
-        .time-menu.open {
-            display: block;
-        }
-        .time-option {
-            display: block;
-            padding: 8px 15px;
-            border: none;
-            background: transparent;
-            cursor: pointer;
-            width: 100%;
-            font-size: 0.95rem;
-            transition: background 0.2s;
-        }
-        .time-option:hover {
-            background: #f0f0f0;
-        }
-        .time-submenu {
-            display: none;
-            padding-left: 20px;
-        }
-        .time-submenu.open {
-            display: block;
         }
         .live-score {
             color: #dc3545;
@@ -605,9 +506,12 @@
             justify-content: center;
             position: fixed;
             bottom: 30px;
-            right: 175px;
+            right: 100px;
             z-index: 2000;
             transition: transform 0.2s;
+        }
+        .search-trigger:hover {
+            transform: scale(1.05);
         }
         .player-hero {
             position: relative;
@@ -1584,7 +1488,6 @@
             padding-top: 10px;
         }
 
-        /* Responsive */
         @media (max-width: 768px) {
             .container {
                 padding: 10px;
@@ -1612,9 +1515,6 @@
             }
             .col-md-4 {
                 margin-bottom: 10px;
-            }
-            .time-float {
-                right: 100px;
             }
             .search-trigger {
                 right: 80px;
@@ -1825,17 +1725,6 @@
         </div>
     </div>
 
-    <div class="time-float">
-        <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
-        <div class="time-menu" id="timeMenu">
-            <button class="time-option" id="timeAutoOption">Auto (Device)</button>
-            <button class="time-option" id="timeZoneOption">Time Zone</button>
-            <button class="time-option" id="timeFormatOption">Time Format</button>
-            <div class="time-submenu" id="timeZoneSubmenu"></div>
-            <div class="time-submenu" id="timeFormatSubmenu"></div>
-        </div>
-    </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         const ICON_BASE = 'https://zi-store.online/ico/';
@@ -1897,9 +1786,7 @@
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
-        let timezoneOffset = 0;
-        let timezoneAuto = true;
-        let timeFormat = '24';
+        let timeFormat = '24'; // '24' or '12'
 
         let selectedDate = new Date();
         let calViewDate = new Date();
@@ -1915,7 +1802,7 @@
         function updateDateUI() {
             const todayStr = getLocalDateStr(new Date());
             document.getElementById('dateLabel').textContent = getLocalDateStr(selectedDate) === todayStr ? "Today" : selectedDate
-            .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+                .toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
             document.getElementById('todayMatchesTitle').textContent = getLocalDateStr(selectedDate) === todayStr ?
                 "Today's Matches" : selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long',
                 day: 'numeric' });
@@ -2011,96 +1898,10 @@
             }
         }
 
-        function initTimeSystem() {
-            const toggle = document.getElementById('timeToggle');
-            const menu = document.getElementById('timeMenu');
-            const timeAutoOption = document.getElementById('timeAutoOption');
-            const timeZoneOption = document.getElementById('timeZoneOption');
-            const timeFormatOption = document.getElementById('timeFormatOption');
-            const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
-            const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
-
-            timeAutoOption.addEventListener('click', () => {
-                timezoneAuto = true;
-                timezoneOffset = 0;
-                localStorage.setItem('timezone_auto', 'true');
-                localStorage.setItem('timezone_offset', '0');
-                hideTimeMenu();
-                refreshTimeDisplay();
-            });
-
-            const zones = [-12, -11, -10, -9, -8, -7, -6, -5, -4, -3, -2, -1, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
-            zones.forEach(offset => {
-                const btn = document.createElement('button');
-                btn.className = 'time-option';
-                btn.textContent = offset === 0 ? 'GMT+0 (UTC)' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
-                btn.addEventListener('click', () => {
-                    timezoneAuto = false;
-                    timezoneOffset = offset * 60;
-                    localStorage.setItem('timezone_auto', 'false');
-                    localStorage.setItem('timezone_offset', timezoneOffset);
-                    hideTimeMenu();
-                    refreshTimeDisplay();
-                });
-                timeZoneSubmenu.appendChild(btn);
-            });
-
-            const formats = [{ label: '24h', value: '24' }, { label: '12h AM/PM', value: '12' }];
-            formats.forEach(fmt => {
-                const btn = document.createElement('button');
-                btn.className = 'time-option';
-                btn.textContent = fmt.label;
-                btn.addEventListener('click', () => {
-                    timeFormat = fmt.value;
-                    localStorage.setItem('time_format', timeFormat);
-                    hideTimeMenu();
-                    refreshTimeDisplay();
-                });
-                timeFormatSubmenu.appendChild(btn);
-            });
-
-            timeZoneOption.addEventListener('click', (e) => {
-                e.stopPropagation();
-                timeZoneSubmenu.classList.toggle('open');
-                timeFormatSubmenu.classList.remove('open');
-            });
-            timeFormatOption.addEventListener('click', (e) => {
-                e.stopPropagation();
-                timeFormatSubmenu.classList.toggle('open');
-                timeZoneSubmenu.classList.remove('open');
-            });
-            toggle.addEventListener('click', (e) => {
-                e.stopPropagation();
-                menu.classList.toggle('open');
-                timeZoneSubmenu.classList.remove('open');
-                timeFormatSubmenu.classList.remove('open');
-            });
-            document.addEventListener('click', (e) => {
-                if (!menu.contains(e.target) && e.target !== toggle) {
-                    menu.classList.remove('open');
-                    timeZoneSubmenu.classList.remove('open');
-                    timeFormatSubmenu.classList.remove('open');
-                }
-            });
-
-            const savedAuto = localStorage.getItem('timezone_auto');
-            if (savedAuto !== null) timezoneAuto = savedAuto === 'true';
-            const savedOffset = localStorage.getItem('timezone_offset');
-            if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
-            const savedFormat = localStorage.getItem('time_format');
-            if (savedFormat) timeFormat = savedFormat;
-
-            function hideTimeMenu() {
-                menu.classList.remove('open');
-                timeZoneSubmenu.classList.remove('open');
-                timeFormatSubmenu.classList.remove('open');
-            }
-
-            function refreshTimeDisplay() {
-                if (currentChampionship) switchTab(currentTab);
-                loadLiveAndTodayMatches();
-            }
-        }
+        // ============================================================
+        //  REMOVED: initTimeSystem() - no time zone, no time button
+        //  Time is now fetched directly from API
+        // ============================================================
 
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
             const baseDate = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
@@ -2108,31 +1909,14 @@
         }
 
         function formatDate(date) {
-            if (timezoneAuto) {
-                return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-            } else {
-                const shifted = new Date(date.getTime() + timezoneOffset * 60000);
-                return shifted.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short',
-                    day: 'numeric' });
-            }
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         }
 
         function formatTime(date) {
-            if (timezoneAuto) {
-                if (timeFormat === '12') {
-                    return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
-                } else {
-                    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
-                }
+            if (timeFormat === '12') {
+                return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
             } else {
-                const shifted = new Date(date.getTime() + timezoneOffset * 60000);
-                if (timeFormat === '12') {
-                    return shifted.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: 'numeric', minute: '2-digit',
-                        hour12: true });
-                } else {
-                    return shifted.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit',
-                        hour12: false });
-                }
+                return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
             }
         }
 
@@ -2366,15 +2150,20 @@
             }, { once: true });
         }
 
+        // ============================================================
+        //  FIXED: getLiveSeconds - uses API minutes directly
+        // ============================================================
         function getLiveSeconds(match) {
+            // Use minutes field from API directly (it's already in seconds)
+            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) {
+                return match.minutes;
+            }
+            // Fallback to timestamp calculation
             if (match.match_timestamp && match.match_timestamp > 1000000000) {
                 const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
                 if (elapsed >= 0 && elapsed < 14400) {
                     return elapsed;
                 }
-            }
-            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 200) {
-                return match.minutes * 60;
             }
             return 0;
         }
@@ -2813,7 +2602,7 @@
         }
 
         // ============================================================
-        //  🔥 FIXED: Match Details Modal with proper tabs and events
+        //  FIXED: Match Details with proper H2H handling
         // ============================================================
 
         async function openMatchDetails(matchId) {
@@ -2943,7 +2732,6 @@
 
             body.innerHTML = headerHtml + tabsHtml;
 
-            // Re-bind tab clicks
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -2951,7 +2739,6 @@
                 });
             });
 
-            // Lineup tab switching (home/away)
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -2966,7 +2753,7 @@
             });
         }
 
-        // ===== FIXED EVENTS RENDERER with Extra Time =====
+        // ===== EVENTS RENDERER =====
         function renderEventsFixed(events, info) {
             if (!events || events.length === 0) return '<p class="text-center text-muted">No events recorded</p>';
 
@@ -2985,15 +2772,12 @@
 
             let html = '<div class="event-box">';
 
-            // Kick-Off
             html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
 
-            // Events
             normalEvents.forEach(ev => {
                 html += renderSingleEventFixed(ev, info, homeId, awayId);
             });
 
-            // Half-Time
             const halfTimeEvent = specialEvents.find(ev => ev.status === 2);
             if (halfTimeEvent) {
                 let homeHT = 0,
@@ -3009,7 +2793,6 @@
                 </div>`;
             }
 
-            // Full-Time
             const fullTimeEvent = specialEvents.find(ev => ev.status === 3);
             if (fullTimeEvent) {
                 html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
@@ -3027,7 +2810,7 @@
             let teamRightHtml = '';
             if (isHome) {
                 teamLeftHtml =
-                `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})"></div>`;
+                    `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})"></div>`;
             } else if (isAway) {
                 teamRightHtml =
                     `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})"></div>`;
@@ -3042,7 +2825,6 @@
                     `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
             }
 
-            // Event type mapping
             if (ev.type === 1) {
                 icon = ICONS.goal;
                 typeText = ev.status_name || 'Goal';
@@ -3097,11 +2879,9 @@
                 finalSubHtml = `<span>${subName ? 'Assist: ' + subName : ''}</span>`;
             }
 
-            // ===== EXTRA TIME DISPLAY =====
             const minuteDisplay = `${ev.time_minute}'`;
             const plusDisplay = ev.time_plus && ev.time_plus > 0 ? `+${ev.time_plus}` : '';
 
-            // Color the time circle based on event type
             let circleBg = '#e8f5e9';
             let circleColor = '#2e7d32';
             if (ev.type === 2 || ev.type === 3) { circleBg = '#fff3e0';
@@ -3167,7 +2947,7 @@
             return html;
         }
 
-        // ===== LINEUPS (reused from original with fixes) =====
+        // ===== LINEUPS =====
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -3350,7 +3130,9 @@
             return html;
         }
 
-        // ===== H2H =====
+        // ============================================================
+        //  FIXED: H2H - safe handling of undefined properties
+        // ============================================================
         function renderH2H(h2h, info) {
             if (!h2h || Object.keys(h2h).length === 0) return '<p class="text-center text-muted">No H2H data</p>';
 
@@ -3359,9 +3141,9 @@
                 awayWins = 0;
             for (const matchId in h2h) {
                 const h = h2h[matchId];
-                if (h.win === 'win1') homeWins++;
-                else if (h.win === 'win2') awayWins++;
-                else draws++;
+                if (h && h.win === 'win1') homeWins++;
+                else if (h && h.win === 'win2') awayWins++;
+                else if (h) draws++;
             }
 
             let html = `<div class="h2h-flex">
@@ -3380,25 +3162,24 @@
                 </div>
             </div>`;
 
-            // Show recent H2H matches if available
-            const recentMatches = Object.values(h2h).slice(0, 5);
+            // Show recent H2H matches if available (safe access)
+            const recentMatches = Object.values(h2h).filter(m => m && m.home_team && m.away_team).slice(0, 5);
             if (recentMatches.length > 0) {
                 html += '<div class="mt-3"><strong>Recent Meetings</strong><div class="small">';
                 recentMatches.forEach(m => {
                     const homeTitle = m.home_team.title || 'Home';
                     const awayTitle = m.away_team.title || 'Away';
+                    const homeScore = m.home_scores !== undefined ? m.home_scores : '?';
+                    const awayScore = m.away_scores !== undefined ? m.away_scores : '?';
+                    const date = m.match_date || '';
                     html +=
-                        `<div class="d-flex justify-content-between border-bottom py-1"><span>${homeTitle} ${m.home_scores} - ${m.away_scores} ${awayTitle}</span><span class="text-muted">${m.match_date || ''}</span></div>`;
+                        `<div class="d-flex justify-content-between border-bottom py-1"><span>${homeTitle} ${homeScore} - ${awayScore} ${awayTitle}</span><span class="text-muted">${date}</span></div>`;
                 });
                 html += '</div></div>';
             }
 
             return html;
         }
-
-        // ============================================================
-        //  END OF MATCH DETAILS FIX
-        // ============================================================
 
         // --- Remaining functions (standings, scorers, assists, news, bracket, team/player/coach/referee modals) ---
 
@@ -3408,7 +3189,7 @@
             try {
                 let url;
                 if (currentChampionship.type === 1) url =
-                `${API_BASE}/matches/league_standing_stage/${currentChampionship.url_id}`;
+                    `${API_BASE}/matches/league_standing_stage/${currentChampionship.url_id}`;
                 else url = `${API_BASE}/matches/cups_teams_standings/${currentChampionship.url_id}/L/60`;
                 const data = await fetchFromProxy(url);
                 const standingsContent = document.getElementById('standingsContent');
@@ -4014,10 +3795,12 @@
             }
         }, 60000);
 
-        // ===== INIT =====
+        // ============================================================
+        //  INIT - Time Zone REMOVED
+        // ============================================================
         updateDateUI();
         initLanguageSystem();
-        initTimeSystem();
+        // initTimeSystem() - REMOVED completely
         loadChampionships();
         loadStreamEvents();
         loadLiveAndTodayMatches();
