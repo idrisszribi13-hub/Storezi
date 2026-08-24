@@ -110,6 +110,11 @@
         .upcoming-time { background: #f0f0f0; border-radius: 10px; padding: 8px; font-weight: bold; font-size: 14px; }
         .upcoming-vs { font-size: 12px; color: #777; margin-top: 5px; }
 
+        /* إصلاح الأزرار العائمة */
+        .search-trigger { width: 45px; height: 45px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 30px; right: 175px; z-index: 2000; transition: transform 0.2s; }
+        .time-float { position: fixed; bottom: 30px; right: 100px; z-index: 2000; }
+        .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
+
         .player-hero { position: relative; height: 280px; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea; }
         .player-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); opacity: 0.9; }
         .player-hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%); pointer-events: none; }
@@ -163,6 +168,9 @@
 
         .in-arrow { color: #28a745; font-weight: bold; }
         .out-arrow { color: #dc3545; font-weight: bold; }
+
+        /* إضافة اللون الأزرق للوقت الإضافي */
+        .extra-time-blue { color: #007bff; font-weight: bold; }
 
         .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
         .kickoff-divider, .fulltime-divider { text-align: center; padding: 12px; color: #666; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
@@ -233,9 +241,6 @@
         .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
         .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
 
-        .search-trigger { width: 45px; height: 45px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 30px; right: 175px; z-index: 2000; transition: transform 0.2s; }
-        .search-trigger:hover { transform: scale(1.1); }
-
         .search-modal { background: #f8f9fa; }
         .search-modal .modal-content { border-radius: 20px; }
         .search-bar { background: #fff; border-radius: 30px; padding: 10px 20px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -289,7 +294,6 @@
     <div class="container py-5">
         <h1 class="text-center mb-4 fw-bold" data-i18n="title">🏆 Football Center</h1>
 
-        <!-- شريط التنقل بالتاريخ -->
         <div class="date-nav">
             <button class="date-btn" id="prevDateBtn">&#10094;</button>
             <div class="date-label" id="dateLabel"></div>
@@ -361,16 +365,12 @@
                         <img src="https://zi-store.online/ico/schedule.png" style="width:20px; height:20px;" alt="search">
                         <input type="text" id="globalSearchInput" placeholder="Search...">
                     </div>
-
                     <div class="search-title">Most Searched Teams</div>
                     <div class="circular-scroll" id="searchTeamsContainer"></div>
-
                     <div class="search-title">Most Searched Championships</div>
                     <div class="circular-scroll" id="searchChampsContainer"></div>
-
                     <div class="search-title">Most Searched Players</div>
                     <div class="circular-scroll" id="searchPlayersContainer"></div>
-
                     <div class="search-title">Previous Search</div>
                     <div class="prev-search-container" id="prevSearchContainer"></div>
                 </div>
@@ -418,7 +418,6 @@
     </div>
 
     <div class="search-trigger" id="searchToggleBtn" title="Search">🔍</div>
-
     <div class="lang-float">
         <button class="lang-btn" id="langToggle" title="Change Language">🌐</button>
         <div class="lang-menu" id="langMenu">
@@ -444,7 +443,6 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
-        // إعداد الأيقونات
         const ICON_BASE = 'https://zi-store.online/ico/';
         const ICONS = {
             clock: ICON_BASE + 'clock.png', arena: ICON_BASE + 'arena.png', schedule: ICON_BASE + 'schedule.png',
@@ -487,7 +485,6 @@
         let timezoneOffset = 0;
         let timeFormat = '24';
 
-        // إعدادات التاريخ
         let selectedDate = new Date();
         let calViewDate = new Date();
         let selectedCalDate = null;
@@ -561,9 +558,7 @@
             toggle.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); });
             document.addEventListener('click', () => menu.classList.remove('open'));
             menu.addEventListener('click', (e) => e.stopPropagation());
-            document.querySelectorAll('.lang-option').forEach(btn => {
-                btn.addEventListener('click', () => setLanguage(btn.dataset.lang));
-            });
+            document.querySelectorAll('.lang-option').forEach(btn => { btn.addEventListener('click', () => setLanguage(btn.dataset.lang)); });
             const savedLang = localStorage.getItem('preferred_language');
             if (savedLang && translations[savedLang]) {
                 applyLanguage(savedLang);
@@ -839,6 +834,7 @@
             return markers;
         }
 
+        // ===== تعديل دالة عرض الوقت لإظهار الوقت الإضافي باللون الأزرق =====
         function formatLiveTime(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const totalMinutes = Math.floor(totalSeconds / 60);
@@ -851,13 +847,13 @@
                 const extraMinutes = Math.floor(extraSeconds / 60);
                 const remainingSeconds = extraSeconds % 60;
                 const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
-                return `<div class="clock-main">90'</div><div class="clock-sub"><img src="${ICONS.clock}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
+                // إضافة اللون الأزرق
+                return `<div class="clock-main">90'</div><div class="clock-sub extra-time-blue"><img src="${ICONS.clock}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
             }
             
             return `<div class="clock-main">${totalMinutes}'</div>`;
         }
 
-        // ===== بناء البطاقات الجديدة بتصميم التطبيق =====
         function renderLiveMatchCard(match) {
             const home = match.home_team;
             const away = match.away_team;
@@ -1003,14 +999,12 @@
             setTimeout(() => { if (alert.parentNode) alert.remove(); }, 8000);
         }
 
-        // إصلاح جذري لمشكلة الوقت (استخدام التوقيت المحلي)
         async function loadLiveAndTodayMatches() {
             try {
                 const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
                 const liveData = await fetchFromProxy(liveUrl);
                 liveMatches = liveData.data || [];
                 
-                // استخدام التاريخ الحقيقي للمستخدم (وليس UTC)
                 const dateStr = getLocalDateStr(selectedDate);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
@@ -1236,6 +1230,47 @@
             return html;
         }
 
+        // ===== الإصلاح الجذري لفتح تفاصيل المباراة =====
+        async function openMatchDetails(matchId) {
+            showLoading();
+            // استخدام Promise.allSettled لضمان عدم فشل النافذة إذا فشل جزء من البيانات
+            const results = await Promise.allSettled([
+                fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
+                fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`),
+                fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`),
+                fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`),
+                fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`),
+                fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
+                fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
+            ]);
+
+            // استخراج البيانات أو استخدام قيم فارغة عند الفشل
+            const info = results[0].status === 'fulfilled' ? results[0].value.data : null;
+            if (!info) {
+                showError('Match info not available');
+                hideLoading();
+                return;
+            }
+            
+            const events = results[1].status === 'fulfilled' ? results[1].value.data.events || [] : [];
+            const lineups = results[2].status === 'fulfilled' ? results[2].value.data || {} : {};
+            const stats = results[3].status === 'fulfilled' ? results[3].value.data.statics || {} : {};
+            const h2h = results[4].status === 'fulfilled' ? results[4].value.data || {} : {};
+            const homeLast5 = (results[5].status === 'fulfilled' && results[5].value.data.end) ? results[5].value.data.end.data.slice(0, 5) : [];
+            const awayLast5 = (results[6].status === 'fulfilled' && results[6].value.data.end) ? results[6].value.data.end.data.slice(0, 5) : [];
+
+            // إخفاء رسالة الخطأ إن ظهرت
+            document.getElementById('errorIndicator').classList.add('hidden');
+
+            renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5);
+            document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
+            
+            const modal = new bootstrap.Modal(document.getElementById('matchModal'));
+            modal.show();
+            startLiveMatchUpdates(info.match_id);
+            hideLoading();
+        }
+
         function startLiveMatchUpdates(matchId) {
             if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
             window.matchLiveInterval = setInterval(async () => {
@@ -1258,43 +1293,6 @@
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', () => {
                 if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
             }, { once: true });
-        }
-
-        async function openMatchDetails(matchId) {
-            showLoading();
-            try {
-                const infoUrl = `${API_BASE}/matches/match_info/${matchId}/L/60`;
-                const infoData = await fetchFromProxy(infoUrl);
-                const info = infoData.data;
-                const eventUrl = `${API_BASE}/matches/matches_event/${matchId}`;
-                const lineupUrl = `${API_BASE}/matches/matches_lineup/${matchId}`;
-                const statsUrl = `${API_BASE}/matches/statics_match/${matchId}`;
-                const h2hUrl = `${API_BASE}/matches/h2h/${matchId}/L/60`;
-                const [eventData, lineupData, statsData, h2hData, homeMatches, awayMatches] = await Promise.all([
-                    fetchFromProxy(eventUrl), fetchFromProxy(lineupUrl), fetchFromProxy(statsUrl), fetchFromProxy(h2hUrl).catch(() => ({ data: {} })),
-                    fetchFromProxy(`${API_BASE}/matches/team_matches/${info.home_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
-                    fetchFromProxy(`${API_BASE}/matches/team_matches/${info.away_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
-                ]);
-                const events = eventData.data.events || [];
-                const lineups = lineupData.data || {};
-                const stats = statsData.data.statics || {};
-                const h2h = h2hData.data || {};
-                const homeLast5 = (homeMatches.data && homeMatches.data.end && homeMatches.data.end.data) ? homeMatches.data.end.data.slice(0, 5) : [];
-                const awayLast5 = (awayMatches.data && awayMatches.data.end && awayMatches.data.end.data) ? awayMatches.data.end.data.slice(0, 5) : [];
-                
-                renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5);
-                document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
-                
-                const modal = new bootstrap.Modal(document.getElementById('matchModal'));
-                modal.show();
-                startLiveMatchUpdates(info.match_id);
-                if (window.matchTimerInterval) clearInterval(window.matchTimerInterval);
-            } catch (err) {
-                console.error(err);
-                showError('Failed to load match details');
-            } finally {
-                hideLoading();
-            }
         }
 
         function renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5) {
@@ -1480,7 +1478,6 @@
                 if (ev.type === 1) {
                     icon = ICONS.goal;
                     typeText = ev.status_name || 'Goal';
-                    if (ev.type === 1 && ev.status === 13) typeText = 'Goal';
                 } else if (ev.type === 2) {
                     icon = ICONS.yellowCard;
                     typeText = 'Yellow Card';
@@ -1610,7 +1607,6 @@
             return html;
         }
 
-        // دالة التشكيلات
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -2292,4 +2288,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                                                                                      </html>
+    </html>
