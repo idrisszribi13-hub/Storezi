@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
+        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.08); }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -481,7 +481,6 @@
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
-        let liveSecondsBase = {};
         let timezoneOffset = 0;
         let timezoneAuto = true;
         let timeFormat = '24';
@@ -795,16 +794,22 @@
             'feyenoord': ['feyenoord rotterdam'],
             'galatasaray': ['galatasaray sk'],
             'fenerbahce': ['fenerbahçe sk'],
-            'besiktas': ['beşiktaş jk']
+            'besiktas': ['beşiktaş jk'],
+            'wolfsburg': ['vfl wolfsburg'],
+            'hamburger sv': ['hamburg'],
+            'fc köln': ['fc koln', 'koln', '1. fc köln'],
+            'wuerzburger kickers': ['würzburger kickers', 'wurzburger kickers', 'kickers wurzburg'],
+            'altglienicke': ['vs altglienicke'],
+            'sc verl': ['sc verls', 'verl']
         };
 
         function normalizeTeamName(name) {
             if (!name) return '';
             let n = name.toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // إزالة التشكيل
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
                 .replace(/[^a-z0-9\s]/g, '')
                 .replace(/\s+/g, ' ').trim();
-            n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl)\b/g, '').replace(/\s+/g, ' ').trim();
+            n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl|vfl|vs|1\.)\b/g, '').replace(/\s+/g, ' ').trim();
             for (const key in teamAliases) {
                 const aliases = teamAliases[key];
                 if (n === key || aliases.includes(n)) {
@@ -898,15 +903,19 @@
         }
 
         function getLiveSeconds(match) {
-            // نعتمد بشكل أساسي على minutes إذا كان متوفرًا
-            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0) {
+            // نعتمد على match_timestamp إذا كان متوفرًا وموثوقًا
+            if (match.match_timestamp && match.match_timestamp > 1000000000) {
+                const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
+                // نتأكد أن الوقت معقول (أقل من 4 ساعات)
+                if (elapsed >= 0 && elapsed < 14400) {
+                    return elapsed;
+                }
+            }
+            // إذا كانت minutes موجودة وصغيرة (أقل من 200 دقيقة) نستخدمها
+            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 200) {
                 return match.minutes * 60;
             }
-            // إذا لم يتوفر minutes، نحاول استخدام match_timestamp
-            if (match.match_timestamp && match.match_timestamp > 1000000000) {
-                return Math.max(0, Math.floor(Date.now() / 1000 - match.match_timestamp));
-            }
-            // إذا لم يتوفر أي شيء، نعيد 0
+            // إذا لم يتوفر شيء، نعيد 0
             return 0;
         }
 
@@ -943,16 +952,7 @@
             if (status === 0) return 'VS';
             if (status === 4) return 'FT';
             if (status === 2) return 'HT';
-            
-            if (totalMinutes > 90) {
-                const extraSeconds = totalSeconds - 90 * 60;
-                const extraMinutes = Math.floor(extraSeconds / 60);
-                const remainingSeconds = extraSeconds % 60;
-                const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
-                return `<div class="clock-main">90'</div><div class="clock-sub extra-time-blue"><img src="${ICONS.clock}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
-            }
-            
-            return `<div class="clock-main">${totalMinutes}'</div>`;
+            return `${totalMinutes}'`;
         }
 
         function renderLiveMatchCard(match) {
@@ -2393,4 +2393,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-            </html>
+                                                                                                                                                                   </html>
