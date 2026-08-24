@@ -8,12 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        /* ===== الأنماط العامة ===== */
         :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
-        
         .champ-select { margin-bottom: 20px; }
         .dropdown-toggle { background: var(--card-bg); border: 1px solid #ddd; border-radius: var(--border-radius); padding: 10px 20px; font-size: 1rem; display: flex; justify-content: space-between; align-items: center; width: 100%; }
         .dropdown-menu { max-height: 400px; overflow-y: auto; border-radius: var(--border-radius); box-shadow: var(--shadow); border: none; }
@@ -61,7 +59,6 @@
         .match-info-block .row > div { padding: 5px 0; }
         .channel-badge { display: inline-block; background: #e9ecef; border-radius: 4px; padding: 2px 8px; margin: 2px; font-size: 0.8rem; }
 
-        /* أيقونات عائمة */
         .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
         .lang-btn { width: 55px; height: 55px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 24px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: transform 0.2s; }
         .lang-btn:hover { transform: scale(1.1); }
@@ -81,7 +78,6 @@
         .time-submenu { display: none; padding-left: 20px; }
         .time-submenu.open { display: block; }
 
-        /* إشعارات وأزرار */
         .live-score { color: #dc3545; font-weight: bold; }
         .live-dot { width: 8px; height: 8px; background-color: #dc3545; border-radius: 50%; display: inline-block; margin-right: 5px; animation: blink 1.2s infinite; }
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0; } }
@@ -95,28 +91,23 @@
         .video-player-modal video { width: 100%; height: 100%; object-fit: contain; }
         .extra-time { color: #ffc107; }
 
-        /* الشريط الزمني */
         .timeline-container { width: 100%; height: 6px; background: #eaeaea; border-radius: 3px; position: relative; margin: 10px 0 5px; }
         .timeline-fill { height: 100%; background: #27ae60; border-radius: 3px; }
         .ht-marker { position: absolute; top: -2px; width: 3px; height: 10px; background: red; left: 50%; border-radius: 2px; }
         .goal-marker { position: absolute; top: -4px; width: 12px; height: 12px; background: #000; border-radius: 50%; transform: translateX(-50%); border: 2px solid #fff; box-shadow: 0 0 2px rgba(0,0,0,0.5); }
 
-        /* تنسيق بطاقات المباريات المطابقة للتطبيق */
         .match-card-live, .match-card-info { width: 100%; margin-bottom: 10px; }
         .match-row { display: flex; align-items: center; justify-content: space-between; padding: 15px; gap: 10px; }
         
-        /* أعمدة الفريقين - تثبيت العرض لمنع كسر الخط */
         .team-col { flex: 1; text-align: center; min-width: 0; }
         .team-col .team-title { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 5px; }
         .team-col img { width: 40px; height: 40px; object-fit: contain; }
 
-        /* العمود الأوسط - ثابت */
         .center-col { width: 120px; flex-shrink: 0; text-align: center; }
         .score-big { font-size: 22px; font-weight: 800; color: #222; }
         .live-badge { background: #dc3545; color: #fff; font-size: 12px; font-weight: bold; border-radius: 12px; padding: 2px 10px; margin-bottom: 5px; }
         .time-text { font-size: 13px; color: #333; font-weight: 600; }
         
-        /* تنسيق القادمة والمنتهية */
         .match-upcoming { display: flex; align-items: center; justify-content: space-between; padding: 15px; }
         .upcoming-center { text-align: center; width: 100px; flex-shrink: 0; }
 
@@ -125,7 +116,6 @@
         .detail-row strong { color: #666; font-weight: 600; }
         .detail-row span { font-weight: 500; }
         
-        /* التقويم */
         .date-nav { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #eaeaea; }
         .date-label { font-size: 16px; font-weight: 700; color: #333; }
         .date-btn { background: #f8f9fa; border: 1px solid #eaeaea; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
@@ -141,7 +131,6 @@
         .cal-day.empty { pointer-events: none; }
         .filter-btn { width: 100%; background: #27ae60; color: white; border: none; border-radius: 30px; padding: 12px; font-size: 16px; font-weight: bold; margin-top: 20px; }
 
-        /* ... باقي الأنماط ... */
         .player-hero { position: relative; height: 280px; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea; }
         .player-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); opacity: 0.9; }
         .player-hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%); pointer-events: none; }
@@ -151,7 +140,7 @@
         .player-basic-info { position: absolute; bottom: 15px; left: 15px; z-index: 2; }
         .player-basic-info h4 { font-weight: 800; margin-bottom: 2px; color: #000; }
         .player-basic-info p { margin: 0; color: #666; font-size: 14px; display: flex; align-items: center; gap: 5px; }
-        
+
         .player-stats-section { background: #fff; border-radius: 16px; padding: 15px; border: 1px solid #eaeaea; margin-bottom: 20px; }
         .stats-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 15px; text-align: center; border-bottom: 1px dashed #eaeaea; padding-bottom: 15px; margin-bottom: 15px; }
         .stat-item { display: flex; flex-direction: column; align-items: center; gap: 5px; }
@@ -205,12 +194,16 @@
         .lineup-player-rate { position: absolute; bottom: -5px; background: #f39c12; color: #000; font-size: 10px; padding: 1px 4px; border-radius: 4px; font-weight: bold; }
         .lineup-player-icons { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
         .lineup-player-icons img { width: 14px; height: 14px; position: absolute; left: -5px; top: -5px; }
+
         .lineup-subs { margin-top: 10px; background: rgba(255,255,255,0.1); padding: 10px; border-radius: 8px; }
         .lineup-subs h6 { color: #fff; text-align: center; margin-bottom: 8px; font-weight: bold; }
         .sub-item { display: flex; align-items: center; gap: 8px; padding: 5px; color: #fff; font-size: 13px; }
         .sub-item img { width: 25px; height: 25px; border-radius: 50%; border: 1px solid white; }
         .sub-item .sub-in-out { margin-left: auto; font-size: 11px; opacity: 0.8; }
         
+        .coach-section, .absences-section { margin-top: 15px; padding: 10px; border: 1px solid #eaeaea; border-radius: 8px; background: #fff; }
+        .coach-section strong, .absences-section strong { display: block; margin-bottom: 8px; }
+
         .stats-title { font-size: 16px; font-weight: 700; color: #333; margin: 20px 0 10px; }
         .stats-container { background: #fff; border-radius: 16px; padding: 20px; border: 1px solid #eaeaea; }
         .possession-box { text-align: center; margin-bottom: 20px; }
@@ -226,9 +219,36 @@
         .stat-line-home { height: 100%; position: absolute; left: 0; background: #0984e3; }
         .stat-line-away { height: 100%; position: absolute; right: 0; background: #6c5ce7; }
 
+        .stream-teams { display: flex; align-items: center; gap: 10px; }
+        .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
+        .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
+
+        .search-trigger { width: 45px; height: 45px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 30px; right: 175px; z-index: 2000; transition: transform 0.2s; }
+        .search-trigger:hover { transform: scale(1.1); }
+
+        .search-modal { background: #f8f9fa; }
+        .search-modal .modal-content { border-radius: 20px; }
+        .search-bar { background: #fff; border-radius: 30px; padding: 10px 20px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
+        .search-bar input { border: none; outline: none; width: 100%; font-size: 1.1rem; background: transparent; }
+        .search-title { font-size: 16px; font-weight: 700; color: #333; margin-top: 15px; margin-bottom: 10px; }
+        
+        .circular-scroll { display: flex; gap: 15px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 10px; scrollbar-width: none; }
+        .circular-scroll::-webkit-scrollbar { display: none; }
+        
+        .circle-item { display: flex; flex-direction: column; align-items: center; width: 80px; cursor: pointer; flex-shrink: 0; }
+        .circle-item img { width: 64px; height: 64px; object-fit: contain; background: #fff; border-radius: 50%; padding: 5px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 1px solid #eaeaea; margin-bottom: 5px; }
+        .circle-item span { font-size: 12px; text-align: center; color: #333; line-height: 1.2; }
+        
+        .prev-search-container { display: flex; flex-wrap: wrap; gap: 10px; }
+        .prev-chip { background: #fff; border: 1px solid #eaeaea; border-radius: 20px; padding: 8px 12px; display: flex; align-items: center; gap: 8px; font-size: 14px; cursor: pointer; }
+        .prev-chip img { width: 16px; height: 16px; object-fit: contain; }
+        .prev-chip .close-x { color: #999; font-size: 14px; margin-left: 5px; cursor: pointer; }
+        .prev-chip .close-x:hover { color: #dc3545; }
+
         @media (max-width: 768px) {
             .team-col .team-title { font-size: 12px; }
             .center-col { width: 100px; }
+            .search-trigger { right: 80px; bottom: 30px; }
         }
     </style>
 </head>
@@ -442,12 +462,11 @@
         let timezoneOffset = 0;
         let timeFormat = '24';
 
-        // ===== إعدادات التاريخ الحالي والتنقل =====
+        // إعدادات التاريخ
         let selectedDate = new Date();
         let calViewDate = new Date();
         let selectedCalDate = null;
 
-        // الحصول على التاريخ المحلي الحقيقي للمستخدم (يمنع مشكلة منتصف الليل)
         function getLocalDateStr(date) {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
@@ -473,29 +492,21 @@
             loadLiveAndTodayMatches();
         }
 
-        // ===== التقويم =====
+        // التقويم
         function renderCalendar() {
             document.getElementById('calMonthTitle').textContent = calViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
             const grid = document.getElementById('calGrid');
             grid.innerHTML = '';
-            
             const year = calViewDate.getFullYear();
             const month = calViewDate.getMonth();
             const firstDay = new Date(year, month, 1);
             const lastDay = new Date(year, month + 1, 0);
-            
-            // أيام فارغة
-            for (let i = 0; i < firstDay.getDay(); i++) {
-                grid.innerHTML += `<div class="cal-day empty"></div>`;
-            }
-            
-            // الأيام الفعلية
+            for (let i = 0; i < firstDay.getDay(); i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const dateObj = new Date(year, month, d);
                 const dateStr = getLocalDateStr(dateObj);
                 const isSelected = selectedCalDate && getLocalDateStr(selectedCalDate) === dateStr;
                 const isToday = getLocalDateStr(new Date()) === dateStr;
-                
                 grid.innerHTML += `<div class="cal-day ${isSelected ? 'selected' : ''}" onclick="selectCalDate('${dateStr}')" ${isToday ? 'style="border: 1px solid #27ae60; border-radius: 50%;"' : ''}>${d}</div>`;
             }
         }
@@ -519,8 +530,6 @@
                 loadLiveAndTodayMatches();
             }
         }
-
-        // ===== نهاية إعدادات التقويم =====
 
         const translations = {
             ar: { dir: 'rtl', title: 'مركز كرة القدم', select_champ: 'اختر البطولة', search_placeholder: 'ابحث عن بطولة...', matches: 'المباريات', standings: 'الترتيب', scorers: 'الهدافون', assists: 'الصناع', news: 'الأخبار', bracket: 'خريطة المواجهات', live: 'مباشر', upcoming: 'القادمة', finished: 'المنتهية', events: 'الأحداث', statistics: 'الإحصائيات', lineups: 'التشكيلة', h2h: 'المواجهات المباشرة', last5: 'آخر 5', coach: 'المدرب', absences: 'الغيابات', close: 'إغلاق', loading: 'جاري التحميل...' },
@@ -856,8 +865,7 @@
             return `<div class="clock-main">${totalMinutes}'</div>`;
         }
 
-        // ===== إعادة تصميم البطاقات لتطابق الصور تمامًا =====
-
+        // ===== بطاقات المباريات ====
         function renderLiveMatchCard(match) {
             const home = match.home_team;
             const away = match.away_team;
@@ -967,7 +975,6 @@
 
             if (todayMatches.length === 0) todayContainer.innerHTML = '<div class="col-12"><p>No matches for this date.</p></div>';
             else todayMatches.forEach(match => {
-                // تحديد ما إذا كانت مباراة قادمة (0) أو منتهية (4)
                 const isUpcoming = match.status === 0;
                 todayContainer.appendChild(renderUpcomingFinishedCard(match, isUpcoming));
             });
@@ -1007,19 +1014,15 @@
 
         async function loadLiveAndTodayMatches() {
             try {
-                showLoading();
-                // جلب المباريات المباشرة
                 const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
                 const liveData = await fetchFromProxy(liveUrl);
                 liveMatches = liveData.data || [];
 
-                // استخدام التاريخ المحدد (المحلي)
                 const dateStr = getLocalDateStr(selectedDate);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 
-                // تصفية المباريات المباشرة من قائمة "مباريات اليوم" لتجنب التكرار (فقط عندما نعرض اليوم الحالي)
                 const todayMatchesRaw = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
                 todayMatches = todayMatchesRaw;
 
@@ -1069,8 +1072,6 @@
 
             } catch (err) {
                 console.error('Failed to load live/today matches:', err);
-            } finally {
-                hideLoading();
             }
         }
 
@@ -1413,7 +1414,6 @@
             </div>`; return html;
         }
 
-        // دالة الأحداث
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             const homeId = info.home_team.row_id; const awayId = info.away_team.row_id;
@@ -1510,7 +1510,6 @@
             html += '</div>'; return html;
         }
 
-        // إصلاح التبويب Lineup باستخدام Event Delegation
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -1654,14 +1653,14 @@
         function removePrevSearch(title) { let searches = getPrevSearch(); searches = searches.filter(s => s.title !== title); localStorage.setItem('prev_searches', JSON.stringify(searches)); renderPreviousSearch(); }
         document.getElementById('searchToggleBtn').addEventListener('click', function() { loadSearchData().then(() => { const searchModal = new bootstrap.Modal(document.getElementById('searchModal')); searchModal.show(); }); });
 
-        // التحقق التلقائي من منتصف الليل (يعيد تحميل المباريات تلقائياً)
+        // التحقق التلقائي من منتصف الليل
         setInterval(() => {
             if (getLocalDateStr(new Date()) !== getLocalDateStr(selectedDate)) {
                 selectedDate = new Date();
                 updateDateUI();
                 loadLiveAndTodayMatches();
             }
-        }, 60000); // فحص كل دقيقة
+        }, 60000);
 
         // بدء التشغيل
         updateDateUI();
@@ -1672,4 +1671,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                                                                      </html>
+                                                                                                                                                                                            </html>
