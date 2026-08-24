@@ -8,7 +8,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
-        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        :root { --primary: #0d6efd; --secondary: #6c757d; --success: #198754; --info: #0dcaf0; --warning: #ffc107; --danger: #dc3545; --light-bg: #f4f6f9; --card-bg: #ffffff; --border-radius: 12px; --shadow: 0 4px 12px rgba(0, 0, 0, 0.08); }
         * { box-sizing: border-box; }
         body { font-family: 'Cairo', sans-serif; background-color: var(--light-bg); margin: 0; padding: 0; }
         .container { max-width: 1200px; padding: 20px 15px; }
@@ -110,11 +110,6 @@
         .upcoming-time { background: #f0f0f0; border-radius: 10px; padding: 8px; font-weight: bold; font-size: 14px; }
         .upcoming-vs { font-size: 12px; color: #777; margin-top: 5px; }
 
-        /* إصلاح الأزرار العائمة */
-        .search-trigger { width: 45px; height: 45px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 30px; right: 175px; z-index: 2000; transition: transform 0.2s; }
-        .time-float { position: fixed; bottom: 30px; right: 100px; z-index: 2000; }
-        .lang-float { position: fixed; bottom: 30px; right: 30px; z-index: 2000; }
-
         .player-hero { position: relative; height: 280px; background: linear-gradient(135deg, #f0f4f8 0%, #e2e8f0 100%); border-radius: 16px; overflow: hidden; margin-bottom: 15px; border: 1px solid #eaeaea; }
         .player-hero-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background-size: contain; background-position: center bottom; background-repeat: no-repeat; filter: drop-shadow(0 10px 15px rgba(0,0,0,0.1)); opacity: 0.9; }
         .player-hero-gradient { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: linear-gradient(to right, rgba(255,255,255,0.9) 0%, rgba(255,255,255,0.6) 40%, rgba(255,255,255,0) 100%); pointer-events: none; }
@@ -168,9 +163,6 @@
 
         .in-arrow { color: #28a745; font-weight: bold; }
         .out-arrow { color: #dc3545; font-weight: bold; }
-
-        /* إضافة اللون الأزرق للوقت الإضافي */
-        .extra-time-blue { color: #007bff; font-weight: bold; }
 
         .halftime-divider { background: #f5f5f5; margin: 5px 0; padding: 12px; text-align: center; font-weight: 700; color: #333; font-size: 16px; border-radius: 8px; border: 1px dashed #ccc; }
         .kickoff-divider, .fulltime-divider { text-align: center; padding: 12px; color: #666; font-size: 15px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 5px; }
@@ -241,6 +233,9 @@
         .stream-teams img { width: 20px; height: 20px; object-fit: contain; }
         .stream-logo { width: 24px; height: 24px; object-fit: contain; margin-right: 8px; }
 
+        .search-trigger { width: 45px; height: 45px; border-radius: 50%; background: #fff; border: 2px solid #ddd; box-shadow: 0 4px 12px rgba(0,0,0,0.15); font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; position: fixed; bottom: 30px; right: 175px; z-index: 2000; transition: transform 0.2s; }
+        .search-trigger:hover { transform: scale(1.1); }
+
         .search-modal { background: #f8f9fa; }
         .search-modal .modal-content { border-radius: 20px; }
         .search-bar { background: #fff; border-radius: 30px; padding: 10px 20px; display: flex; align-items: center; gap: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 20px; }
@@ -259,18 +254,6 @@
         .prev-chip img { width: 16px; height: 16px; object-fit: contain; }
         .prev-chip .close-x { color: #999; font-size: 14px; margin-left: 5px; cursor: pointer; }
         .prev-chip .close-x:hover { color: #dc3545; }
-
-        /* التقويم */
-        .date-nav { display: flex; justify-content: center; align-items: center; margin-bottom: 15px; gap: 15px; padding: 10px; background: #fff; border-radius: 12px; border: 1px solid #eaeaea; }
-        .date-label { font-size: 16px; font-weight: 700; color: #333; }
-        .date-btn { background: #f8f9fa; border: 1px solid #eaeaea; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-size: 18px; }
-        .calendar-btn { background: #e8f5e9; border: 1px solid #27ae60; border-radius: 50%; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .calendar-btn img, .date-btn img { width: 20px; height: 20px; object-fit: contain; }
-        .cal-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; }
-        .cal-day { padding: 10px; border-radius: 50%; cursor: pointer; font-size: 14px; }
-        .cal-day.selected { background: #27ae60; color: white; font-weight: bold; }
-        .cal-day.empty { pointer-events: none; }
-        .filter-btn { width: 100%; background: #27ae60; color: white; border: none; border-radius: 30px; padding: 12px; font-size: 16px; font-weight: bold; margin-top: 20px; }
 
         @media (max-width: 768px) {
             .container { padding: 10px; }
@@ -294,7 +277,8 @@
     <div class="container py-5">
         <h1 class="text-center mb-4 fw-bold" data-i18n="title">🏆 Football Center</h1>
 
-        <div class="date-nav">
+        <!-- شريط التنقل بالتاريخ -->
+        <div class="date-nav d-flex justify-content-center align-items-center gap-3 mb-3">
             <button class="date-btn" id="prevDateBtn">&#10094;</button>
             <div class="date-label" id="dateLabel"></div>
             <button class="calendar-btn" id="openCalendarBtn"><img src="https://zi-store.online/ico/schedule.png"></button>
@@ -396,28 +380,8 @@
         </div>
     </div>
 
-    <!-- Modal Stream -->
-    <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-xl modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header bg-dark text-white">
-                    <div class="d-flex align-items-center">
-                        <img id="streamCompLogo" src="" style="display:none;" class="stream-logo">
-                        <span id="streamCompName" class="me-3"></span>
-                        <div class="stream-teams">
-                            <img id="streamHomeLogo" src="" style="display:none;">
-                            <span id="streamMatchInfo" class="fs-6"></span>
-                            <img id="streamAwayLogo" src="" style="display:none;">
-                        </div>
-                    </div>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body"><video id="streamVideo" controls autoplay></video></div>
-            </div>
-        </div>
-    </div>
-
     <div class="search-trigger" id="searchToggleBtn" title="Search">🔍</div>
+
     <div class="lang-float">
         <button class="lang-btn" id="langToggle" title="Change Language">🌐</button>
         <div class="lang-menu" id="langMenu">
@@ -434,7 +398,6 @@
     <div class="time-float">
         <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
         <div class="time-menu" id="timeMenu">
-            <button class="time-option" id="timeAutoOption">Auto (Device)</button>
             <button class="time-option" id="timeZoneOption">Time Zone</button>
             <button class="time-option" id="timeFormatOption">Time Format</button>
             <div class="time-submenu" id="timeZoneSubmenu"></div>
@@ -446,11 +409,22 @@
     <script>
         const ICON_BASE = 'https://zi-store.online/ico/';
         const ICONS = {
-            clock: ICON_BASE + 'clock.png', arena: ICON_BASE + 'arena.png', schedule: ICON_BASE + 'schedule.png',
-            play: ICON_BASE + 'play.png', penaltyKick: ICON_BASE + 'penalty-kick.png', substitutePlayer: ICON_BASE + 'substitute-player.png',
-            firstAid: ICON_BASE + 'first-aid-kit.png', cup: ICON_BASE + 'football-cup.png', flag: ICON_BASE + 'football-flag.png',
-            goal: ICON_BASE + 'goal.png', redCard: ICON_BASE + 'red-card.png', shirt: ICON_BASE + 'shirt.png',
-            video: ICON_BASE + 'video-camera.png', whistle: ICON_BASE + 'whistle.png', yellowCard: ICON_BASE + 'yellow-card.png'
+            chronometer: ICON_BASE + 'chronometer.png',
+            clock: ICON_BASE + 'clock.png',
+            arena: ICON_BASE + 'arena.png',
+            schedule: ICON_BASE + 'schedule.png',
+            play: ICON_BASE + 'play.png',
+            penaltyKick: ICON_BASE + 'penalty-kick.png',
+            substitutePlayer: ICON_BASE + 'substitute-player.png',
+            firstAid: ICON_BASE + 'first-aid-kit.png',
+            cup: ICON_BASE + 'football-cup.png',
+            flag: ICON_BASE + 'football-flag.png',
+            goal: ICON_BASE + 'goal.png',
+            redCard: ICON_BASE + 'red-card.png',
+            shirt: ICON_BASE + 'shirt.png',
+            video: ICON_BASE + 'video-camera.png',
+            whistle: ICON_BASE + 'whistle.png',
+            yellowCard: ICON_BASE + 'yellow-card.png'
         };
 
         let API_BASE = 'https://api-en.ysscores.com/api';
@@ -481,10 +455,12 @@
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
+        let previousScores = {};
+        let liveSecondsBase = {};
         let timezoneOffset = 0;
-        let timezoneAuto = true;
         let timeFormat = '24';
 
+        // ===== إعدادات التاريخ الحالي والتنقل =====
         let selectedDate = new Date();
         let calViewDate = new Date();
         let selectedCalDate = null;
@@ -527,7 +503,12 @@
 
         const translations = {
             ar: { dir: 'rtl', title: 'مركز كرة القدم', select_champ: 'اختر البطولة', search_placeholder: 'ابحث عن بطولة...', matches: 'المباريات', standings: 'الترتيب', scorers: 'الهدافون', assists: 'الصناع', news: 'الأخبار', bracket: 'خريطة المواجهات', live: 'مباشر', upcoming: 'القادمة', finished: 'المنتهية', events: 'الأحداث', statistics: 'الإحصائيات', lineups: 'التشكيلة', h2h: 'المواجهات المباشرة', last5: 'آخر 5', coach: 'المدرب', absences: 'الغيابات', close: 'إغلاق', loading: 'جاري التحميل...' },
-            en: { dir: 'ltr', title: 'Football Center', select_champ: 'Select Championship', search_placeholder: 'Search championship...', matches: 'Matches', standings: 'Standings', scorers: 'Top Scorers', assists: 'Assists', news: 'News', bracket: 'Bracket', live: 'Live', upcoming: 'Upcoming', finished: 'Finished', events: 'Events', statistics: 'Statistics', lineups: 'Lineups', h2h: 'H2H', last5: 'Last 5', coach: 'Coach', absences: 'Absences', close: 'Close', loading: 'Loading...' }
+            en: { dir: 'ltr', title: 'Football Center', select_champ: 'Select Championship', search_placeholder: 'Search championship...', matches: 'Matches', standings: 'Standings', scorers: 'Top Scorers', assists: 'Assists', news: 'News', bracket: 'Bracket', live: 'Live', upcoming: 'Upcoming', finished: 'Finished', events: 'Events', statistics: 'Statistics', lineups: 'Lineups', h2h: 'H2H', last5: 'Last 5', coach: 'Coach', absences: 'Absences', close: 'Close', loading: 'Loading...' },
+            fr: { dir: 'ltr', title: 'Centre de Football', select_champ: 'Sélectionner le championnat', search_placeholder: 'Rechercher un championnat...', matches: 'Matchs', standings: 'Classement', scorers: 'Buteurs', assists: 'Passes décisives', news: 'Actualités', bracket: 'Tableau', live: 'En direct', upcoming: 'À venir', finished: 'Terminés', events: 'Événements', statistics: 'Statistiques', lineups: 'Compositions', h2h: 'H2H', last5: '5 derniers', coach: 'Entraîneur', absences: 'Absents', close: 'Fermer', loading: 'Chargement...' },
+            es: { dir: 'ltr', title: 'Centro de Fútbol', select_champ: 'Seleccionar campeonato', search_placeholder: 'Buscar campeonato...', matches: 'Partidos', standings: 'Clasificación', scorers: 'Goleadores', assists: 'Asistencias', news: 'Noticias', bracket: 'Cuadro', live: 'En vivo', upcoming: 'Próximos', finished: 'Terminados', events: 'Eventos', statistics: 'Estadísticas', lineups: 'Alineaciones', h2h: 'H2H', last5: 'Últimos 5', coach: 'Entrenador', absences: 'Ausencias', close: 'Cerrar', loading: 'Cargando...' },
+            it: { dir: 'ltr', title: 'Centro Calcio', select_champ: 'Seleziona campionato', search_placeholder: 'Cerca campionato...', matches: 'Partite', standings: 'Classifica', scorers: 'Marcatori', assists: 'Assist', news: 'Notizie', bracket: 'Tabellone', live: 'In diretta', upcoming: 'Prossimi', finished: 'Terminate', events: 'Eventi', statistics: 'Statistiche', lineups: 'Formazioni', h2h: 'H2H', last5: 'Ultime 5', coach: 'Allenatore', absences: 'Assenti', close: 'Chiudi', loading: 'Caricamento...' },
+            pt: { dir: 'ltr', title: 'Centro de Futebol', select_champ: 'Selecionar campeonato', search_placeholder: 'Pesquisar campeonato...', matches: 'Jogos', standings: 'Classificação', scorers: 'Artilheiros', assists: 'Assistências', news: 'Notícias', bracket: 'Chaveamento', live: 'Ao vivo', upcoming: 'Próximos', finished: 'Encerrados', events: 'Eventos', statistics: 'Estatísticas', lineups: 'Escalações', h2h: 'H2H', last5: 'Últimos 5', coach: 'Treinador', absences: 'Ausentes', close: 'Fechar', loading: 'Carregando...' },
+            br: { dir: 'ltr', title: 'Central de Futebol', select_champ: 'Selecionar campeonato', search_placeholder: 'Pesquisar campeonato...', matches: 'Jogos', standings: 'Classificação', scorers: 'Artilheiros', assists: 'Assistências', news: 'Notícias', bracket: 'Chaveamento', live: 'Ao vivo', upcoming: 'Próximos', finished: 'Encerrados', events: 'Eventos', statistics: 'Estatísticas', lineups: 'Escalações', h2h: 'H2H', last5: 'Últimos 5', coach: 'Treinador', absences: 'Ausentes', close: 'Fechar', loading: 'Carregando...' }
         };
 
         function applyLanguage(lang) {
@@ -570,126 +551,53 @@
         function initTimeSystem() {
             const toggle = document.getElementById('timeToggle');
             const menu = document.getElementById('timeMenu');
-            const timeAutoOption = document.getElementById('timeAutoOption');
             const timeZoneOption = document.getElementById('timeZoneOption');
             const timeFormatOption = document.getElementById('timeFormatOption');
             const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
             const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
-
-            // خيار Auto (Device)
-            timeAutoOption.addEventListener('click', () => {
-                timezoneAuto = true;
-                timezoneOffset = 0;
-                localStorage.setItem('timezone_auto', 'true');
-                localStorage.setItem('timezone_offset', '0');
-                hideTimeMenu();
-                refreshTimeDisplay();
-            });
-
-            // إنشاء قائمة المناطق الزمنية
             const zones = [-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12];
             zones.forEach(offset => {
                 const btn = document.createElement('button');
                 btn.className = 'time-option';
-                btn.textContent = offset === 0 ? 'GMT+0 (UTC)' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
-                btn.addEventListener('click', () => {
-                    timezoneAuto = false;
-                    timezoneOffset = offset * 60;
-                    localStorage.setItem('timezone_auto', 'false');
-                    localStorage.setItem('timezone_offset', timezoneOffset);
-                    hideTimeMenu();
-                    refreshTimeDisplay();
-                });
+                btn.textContent = offset === 0 ? 'Auto (Device)' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
+                btn.addEventListener('click', () => { timezoneOffset = offset * 60; localStorage.setItem('timezone_offset', timezoneOffset); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
                 timeZoneSubmenu.appendChild(btn);
             });
-
-            // تنسيق الوقت
             const formats = [{ label: '24h', value: '24' }, { label: '12h AM/PM', value: '12' }];
             formats.forEach(fmt => {
                 const btn = document.createElement('button');
                 btn.className = 'time-option';
                 btn.textContent = fmt.label;
-                btn.addEventListener('click', () => {
-                    timeFormat = fmt.value;
-                    localStorage.setItem('time_format', timeFormat);
-                    hideTimeMenu();
-                    refreshTimeDisplay();
-                });
+                btn.addEventListener('click', () => { timeFormat = fmt.value; localStorage.setItem('time_format', timeFormat); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
                 timeFormatSubmenu.appendChild(btn);
             });
-
-            timeZoneOption.addEventListener('click', (e) => {
-                e.stopPropagation();
-                timeZoneSubmenu.classList.toggle('open');
-                timeFormatSubmenu.classList.remove('open');
-            });
-            timeFormatOption.addEventListener('click', (e) => {
-                e.stopPropagation();
-                timeFormatSubmenu.classList.toggle('open');
-                timeZoneSubmenu.classList.remove('open');
-            });
-            toggle.addEventListener('click', (e) => { 
-                e.stopPropagation(); 
-                menu.classList.toggle('open'); 
-                timeZoneSubmenu.classList.remove('open'); 
-                timeFormatSubmenu.classList.remove('open'); 
-            });
-            document.addEventListener('click', (e) => { 
-                if (!menu.contains(e.target) && e.target !== toggle) { 
-                    menu.classList.remove('open'); 
-                    timeZoneSubmenu.classList.remove('open'); 
-                    timeFormatSubmenu.classList.remove('open'); 
-                } 
-            });
-
-            // استعادة الإعدادات
-            const savedAuto = localStorage.getItem('timezone_auto');
-            if (savedAuto !== null) timezoneAuto = savedAuto === 'true';
+            timeZoneOption.addEventListener('click', () => { timeZoneSubmenu.classList.toggle('open'); timeFormatSubmenu.classList.remove('open'); });
+            timeFormatOption.addEventListener('click', () => { timeFormatSubmenu.classList.toggle('open'); timeZoneSubmenu.classList.remove('open'); });
+            toggle.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); });
+            document.addEventListener('click', (e) => { if (!menu.contains(e.target) && e.target !== toggle) { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); } });
             const savedOffset = localStorage.getItem('timezone_offset');
             if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
             const savedFormat = localStorage.getItem('time_format');
             if (savedFormat) timeFormat = savedFormat;
-
-            function hideTimeMenu() {
-                menu.classList.remove('open');
-                timeZoneSubmenu.classList.remove('open');
-                timeFormatSubmenu.classList.remove('open');
-            }
-
-            function refreshTimeDisplay() {
-                if (currentChampionship) switchTab(currentTab);
-                loadLiveAndTodayMatches();
-            }
+            function hideTimeMenu() { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); }
         }
 
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
-            const baseDate = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
-            return formatDate(baseDate) + ' ' + formatTime(baseDate);
+            const date = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
+            date.setMinutes(date.getMinutes() + timezoneOffset);
+            return formatDate(date) + ' ' + formatTime(date);
         }
 
         function formatDate(date) {
-            if (timezoneAuto) {
-                return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
-            } else {
-                const shifted = new Date(date.getTime() + timezoneOffset * 60000);
-                return shifted.toLocaleDateString('en-US', { timeZone: 'UTC', year: 'numeric', month: 'short', day: 'numeric' });
-            }
+            const options = { year: 'numeric', month: 'short', day: 'numeric' };
+            return date.toLocaleDateString(undefined, options);
         }
 
         function formatTime(date) {
-            if (timezoneAuto) {
-                if (timeFormat === '12') {
-                    return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
-                } else {
-                    return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
-                }
+            if (timeFormat === '12') {
+                return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
             } else {
-                const shifted = new Date(date.getTime() + timezoneOffset * 60000);
-                if (timeFormat === '12') {
-                    return shifted.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: 'numeric', minute: '2-digit', hour12: true });
-                } else {
-                    return shifted.toLocaleTimeString('en-US', { timeZone: 'UTC', hour: '2-digit', minute: '2-digit', hour12: false });
-                }
+                return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
             }
         }
 
@@ -753,7 +661,6 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 streamEvents = data || [];
-                console.log('Stream events loaded:', streamEvents.length);
             } catch (err) {
                 console.error('Stream API error:', err);
                 streamEvents = [];
@@ -773,43 +680,12 @@
             'leeds': ['leeds united', 'leeds utd'],
             'manchester': ['man utd', 'man united'],
             'paris sg': ['paris-sg', 'paris saint-germain', 'paris saint germain', 'psg'],
-            'rennais': ['stade rennais', 'rennes', 'stade rennais fc'],
-            'real madrid': ['real madrid cf', 'real'],
-            'barcelona': ['fc barcelona', 'barca'],
-            'bayern munich': ['fc bayern munich', 'bayern'],
-            'juventus': ['juve', 'juventus fc'],
-            'inter': ['inter milan', 'fc internazionale'],
-            'ac milan': ['milan', 'ac milan'],
-            'roma': ['as roma', 'rome'],
-            'napoli': ['ssc napoli'],
-            'lazio': ['ss lazio'],
-            'atletico madrid': ['atletico madrid cf', 'atleti'],
-            'sevilla': ['sevilla fc'],
-            'valencia': ['valencia cf'],
-            'villarreal': ['villarreal cf'],
-            'benfica': ['sl benfica'],
-            'porto': ['fc porto'],
-            'ajax': ['afc ajax'],
-            'psv': ['psv eindhoven'],
-            'feyenoord': ['feyenoord rotterdam'],
-            'galatasaray': ['galatasaray sk'],
-            'fenerbahce': ['fenerbahçe sk'],
-            'besiktas': ['beşiktaş jk'],
-            'wolfsburg': ['vfl wolfsburg'],
-            'hamburger sv': ['hamburg'],
-            'fc köln': ['fc koln', 'koln', '1. fc köln'],
-            'wuerzburger kickers': ['würzburger kickers', 'wurzburger kickers', 'kickers wurzburg'],
-            'altglienicke': ['vs altglienicke'],
-            'sc verl': ['sc verls', 'verl']
+            'rennais': ['stade rennais', 'rennes', 'stade rennais fc']
         };
 
         function normalizeTeamName(name) {
             if (!name) return '';
-            let n = name.toLowerCase()
-                .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-                .replace(/[^a-z0-9\s]/g, '')
-                .replace(/\s+/g, ' ').trim();
-            n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl|vfl|vs|1\.)\b/g, '').replace(/\s+/g, ' ').trim();
+            let n = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
             for (const key in teamAliases) {
                 const aliases = teamAliases[key];
                 if (n === key || aliases.includes(n)) {
@@ -823,15 +699,11 @@
             if (!streamEvents.length || !match.home_team || !match.away_team) return null;
             const home = normalizeTeamName(match.home_team.title || match.home_team.full_title);
             const away = normalizeTeamName(match.away_team.title || match.away_team.full_title);
-            const event = streamEvents.find(event => {
+            return streamEvents.find(event => {
                 const eventHome = normalizeTeamName(event.homeName);
                 const eventAway = normalizeTeamName(event.awayName);
                 return eventHome === home && eventAway === away;
             });
-            if (event && event.sources && event.sources.length > 0 && event.sources[0].streamUrl) {
-                return event;
-            }
-            return null;
         }
 
         function openStreamPlayer(streamUrl, matchData) {
@@ -903,19 +775,16 @@
         }
 
         function getLiveSeconds(match) {
-            // نعتمد على match_timestamp إذا كان متوفرًا وموثوقًا
-            if (match.match_timestamp && match.match_timestamp > 1000000000) {
-                const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
-                // نتأكد أن الوقت معقول (أقل من 4 ساعات)
-                if (elapsed >= 0 && elapsed < 14400) {
-                    return elapsed;
-                }
+            if (liveSecondsBase[match.match_id]) {
+                const { baseSeconds, lastFetchTime } = liveSecondsBase[match.match_id];
+                return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
             }
-            // إذا كانت minutes موجودة وصغيرة (أقل من 200 دقيقة) نستخدمها
-            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 200) {
+            if (match.minutes) {
                 return match.minutes * 60;
             }
-            // إذا لم يتوفر شيء، نعيد 0
+            if (match.match_timestamp) {
+                return Math.floor(Date.now() / 1000 - match.match_timestamp);
+            }
             return 0;
         }
 
@@ -952,9 +821,19 @@
             if (status === 0) return 'VS';
             if (status === 4) return 'FT';
             if (status === 2) return 'HT';
-            return `${totalMinutes}'`;
+            
+            if (totalMinutes > 90) {
+                const extraSeconds = totalSeconds - 90 * 60;
+                const extraMinutes = Math.floor(extraSeconds / 60);
+                const remainingSeconds = extraSeconds % 60;
+                const exTimeStr = exTime && exTime > 0 ? ` / ${exTime}` : '';
+                return `<div class="clock-main">90'</div><div class="clock-sub"><img src="${ICONS.clock}" class="icon-16"> +${extraMinutes}:${remainingSeconds.toString().padStart(2, '0')}${exTimeStr}</div>`;
+            }
+            
+            return `<div class="clock-main">${totalMinutes}'</div>`;
         }
 
+        // ===== البطاقات الجديدة (بتصميم الخط الزمني الثابت) =====
         function renderLiveMatchCard(match) {
             const home = match.home_team;
             const away = match.away_team;
@@ -972,7 +851,7 @@
             const homeLogoUrl = IMG_BASE_TEAM + home.image;
             const awayLogoUrl = IMG_BASE_TEAM + away.image;
             
-            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0].streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
+            const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
             
             const card = document.createElement('div');
             card.className = 'col-12 mb-3';
@@ -1029,7 +908,7 @@
                     <div class="upcoming-center">
                         <div style="font-size: 22px; font-weight: 800;">${match.home_scores} - ${match.away_scores}</div>
                         <div class="badge bg-secondary">FT</div>
-                        ${streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0].streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : ''}
+                        ${streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : ''}
                     </div>
                 `;
             }
@@ -1100,21 +979,29 @@
             setTimeout(() => { if (alert.parentNode) alert.remove(); }, 8000);
         }
 
+        // ===== إصلاح مشكلة منتصف الليل: استخدام التاريخ المحلي وليس GMT =====
         async function loadLiveAndTodayMatches() {
             try {
                 const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
                 const liveData = await fetchFromProxy(liveUrl);
                 liveMatches = liveData.data || [];
                 
+                // استخدام التاريخ المحدد (المحلي)
                 const dateStr = getLocalDateStr(selectedDate);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
 
+                const nowTs = Date.now();
+                liveMatches.forEach(m => {
+                    liveSecondsBase[m.match_id] = {
+                        baseSeconds: m.minutes || Math.floor(nowTs/1000 - m.match_timestamp),
+                        lastFetchTime: nowTs
+                    };
+                });
                 await loadStreamEvents();
                 renderLiveAndToday();
-
                 if (liveUpdateInterval) clearInterval(liveUpdateInterval);
                 liveUpdateInterval = setInterval(() => {
                     document.querySelectorAll('.match-card').forEach(el => {
@@ -1129,13 +1016,19 @@
                         }
                     });
                 }, 1000);
-
                 if (liveFetchInterval) clearInterval(liveFetchInterval);
                 liveFetchInterval = setInterval(async () => {
                     const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
                     const newLiveMatches = newLiveData.data || [];
                     handleScoreChanges(liveMatches, newLiveMatches);
                     liveMatches = newLiveMatches;
+                    const nowTs2 = Date.now();
+                    liveMatches.forEach(m => {
+                        liveSecondsBase[m.match_id] = {
+                            baseSeconds: m.minutes || Math.floor(nowTs2/1000 - m.match_timestamp),
+                            lastFetchTime: nowTs2
+                        };
+                    });
                     await loadStreamEvents();
                     renderLiveAndToday();
                 }, 25000);
@@ -1285,7 +1178,7 @@
                 const homeLogoUrl = IMG_BASE_TEAM + home.image;
                 const awayLogoUrl = IMG_BASE_TEAM + away.image;
                 
-                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0].streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
+                const playBtn = streamEvent ? `<button class="play-stream-btn" onclick='openStreamPlayer("${streamEvent.sources[0]?.streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl: compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogoUrl, awayLogoUrl: awayLogoUrl })})'><img src="${ICONS.play}" class="icon-16"> Play</button>` : '';
                 
                 html += `<div class="col-12 col-md-6 col-lg-4 mb-3">
                     <div class="card p-3 match-card" data-match-id="${match.match_id}">
@@ -1319,44 +1212,6 @@
             return html;
         }
 
-        // ===== الإصلاح الجذري لفتح تفاصيل المباراة =====
-        async function openMatchDetails(matchId) {
-            showLoading();
-            const results = await Promise.allSettled([
-                fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
-                fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`),
-                fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`),
-                fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`),
-                fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`),
-                fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
-                fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
-            ]);
-
-            const info = results[0].status === 'fulfilled' ? results[0].value.data : null;
-            if (!info) {
-                showError('Match info not available');
-                hideLoading();
-                return;
-            }
-            
-            const events = results[1].status === 'fulfilled' ? results[1].value.data.events || [] : [];
-            const lineups = results[2].status === 'fulfilled' ? results[2].value.data || {} : {};
-            const stats = results[3].status === 'fulfilled' ? results[3].value.data.statics || {} : {};
-            const h2h = results[4].status === 'fulfilled' ? results[4].value.data || {} : {};
-            const homeLast5 = (results[5].status === 'fulfilled' && results[5].value.data.end) ? results[5].value.data.end.data.slice(0, 5) : [];
-            const awayLast5 = (results[6].status === 'fulfilled' && results[6].value.data.end) ? results[6].value.data.end.data.slice(0, 5) : [];
-
-            document.getElementById('errorIndicator').classList.add('hidden');
-
-            renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5);
-            document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
-            
-            const modal = new bootstrap.Modal(document.getElementById('matchModal'));
-            modal.show();
-            startLiveMatchUpdates(info.match_id);
-            hideLoading();
-        }
-
         function startLiveMatchUpdates(matchId) {
             if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
             window.matchLiveInterval = setInterval(async () => {
@@ -1367,14 +1222,55 @@
                     const liveScoreEl = document.querySelector('#matchModalBody .match-score');
                     const liveTimerEl = document.querySelector('#matchModalBody .match-timer');
                     const liveTimelineFillEl = document.querySelector('#matchModalBody .timeline-fill');
+                    const homeTeamImgEl = document.querySelector('#matchModalBody .home-team-img');
+                    const awayTeamImgEl = document.querySelector('#matchModalBody .away-team-img');
                     if (liveScoreEl) liveScoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
                     if (liveTimerEl) liveTimerEl.innerHTML = formatLiveTime(getLiveSeconds(info), info.status, info.ex_time);
                     if (liveTimelineFillEl) liveTimelineFillEl.style.width = `${getMatchProgress(getLiveSeconds(info), info.status)}%`;
+                    if (homeTeamImgEl) homeTeamImgEl.src = IMG_BASE_TEAM + info.home_team.image;
+                    if (awayTeamImgEl) awayTeamImgEl.src = IMG_BASE_TEAM + info.away_team.image;
                 } catch (e) {}
             }, 1000);
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', () => {
                 if (window.matchLiveInterval) clearInterval(window.matchLiveInterval);
             }, { once: true });
+        }
+
+        async function openMatchDetails(matchId) {
+            showLoading();
+            try {
+                const infoUrl = `${API_BASE}/matches/match_info/${matchId}/L/60`;
+                const infoData = await fetchFromProxy(infoUrl);
+                const info = infoData.data;
+                const eventUrl = `${API_BASE}/matches/matches_event/${matchId}`;
+                const lineupUrl = `${API_BASE}/matches/matches_lineup/${matchId}`;
+                const statsUrl = `${API_BASE}/matches/statics_match/${matchId}`;
+                const h2hUrl = `${API_BASE}/matches/h2h/${matchId}/L/60`;
+                const [eventData, lineupData, statsData, h2hData, homeMatches, awayMatches] = await Promise.all([
+                    fetchFromProxy(eventUrl), fetchFromProxy(lineupUrl), fetchFromProxy(statsUrl), fetchFromProxy(h2hUrl).catch(() => ({ data: {} })),
+                    fetchFromProxy(`${API_BASE}/matches/team_matches/${info.home_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
+                    fetchFromProxy(`${API_BASE}/matches/team_matches/${info.away_team.row_id}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
+                ]);
+                const events = eventData.data.events || [];
+                const lineups = lineupData.data || {};
+                const stats = statsData.data.statics || {};
+                const h2h = h2hData.data || {};
+                const homeLast5 = (homeMatches.data && homeMatches.data.end && homeMatches.data.end.data) ? homeMatches.data.end.data.slice(0, 5) : [];
+                const awayLast5 = (awayMatches.data && awayMatches.data.end && awayMatches.data.end.data) ? awayMatches.data.end.data.slice(0, 5) : [];
+                
+                renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5);
+                document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
+                
+                const modal = new bootstrap.Modal(document.getElementById('matchModal'));
+                modal.show();
+                startLiveMatchUpdates(info.match_id);
+                if (window.matchTimerInterval) clearInterval(window.matchTimerInterval);
+            } catch (err) {
+                console.error(err);
+                showError('Failed to load match details');
+            } finally {
+                hideLoading();
+            }
         }
 
         function renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5) {
@@ -1509,141 +1405,103 @@
             return html;
         }
 
-        // دالة الأحداث - مرتبة ومنظمة
+        // دالة الأحداث - إصلاح النتيجة في HT
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             
             const homeId = info.home_team.row_id;
             const awayId = info.away_team.row_id;
             
-            // فلترة أحداث النهاية الخاصة
-            const specialEvents = events.filter(ev => ev.type === 100);
-            const normalEvents = events.filter(ev => ev.type !== 100);
-            
-            // ترتيب الأحداث العادية حسب الدقيقة والوقت الإضافي
-            normalEvents.sort((a, b) => {
-                const aTime = a.time_minute || 0;
-                const bTime = b.time_minute || 0;
-                if (aTime !== bTime) return aTime - bTime;
-                return (a.time_plus || 0) - (b.time_plus || 0);
-            });
-
             let html = '<div class="events-title">Events</div>';
             html += '<div class="event-box">';
 
             // Kick-Off
             html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
 
-            // عرض الأحداث بالترتيب
-            normalEvents.forEach(ev => {
-                html += renderSingleEvent(ev, info, homeId, awayId);
-            });
-
-            // إدراج Half-time إذا وجد
-            const halfTimeEvent = specialEvents.find(ev => ev.status === 2);
-            if (halfTimeEvent) {
-                let homeHT = 0, awayHT = 0;
-                if (info.fh_scores && info.fh_scores.length > 0 && info.fh_scores[0]) {
-                    homeHT = info.fh_scores[0].home_scores || 0;
-                    awayHT = info.fh_scores[0].away_scores || 0;
+            events.forEach(ev => {
+                if (ev.type === 100) {
+                    if (ev.status === 2) {
+                        let homeHT = 0, awayHT = 0;
+                        if (info.fh_scores && info.fh_scores.length > 0) {
+                            homeHT = info.fh_scores[0].home_scores || 0;
+                            awayHT = info.fh_scores[0].away_scores || 0;
+                        }
+                        html += `<div class="halftime-divider"><img src="${ICONS.clock}" class="icon-16"> ${homeHT} - ${awayHT}<br>Half Time</div>`;
+                    } 
+                    else if (ev.status === 3) {
+                        html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
+                    }
+                    return;
                 }
-                html += `<div class="halftime-divider"><img src="${ICONS.clock}" class="icon-16"> ${homeHT} - ${awayHT}<br>Half Time</div>`;
-            }
 
-            // Full-time إذا وجد
-            const fullTimeEvent = specialEvents.find(ev => ev.status === 3);
-            if (fullTimeEvent) {
-                html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
-            }
+                let isHome = ev.team_id == homeId;
+                let isAway = ev.team_id == awayId;
+                
+                let teamLeftHtml = '';
+                let teamRightHtml = '';
+                if (isHome) {
+                    teamLeftHtml = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}"></div>`;
+                } else if (isAway) {
+                    teamRightHtml = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}"></div>`;
+                }
+
+                let icon = ICONS.flag;
+                let typeText = '';
+                let videoBtn = '';
+
+                if (ev.event_video) {
+                    videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
+                }
+
+                if (ev.type === 1) { icon = ICONS.goal; typeText = ev.status_name || 'Goal'; }
+                else if (ev.type === 2) { icon = ICONS.yellowCard; typeText = 'Yellow Card'; }
+                else if (ev.type === 6) { icon = ICONS.redCard; typeText = 'Red Card'; }
+                else if (ev.type === 5) { icon = ICONS.penaltyKick; typeText = 'Penalty Scored'; }
+                else if (ev.type === 8) { icon = ICONS.substitutePlayer; typeText = 'Substitution'; }
+                else if (ev.type === 21) { icon = ICONS.flag; typeText = 'Missed Chance'; }
+                else if (ev.type === 22) { icon = ICONS.flag; typeText = 'Crossbar'; }
+
+                let playerName = ev.player_name ? ev.player_name.title : '';
+                let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
+
+                let finalPlayerHtml = '';
+                let finalSubHtml = '';
+
+                if (ev.type === 8) {
+                    const outPlayer = ev.assist_player_name ? ev.assist_player_name.title : '';
+                    const inPlayer = ev.player_name ? ev.player_name.title : '';
+                    finalPlayerHtml = `<span class="in-arrow">&#8594;</span> <span>${inPlayer}</span>`;
+                    finalSubHtml = `<span class="out-arrow">&#8592;</span> <span>${outPlayer}</span>`;
+                } else {
+                    finalPlayerHtml = `<span>${playerName || typeText}</span>`;
+                    finalSubHtml = `<span>${subName ? subName : typeText}</span>`;
+                }
+
+                html += `
+                <div class="event-row">
+                    ${teamLeftHtml}
+                    <div class="event-time-cell">
+                        <div class="event-time-circle">
+                            <small>${ev.time_plus ? '+' + ev.time_plus : ''}</small>
+                            ${ev.time_minute}'
+                        </div>
+                    </div>
+                    <div class="event-info-center">
+                        <div class="event-player">
+                            <img src="${icon}" class="event-icon">
+                            ${finalPlayerHtml}
+                            ${videoBtn}
+                        </div>
+                        <div class="event-sub">
+                            ${finalSubHtml}
+                        </div>
+                    </div>
+                    ${teamRightHtml}
+                </div>`;
+            });
 
             html += '</div>';
             return html;
-        }
-
-        function renderSingleEvent(ev, info, homeId, awayId) {
-            let isHome = ev.team_id == homeId;
-            let isAway = ev.team_id == awayId;
-            
-            let teamLeftHtml = '';
-            let teamRightHtml = '';
-            if (isHome) {
-                teamLeftHtml = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}"></div>`;
-            } else if (isAway) {
-                teamRightHtml = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}"></div>`;
-            }
-
-            let icon = ICONS.flag;
-            let typeText = '';
-            let videoBtn = '';
-
-            if (ev.event_video) {
-                videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;"></a>`;
-            }
-
-            if (ev.type === 1) {
-                icon = ICONS.goal;
-                typeText = ev.status_name || 'Goal';
-            } else if (ev.type === 2) {
-                icon = ICONS.yellowCard;
-                typeText = 'Yellow Card';
-            } else if (ev.type === 6) {
-                icon = ICONS.redCard;
-                typeText = 'Red Card';
-            } else if (ev.type === 5) {
-                icon = ICONS.penaltyKick;
-                typeText = 'Penalty Scored';
-            } else if (ev.type === 8) {
-                icon = ICONS.substitutePlayer;
-                typeText = 'Substitution';
-            } else if (ev.type === 21) {
-                icon = ICONS.flag;
-                typeText = 'Missed Chance';
-            } else if (ev.type === 22) {
-                icon = ICONS.flag;
-                typeText = 'Crossbar';
-            }
-
-            let playerName = ev.player_name ? ev.player_name.title : '';
-            let subName = ev.assist_player_name ? ev.assist_player_name.title : '';
-
-            let finalPlayerHtml = '';
-            let finalSubHtml = '';
-
-            if (ev.type === 8) {
-                const outPlayer = ev.assist_player_name ? ev.assist_player_name.title : '';
-                const inPlayer = ev.player_name ? ev.player_name.title : '';
-                finalPlayerHtml = `<span class="in-arrow">&#8594;</span> <span>${inPlayer}</span>`;
-                finalSubHtml = `<span class="out-arrow">&#8592;</span> <span>${outPlayer}</span>`;
-            } else {
-                finalPlayerHtml = `<span>${playerName || typeText}</span>`;
-                finalSubHtml = `<span>${subName ? subName : typeText}</span>`;
-            }
-
-            // عرض الدقيقة والوقت الإضافي
-            const minuteDisplay = `${ev.time_minute}'`;
-            const plusDisplay = ev.time_plus && ev.time_plus > 0 ? `+${ev.time_plus}` : '';
-
-            return `
-            <div class="event-row">
-                ${teamLeftHtml}
-                <div class="event-time-cell">
-                    <div class="event-time-circle">
-                        <small>${plusDisplay}</small>
-                        ${minuteDisplay}
-                    </div>
-                </div>
-                <div class="event-info-center">
-                    <div class="event-player">
-                        <img src="${icon}" class="event-icon">
-                        ${finalPlayerHtml}
-                        ${videoBtn}
-                    </div>
-                    <div class="event-sub">
-                        ${finalSubHtml}
-                    </div>
-                </div>
-                ${teamRightHtml}
-            </div>`;
         }
 
         function renderStats(info, stats) {
@@ -1712,6 +1570,7 @@
             return html;
         }
 
+        // إصلاح التبويب Lineup
         function renderLineups(info, lineups) {
             const homeLineup = lineups.lineup ? lineups.lineup[info.home_team.row_id] : null;
             const awayLineup = lineups.lineup ? lineups.lineup[info.away_team.row_id] : null;
@@ -2274,25 +2133,31 @@
             body.innerHTML = html;
         }
 
-        // ===== نظام البحث الكامل =====
+        // ===== إضافة نظام البحث الكامل =====
         async function loadSearchData() {
             const searchUrl = `${API_BASE}/search_result`;
             const data = await fetchFromProxy(searchUrl);
             const searchData = data.data;
 
-            document.getElementById('searchTeamsContainer').innerHTML = '';
+            const teamsContainer = document.getElementById('searchTeamsContainer');
+            teamsContainer.innerHTML = '';
             (searchData.teams || []).forEach(team => {
-                document.getElementById('searchTeamsContainer').innerHTML += `<div class="circle-item" onclick="openTeamModal(${team.name.row_id})"><img src="${IMG_BASE_TEAM + team.name.image}"><span>${team.name.title}</span></div>`;
+                const img = team.name.image ? `<img src="${IMG_BASE_TEAM + team.name.image}">` : '';
+                teamsContainer.innerHTML += `<div class="circle-item" onclick="openTeamModal(${team.name.row_id})">${img}<span>${team.name.title}</span></div>`;
             });
 
-            document.getElementById('searchChampsContainer').innerHTML = '';
+            const champsContainer = document.getElementById('searchChampsContainer');
+            champsContainer.innerHTML = '';
             (searchData.championship || []).forEach(champ => {
-                document.getElementById('searchChampsContainer').innerHTML += `<div class="circle-item" onclick="quickSelectChampionship('${champ.name.url_id}', '${champ.name.title.replace(/'/g, "\\'")}', ${champ.name.type || 1})"><img src="${IMG_BASE_CHAMP + champ.name.image}"><span>${champ.name.title}</span></div>`;
+                const img = champ.name.image ? `<img src="${IMG_BASE_CHAMP + champ.name.image}">` : '';
+                champsContainer.innerHTML += `<div class="circle-item" onclick="quickSelectChampionship('${champ.name.url_id}', '${champ.name.title.replace(/'/g, "\\'")}', ${champ.name.type || 1})">${img}<span>${champ.name.title}</span></div>`;
             });
 
-            document.getElementById('searchPlayersContainer').innerHTML = '';
+            const playersContainer = document.getElementById('searchPlayersContainer');
+            playersContainer.innerHTML = '';
             (searchData.player || []).forEach(player => {
-                document.getElementById('searchPlayersContainer').innerHTML += `<div class="circle-item" onclick="openPlayerModal(${player.name.row_id})"><img src="${IMG_BASE_PLAYER + player.name.image}"><span>${player.name.title}</span></div>`;
+                const img = player.name.image ? `<img src="${IMG_BASE_PLAYER + player.name.image}">` : '';
+                playersContainer.innerHTML += `<div class="circle-item" onclick="openPlayerModal(${player.name.row_id})">${img}<span>${player.name.title}</span></div>`;
             });
 
             renderPreviousSearch();
@@ -2365,15 +2230,10 @@
             });
         });
 
-        // ===== ربط أزرار التاريخ والتقويم =====
-        document.getElementById('prevDateBtn').addEventListener('click', () => changeDate(-1));
-        document.getElementById('nextDateBtn').addEventListener('click', () => changeDate(1));
-        document.getElementById('openCalendarBtn').addEventListener('click', () => {
-            calViewDate = new Date(selectedDate);
-            selectedCalDate = new Date(selectedDate);
-            renderCalendar();
-            new bootstrap.Modal(document.getElementById('calendarModal')).show();
-        });
+        // ===== ربط أزرار التقويم =====
+        document.getElementById('prevDateBtn').onclick = () => changeDate(-1);
+        document.getElementById('nextDateBtn').onclick = () => changeDate(1);
+        document.getElementById('openCalendarBtn').onclick = () => { calViewDate = new Date(selectedDate); selectedCalDate = new Date(selectedDate); renderCalendar(); new bootstrap.Modal(document.getElementById('calendarModal')).show(); };
 
         // ===== فحص منتصف الليل =====
         setInterval(() => {
@@ -2393,4 +2253,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                                                                                                                                                                   </html>
+    </html>
