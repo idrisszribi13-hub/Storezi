@@ -434,6 +434,7 @@
     <div class="time-float">
         <button class="time-btn" id="timeToggle" title="Time Settings">🕒</button>
         <div class="time-menu" id="timeMenu">
+            <button class="time-option" id="timeAutoOption">Auto (Device)</button>
             <button class="time-option" id="timeZoneOption">Time Zone</button>
             <button class="time-option" id="timeFormatOption">Time Format</button>
             <div class="time-submenu" id="timeZoneSubmenu"></div>
@@ -480,7 +481,6 @@
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
-        let previousScores = {};
         let liveSecondsBase = {};
         let timezoneOffset = 0;
         let timezoneAuto = true;
@@ -571,42 +571,96 @@
         function initTimeSystem() {
             const toggle = document.getElementById('timeToggle');
             const menu = document.getElementById('timeMenu');
+            const timeAutoOption = document.getElementById('timeAutoOption');
             const timeZoneOption = document.getElementById('timeZoneOption');
             const timeFormatOption = document.getElementById('timeFormatOption');
             const timeZoneSubmenu = document.getElementById('timeZoneSubmenu');
             const timeFormatSubmenu = document.getElementById('timeFormatSubmenu');
+
+            // خيار Auto (Device)
+            timeAutoOption.addEventListener('click', () => {
+                timezoneAuto = true;
+                timezoneOffset = 0;
+                localStorage.setItem('timezone_auto', 'true');
+                localStorage.setItem('timezone_offset', '0');
+                hideTimeMenu();
+                refreshTimeDisplay();
+            });
+
+            // إنشاء قائمة المناطق الزمنية
             const zones = [-12,-11,-10,-9,-8,-7,-6,-5,-4,-3,-2,-1,0,1,2,3,4,5,6,7,8,9,10,11,12];
             zones.forEach(offset => {
                 const btn = document.createElement('button');
                 btn.className = 'time-option';
-                if (offset === 0) {
-                    btn.textContent = 'Auto (Device)';
-                    btn.addEventListener('click', () => { timezoneAuto = true; timezoneOffset = 0; localStorage.setItem('timezone_auto', 'true'); localStorage.setItem('timezone_offset', '0'); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
-                } else {
-                    btn.textContent = (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
-                    btn.addEventListener('click', () => { timezoneAuto = false; timezoneOffset = offset * 60; localStorage.setItem('timezone_auto', 'false'); localStorage.setItem('timezone_offset', timezoneOffset); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
-                }
+                btn.textContent = offset === 0 ? 'GMT+0 (UTC)' : (offset > 0 ? `GMT+${offset}` : `GMT${offset}`);
+                btn.addEventListener('click', () => {
+                    timezoneAuto = false;
+                    timezoneOffset = offset * 60;
+                    localStorage.setItem('timezone_auto', 'false');
+                    localStorage.setItem('timezone_offset', timezoneOffset);
+                    hideTimeMenu();
+                    refreshTimeDisplay();
+                });
                 timeZoneSubmenu.appendChild(btn);
             });
+
+            // تنسيق الوقت
             const formats = [{ label: '24h', value: '24' }, { label: '12h AM/PM', value: '12' }];
             formats.forEach(fmt => {
                 const btn = document.createElement('button');
                 btn.className = 'time-option';
                 btn.textContent = fmt.label;
-                btn.addEventListener('click', () => { timeFormat = fmt.value; localStorage.setItem('time_format', timeFormat); if (currentChampionship) switchTab(currentTab); loadLiveAndTodayMatches(); hideTimeMenu(); });
+                btn.addEventListener('click', () => {
+                    timeFormat = fmt.value;
+                    localStorage.setItem('time_format', timeFormat);
+                    hideTimeMenu();
+                    refreshTimeDisplay();
+                });
                 timeFormatSubmenu.appendChild(btn);
             });
-            timeZoneOption.addEventListener('click', () => { timeZoneSubmenu.classList.toggle('open'); timeFormatSubmenu.classList.remove('open'); });
-            timeFormatOption.addEventListener('click', () => { timeFormatSubmenu.classList.toggle('open'); timeZoneSubmenu.classList.remove('open'); });
-            toggle.addEventListener('click', (e) => { e.stopPropagation(); menu.classList.toggle('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); });
-            document.addEventListener('click', (e) => { if (!menu.contains(e.target) && e.target !== toggle) { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); } });
-            const savedOffset = localStorage.getItem('timezone_offset');
-            if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
+
+            timeZoneOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                timeZoneSubmenu.classList.toggle('open');
+                timeFormatSubmenu.classList.remove('open');
+            });
+            timeFormatOption.addEventListener('click', (e) => {
+                e.stopPropagation();
+                timeFormatSubmenu.classList.toggle('open');
+                timeZoneSubmenu.classList.remove('open');
+            });
+            toggle.addEventListener('click', (e) => { 
+                e.stopPropagation(); 
+                menu.classList.toggle('open'); 
+                timeZoneSubmenu.classList.remove('open'); 
+                timeFormatSubmenu.classList.remove('open'); 
+            });
+            document.addEventListener('click', (e) => { 
+                if (!menu.contains(e.target) && e.target !== toggle) { 
+                    menu.classList.remove('open'); 
+                    timeZoneSubmenu.classList.remove('open'); 
+                    timeFormatSubmenu.classList.remove('open'); 
+                } 
+            });
+
+            // استعادة الإعدادات
             const savedAuto = localStorage.getItem('timezone_auto');
             if (savedAuto !== null) timezoneAuto = savedAuto === 'true';
+            const savedOffset = localStorage.getItem('timezone_offset');
+            if (savedOffset !== null) timezoneOffset = parseInt(savedOffset);
             const savedFormat = localStorage.getItem('time_format');
             if (savedFormat) timeFormat = savedFormat;
-            function hideTimeMenu() { menu.classList.remove('open'); timeZoneSubmenu.classList.remove('open'); timeFormatSubmenu.classList.remove('open'); }
+
+            function hideTimeMenu() {
+                menu.classList.remove('open');
+                timeZoneSubmenu.classList.remove('open');
+                timeFormatSubmenu.classList.remove('open');
+            }
+
+            function refreshTimeDisplay() {
+                if (currentChampionship) switchTab(currentTab);
+                loadLiveAndTodayMatches();
+            }
         }
 
         function formatMatchDateTime(dateStr, timeStr, timestamp) {
@@ -700,6 +754,7 @@
                 if (!response.ok) throw new Error('HTTP ' + response.status);
                 const data = await response.json();
                 streamEvents = data || [];
+                console.log('Stream events loaded:', streamEvents.length);
             } catch (err) {
                 console.error('Stream API error:', err);
                 streamEvents = [];
@@ -745,7 +800,10 @@
 
         function normalizeTeamName(name) {
             if (!name) return '';
-            let n = name.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            let n = name.toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // إزالة التشكيل
+                .replace(/[^a-z0-9\s]/g, '')
+                .replace(/\s+/g, ' ').trim();
             n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl)\b/g, '').replace(/\s+/g, ' ').trim();
             for (const key in teamAliases) {
                 const aliases = teamAliases[key];
@@ -840,16 +898,15 @@
         }
 
         function getLiveSeconds(match) {
-            if (liveSecondsBase[match.match_id]) {
-                const { baseSeconds, lastFetchTime } = liveSecondsBase[match.match_id];
-                return baseSeconds + Math.floor((Date.now() - lastFetchTime) / 1000);
-            }
-            if (match.minutes !== undefined && match.minutes !== null) {
+            // نعتمد بشكل أساسي على minutes إذا كان متوفرًا
+            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0) {
                 return match.minutes * 60;
             }
-            if (match.match_timestamp) {
-                return Math.floor(Date.now() / 1000 - match.match_timestamp);
+            // إذا لم يتوفر minutes، نحاول استخدام match_timestamp
+            if (match.match_timestamp && match.match_timestamp > 1000000000) {
+                return Math.max(0, Math.floor(Date.now() / 1000 - match.match_timestamp));
             }
+            // إذا لم يتوفر أي شيء، نعيد 0
             return 0;
         }
 
@@ -1055,15 +1112,9 @@
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
 
-                const nowTs = Date.now();
-                liveMatches.forEach(m => {
-                    liveSecondsBase[m.match_id] = {
-                        baseSeconds: (m.minutes !== undefined && m.minutes !== null) ? m.minutes * 60 : Math.floor(nowTs/1000 - m.match_timestamp),
-                        lastFetchTime: nowTs
-                    };
-                });
                 await loadStreamEvents();
                 renderLiveAndToday();
+
                 if (liveUpdateInterval) clearInterval(liveUpdateInterval);
                 liveUpdateInterval = setInterval(() => {
                     document.querySelectorAll('.match-card').forEach(el => {
@@ -1078,19 +1129,13 @@
                         }
                     });
                 }, 1000);
+
                 if (liveFetchInterval) clearInterval(liveFetchInterval);
                 liveFetchInterval = setInterval(async () => {
                     const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
                     const newLiveMatches = newLiveData.data || [];
                     handleScoreChanges(liveMatches, newLiveMatches);
                     liveMatches = newLiveMatches;
-                    const nowTs2 = Date.now();
-                    liveMatches.forEach(m => {
-                        liveSecondsBase[m.match_id] = {
-                            baseSeconds: (m.minutes !== undefined && m.minutes !== null) ? m.minutes * 60 : Math.floor(nowTs2/1000 - m.match_timestamp),
-                            lastFetchTime: nowTs2
-                        };
-                    });
                     await loadStreamEvents();
                     renderLiveAndToday();
                 }, 25000);
@@ -1322,13 +1367,9 @@
                     const liveScoreEl = document.querySelector('#matchModalBody .match-score');
                     const liveTimerEl = document.querySelector('#matchModalBody .match-timer');
                     const liveTimelineFillEl = document.querySelector('#matchModalBody .timeline-fill');
-                    const homeTeamImgEl = document.querySelector('#matchModalBody .home-team-img');
-                    const awayTeamImgEl = document.querySelector('#matchModalBody .away-team-img');
                     if (liveScoreEl) liveScoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
                     if (liveTimerEl) liveTimerEl.innerHTML = formatLiveTime(getLiveSeconds(info), info.status, info.ex_time);
                     if (liveTimelineFillEl) liveTimelineFillEl.style.width = `${getMatchProgress(getLiveSeconds(info), info.status)}%`;
-                    if (homeTeamImgEl) homeTeamImgEl.src = IMG_BASE_TEAM + info.home_team.image;
-                    if (awayTeamImgEl) awayTeamImgEl.src = IMG_BASE_TEAM + info.away_team.image;
                 } catch (e) {}
             }, 1000);
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', () => {
@@ -1468,34 +1509,24 @@
             return html;
         }
 
-        // دالة الأحداث - مرتبة حسب الشوطين
+        // دالة الأحداث - مرتبة ومنظمة
         function renderEvents(events, info) {
             if (!events || events.length === 0) return '<p>No events</p>';
             
             const homeId = info.home_team.row_id;
             const awayId = info.away_team.row_id;
             
-            // تقسيم الأحداث إلى شوط أول وشوط ثاني
-            let halftimeIndex = -1;
-            let fulltimeIndex = -1;
-            events.forEach((ev, idx) => {
-                if (ev.type === 100) {
-                    if (ev.status === 2) halftimeIndex = idx;
-                    else if (ev.status === 3) fulltimeIndex = idx;
-                }
+            // فلترة أحداث النهاية الخاصة
+            const specialEvents = events.filter(ev => ev.type === 100);
+            const normalEvents = events.filter(ev => ev.type !== 100);
+            
+            // ترتيب الأحداث العادية حسب الدقيقة والوقت الإضافي
+            normalEvents.sort((a, b) => {
+                const aTime = a.time_minute || 0;
+                const bTime = b.time_minute || 0;
+                if (aTime !== bTime) return aTime - bTime;
+                return (a.time_plus || 0) - (b.time_plus || 0);
             });
-
-            let firstHalfEvents = [];
-            let secondHalfEvents = [];
-            let hasHalftime = halftimeIndex !== -1;
-            if (hasHalftime) {
-                firstHalfEvents = events.slice(0, halftimeIndex).filter(ev => ev.type !== 100);
-                secondHalfEvents = events.slice(halftimeIndex + 1).filter(ev => ev.type !== 100 && !(ev.type === 100 && ev.status === 3));
-            } else {
-                // بدون نصف الوقت، نعرض كل الأحداث بالترتيب
-                firstHalfEvents = events.filter(ev => ev.type !== 100);
-                secondHalfEvents = [];
-            }
 
             let html = '<div class="events-title">Events</div>';
             html += '<div class="event-box">';
@@ -1503,13 +1534,14 @@
             // Kick-Off
             html += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
 
-            // أحداث الشوط الأول
-            firstHalfEvents.forEach(ev => {
+            // عرض الأحداث بالترتيب
+            normalEvents.forEach(ev => {
                 html += renderSingleEvent(ev, info, homeId, awayId);
             });
 
-            // Half-time مع النتيجة الصحيحة
-            if (hasHalftime) {
+            // إدراج Half-time إذا وجد
+            const halfTimeEvent = specialEvents.find(ev => ev.status === 2);
+            if (halfTimeEvent) {
                 let homeHT = 0, awayHT = 0;
                 if (info.fh_scores && info.fh_scores.length > 0 && info.fh_scores[0]) {
                     homeHT = info.fh_scores[0].home_scores || 0;
@@ -1518,13 +1550,9 @@
                 html += `<div class="halftime-divider"><img src="${ICONS.clock}" class="icon-16"> ${homeHT} - ${awayHT}<br>Half Time</div>`;
             }
 
-            // أحداث الشوط الثاني
-            secondHalfEvents.forEach(ev => {
-                html += renderSingleEvent(ev, info, homeId, awayId);
-            });
-
-            // Full-time
-            if (fulltimeIndex !== -1) {
+            // Full-time إذا وجد
+            const fullTimeEvent = specialEvents.find(ev => ev.status === 3);
+            if (fullTimeEvent) {
                 html += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
             }
 
@@ -1591,13 +1619,17 @@
                 finalSubHtml = `<span>${subName ? subName : typeText}</span>`;
             }
 
+            // عرض الدقيقة والوقت الإضافي
+            const minuteDisplay = `${ev.time_minute}'`;
+            const plusDisplay = ev.time_plus && ev.time_plus > 0 ? `+${ev.time_plus}` : '';
+
             return `
             <div class="event-row">
                 ${teamLeftHtml}
                 <div class="event-time-cell">
                     <div class="event-time-circle">
-                        <small>${ev.time_plus ? '+' + ev.time_plus : ''}</small>
-                        ${ev.time_minute}'
+                        <small>${plusDisplay}</small>
+                        ${minuteDisplay}
                     </div>
                 </div>
                 <div class="event-info-center">
@@ -2361,4 +2393,4 @@
         loadLiveAndTodayMatches();
     </script>
 </body>
-                </html>
+            </html>
