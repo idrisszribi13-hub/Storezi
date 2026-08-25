@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.5, user-scalable=yes" />
-    <title>Football Center – YSScores + API Sports</title>
+    <title>Football Center – YSScores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet" />
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js">
@@ -2541,11 +2541,8 @@
     </script>
     <script>
         // ============================================================
-        //  CONFIGURATION
+        //  CONFIGURATION – YSScores ONLY (API-Sports removed)
         // ============================================================
-        const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
-        const API_SPORTS_BASE = 'https://v3.football.api-sports.io';
-
         const ICON_BASE = 'https://zi-store.online/icon/';
         const ICONS = {
             clock: ICON_BASE + 'clock.png',
@@ -2912,30 +2909,30 @@
             }
         }
 
-        async function fetchApiSports(endpoint) {
-            const url = `${API_SPORTS_BASE}${endpoint}`;
-            const headers = {
-                'x-rapidapi-key': API_SPORTS_KEY,
-                'x-rapidapi-host': 'v3.football.api-sports.io'
-            };
-            try {
-                const response = await fetch(url, { headers });
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
-            } catch (err) {
-                console.error('API-Sports error:', err);
-                return null;
+        // ============================================================
+        //  MATCH FUNCTIONS (YSScores only)
+        // ============================================================
+        function getLiveSeconds(match) {
+            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400)
+                return match.minutes;
+            if (match.match_timestamp && match.match_timestamp > 1000000000) {
+                const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
+                if (elapsed >= 0 && elapsed < 14400) return elapsed;
             }
+            return 0;
         }
 
         function getMatchPeriod(status) {
-            if (status === 'NS') return 'Upcoming';
-            if (status === 'FT') return 'FT';
-            if (status === 'HT') return 'HT';
-            if (status === 'ET') return 'ET';
-            if (status === 'PEN') return 'PEN';
-            if (status === '1H') return '1st Half';
-            if (status === '2H') return '2nd Half';
+            if (status === 0) return 'Upcoming';
+            if (status === 4) return 'FT';
+            if (status === 2) return 'HT';
+            if (status === 5) return 'ET HT';
+            if (status === 7) return 'ET FT';
+            if (status === 8) return '1st ET';
+            if (status === 9) return '2nd ET';
+            if (status === 10) return 'PEN';
+            if (status === 1) return '1st Half';
+            if (status === 3) return '2nd Half';
             return 'Live';
         }
 
@@ -2944,9 +2941,9 @@
             const mins = Math.floor(total / 60);
             const secs = Math.floor(total % 60);
             const padded = String(secs).padStart(2, '0');
-            if (status === 'NS') return { display: 'VS', stoppage: null };
-            if (status === 'FT') return { display: 'FT', stoppage: null };
-            if (status === 'HT') return { display: 'HT', stoppage: null };
+            if (status === 0) return { display: 'VS', stoppage: null };
+            if (status === 4) return { display: 'FT', stoppage: null };
+            if (status === 2) return { display: 'HT', stoppage: null };
             let display = `${mins}:${padded}`;
             let stoppage = null;
             if (exTime && exTime > 0) stoppage = `+${exTime}'`;
@@ -2954,11 +2951,11 @@
         }
 
         function getMatchProgress(seconds, status) {
-            if (status === 'NS') return 0;
-            if (status === 'FT') return 100;
-            if (status === 'HT') return 50;
-            if (status === 'PEN') return 100;
-            if (status === 'ET') {
+            if (status === 0) return 0;
+            if (status === 4) return 100;
+            if (status === 2) return 50;
+            if (status === 10) return 100;
+            if (status === 8 || status === 9) {
                 const et = seconds / 60;
                 return Math.min(100, Math.max(0, ((et - 90) / 30) * 100));
             }
@@ -2966,13 +2963,44 @@
             return Math.min(100, Math.max(0, (mins / 90) * 100));
         }
 
-        function getLiveSecondsFromFixture(fixture) {
-            const elapsed = fixture?.status?.elapsed || 0;
-            return elapsed * 60;
+        function getGoalMarkers(match) {
+            let markers = '';
+            if (match.score_time) {
+                try {
+                    const times = JSON.parse(match.score_time);
+                    times.forEach(score => {
+                        for (const key in score) {
+                            if (key === '1' || key === '5') {
+                                const min = parseInt(score[key]);
+                                let pct = Math.min(100, (min / 90) * 100);
+                                if (min > 90) pct = 50 + ((min - 90) / 30) * 50;
+                                markers += `<div class="goal-marker" style="left:${pct}%"></div>`;
+                            }
+                        }
+                    });
+                } catch (e) {}
+            }
+            return markers;
+        }
+
+        function startCountdown(el, timestamp) {
+            if (!el) return;
+            function update() {
+                const diff = Math.max(0, Math.floor((timestamp - Date.now()) / 1000));
+                if (diff <= 0) { el.textContent = '0s'; return; }
+                const h = Math.floor(diff / 3600),
+                    m = Math.floor((diff % 3600) / 60),
+                    s = diff % 60;
+                if (h > 0) el.textContent = `${h}h ${m}m ${s}s`;
+                else if (m > 0) el.textContent = `${m}m ${s}s`;
+                else el.textContent = `${s}s`;
+            }
+            update();
+            return setInterval(update, 1000);
         }
 
         // ============================================================
-        //  HEADER SEARCH
+        //  HEADER SEARCH (YSScores)
         // ============================================================
         const searchInput = document.getElementById('headerSearchInput');
         const searchDropdown = document.getElementById('searchResultsDropdown');
@@ -3008,7 +3036,7 @@
             if (results.teams && results.teams.length) {
                 has = true;
                 results.teams.slice(0, 5).forEach(t => {
-                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : 'https://via.placeholder.com/30';
+                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                     const title = t.name?.title || 'Unknown';
                     const id = t.name?.row_id || t.id;
                     html += `<div class="result-item" onclick="openTeamModal(${id})">
@@ -3020,7 +3048,7 @@
             if (results.championship && results.championship.length) {
                 has = true;
                 results.championship.slice(0, 5).forEach(c => {
-                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : 'https://via.placeholder.com/30';
+                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                     const title = c.name?.title || 'Unknown';
                     const urlId = c.name?.url_id || c.id;
                     const type = c.name?.type || 1;
@@ -3033,7 +3061,7 @@
             if (results.player && results.player.length) {
                 has = true;
                 results.player.slice(0, 5).forEach(p => {
-                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : 'https://via.placeholder.com/30';
+                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                     const title = p.name?.title || 'Unknown';
                     const id = p.name?.row_id || p.id;
                     html += `<div class="result-item" onclick="openPlayerModal(${id})">
@@ -3048,7 +3076,7 @@
         }
 
         // ============================================================
-        //  CHAMPIONSHIPS
+        //  CHAMPIONSHIPS (YSScores)
         // ============================================================
         async function loadChampionships() {
             try {
@@ -3075,7 +3103,7 @@
                 item.dataset.champType = champ.type || 1;
                 item.dataset.standings = champ.standings ? '1' : '0';
                 item.dataset.cups = champ.cups ? '1' : '0';
-                const img = champ.image ? IMG_BASE_CHAMP + champ.image : 'https://via.placeholder.com/24';
+                const img = champ.image ? IMG_BASE_CHAMP + champ.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Crect width=\'24\' height=\'24\' fill=\'%23ddd\'/%3E%3Ctext x=\'4\' y=\'16\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                 item.innerHTML =
                     `<img src="${img}" style="width:20px;height:20px;margin-right:8px;object-fit:contain;" /> <span>${champ.title}</span>`;
                 item.addEventListener('click', function(e) { e.preventDefault();
@@ -3116,75 +3144,19 @@
         }
 
         // ============================================================
-        //  LIVE MATCHES FROM API-SPORTS (FIXED)
+        //  LOAD LIVE & TODAY MATCHES (YSScores)
         // ============================================================
         async function loadLiveMatches() {
             try {
-                const response = await fetchApiSports('/fixtures?live=all');
-                // Safety checks
-                if (!response || !response.response || !Array.isArray(response.response)) {
-                    liveMatches = [];
-                    renderLiveAndToday();
-                    return;
-                }
-                const fixtures = response.response;
-                const newLive = fixtures
-                    .filter(f => f && f.fixture && f.fixture.status) // filter invalid
-                    .map(f => {
-                        const home = f.teams?.home || { id: 0, name: 'Unknown' };
-                        const away = f.teams?.away || { id: 0, name: 'Unknown' };
-                        const status = f.fixture.status.short || 'NS';
-                        const elapsed = f.fixture.status.elapsed || 0;
-                        const extra = f.fixture.status.extra || null;
-                        return {
-                            match_id: f.fixture.id || Date.now() + Math.random(),
-                            home_team: {
-                                row_id: home.id,
-                                title: home.name,
-                                image: null,
-                            },
-                            away_team: {
-                                row_id: away.id,
-                                title: away.name,
-                                image: null,
-                            },
-                            home_scores: f.goals?.home ?? 0,
-                            away_scores: f.goals?.away ?? 0,
-                            status: status,
-                            minutes: elapsed * 60,
-                            ex_time: extra || null,
-                            match_timestamp: f.fixture.timestamp || Math.floor(Date.now() / 1000),
-                            championship: {
-                                title: f.league?.name || 'Unknown',
-                                image: null,
-                                url_id: f.league?.id || 0,
-                                type: 1,
-                            },
-                            round: f.league?.round || '',
-                            match_date: f.fixture?.date || new Date().toISOString(),
-                            match_time: f.fixture?.date ? new Date(f.fixture.date).toLocaleTimeString() : '',
-                            score_time: null,
-                            match_penalties: null,
-                            video_links: [],
-                            Stadium: f.fixture?.venue?.name || '',
-                            channel_commm: [],
-                            referees: [],
-                            _api: true,
-                            _fixtureId: f.fixture?.id || 0,
-                        };
-                    });
+                const url = `${API_BASE}/matches/matches_in_proccess/L/60`;
+                const data = await fetchFromProxy(url);
+                const newLive = data.data || [];
+                handleScoreChanges(liveMatches, newLive);
                 liveMatches = newLive;
-                await loadTodayMatches();
-            } catch (err) {
-                console.error('API-Sports live error:', err);
-                liveMatches = [];
                 renderLiveAndToday();
-            }
+            } catch (err) { console.error('Live matches error:', err); }
         }
 
-        // ============================================================
-        //  TODAY MATCHES FROM YSScores
-        // ============================================================
         async function loadTodayMatches() {
             try {
                 const dateStr = getLocalDateStr(selectedDate);
@@ -3194,11 +3166,7 @@
                 todayMatches = (data.data || []).filter(m => !liveIds.has(m.match_id));
                 renderLiveAndToday();
                 renderAllMatches();
-            } catch (err) {
-                console.error('Today matches error:', err);
-                todayMatches = [];
-                renderLiveAndToday();
-            }
+            } catch (err) { console.error('Today matches error:', err); }
         }
 
         async function loadLiveAndTodayMatches() {
@@ -3206,8 +3174,29 @@
             await loadTodayMatches();
         }
 
+        function handleScoreChanges(old, newArr) {
+            newArr.forEach(n => {
+                const o = old.find(m => m.match_id == n.match_id);
+                if (!o) return;
+                if ((n.home_scores || 0) > (o.home_scores || 0)) showGoalAlert(n.match_id, 'home', 'GOAL');
+                else if ((n.away_scores || 0) > (o.away_scores || 0)) showGoalAlert(n.match_id, 'away', 'GOAL');
+            });
+        }
+
+        function showGoalAlert(matchId, side, type) {
+            const card = document.querySelector(`.match-card[data-match-id="${matchId}"]`);
+            if (!card) return;
+            const old = card.querySelector('.goal-alert');
+            if (old) old.remove();
+            const el = document.createElement('div');
+            el.className = 'goal-alert';
+            el.innerHTML = `⚽ ${type}`;
+            card.appendChild(el);
+            setTimeout(() => { if (el.parentNode) el.remove(); }, 8000);
+        }
+
         // ============================================================
-        //  RENDER MATCH CARDS
+        //  RENDER MATCH CARDS (YSScores style)
         // ============================================================
         function renderLiveMatchCard(match) {
             const home = match.home_team,
@@ -3216,16 +3205,28 @@
             const compImg = match.championship?.image ?
                 `<img src="${IMG_BASE_CHAMP + match.championship.image}" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;" />` :
                 '';
-            const homeLogo = home.image ? IMG_BASE_TEAM + home.image : 'https://via.placeholder.com/34';
-            const awayLogo = away.image ? IMG_BASE_TEAM + away.image : 'https://via.placeholder.com/34';
-            const seconds = match.minutes || 0;
-            const status = match.status;
+            const seconds = getLiveSeconds(match);
+            const status = match.status || 1;
             const timer = formatLiveTimeRealtime(seconds, status, match.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
+            const markers = getGoalMarkers(match);
+            const homeLogo = IMG_BASE_TEAM + home.image;
+            const awayLogo = IMG_BASE_TEAM + away.image;
             const isFav = isFavorite(match.match_id);
+
+            let penaltyHtml = '';
+            if (match.match_penalties) {
+                const homePens = match.match_penalties[home.row_id] ? match.match_penalties[home.row_id].filter(p => p
+                    .score === 1).length : 0;
+                const awayPens = match.match_penalties[away.row_id] ? match.match_penalties[away.row_id].filter(p => p
+                    .score === 1).length : 0;
+                penaltyHtml = `<div class="penalty-score">PK: ${homePens} - ${awayPens}</div>`;
+            }
+
             let timerHtml =
                 `<div class="time-text">${timer.display}${timer.stoppage ? `<span class="stoppage-badge">${timer.stoppage}</span>` : ''}</div>`;
+
             return `
             <div class="col-12 mb-2">
                 <div class="match-card" data-match-id="${match.match_id}">
@@ -3236,11 +3237,13 @@
                         </div>
                         <div class="center-col">
                             <div class="score-big">${match.home_scores || 0} - ${match.away_scores || 0}</div>
+                            ${penaltyHtml}
                             <div class="live-badge">${period}</div>
                             ${timerHtml}
                             <div class="timeline-container">
                                 <div class="timeline-fill" style="width:${progress}%"></div>
-                                ${status === 'HT' ? '<div class="ht-marker"></div>' : ''}
+                                ${status === 2 ? '<div class="ht-marker"></div>' : ''}
+                                ${markers}
                             </div>
                             <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});">${isFav ? '★' : '☆'}</button>
                         </div>
@@ -3264,8 +3267,8 @@
             const compImg = match.championship?.image ?
                 `<img src="${IMG_BASE_CHAMP + match.championship.image}" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;" />` :
                 '';
-            const homeLogo = home.image ? IMG_BASE_TEAM + home.image : 'https://via.placeholder.com/34';
-            const awayLogo = away.image ? IMG_BASE_TEAM + away.image : 'https://via.placeholder.com/34';
+            const homeLogo = IMG_BASE_TEAM + home.image;
+            const awayLogo = IMG_BASE_TEAM + away.image;
             const isFav = isFavorite(match.match_id);
             const matchTime = match.match_timestamp ? formatMatchLocalTime(match.match_timestamp) : match.match_time;
             const matchDate = match.match_timestamp ? formatMatchLocalDate(match.match_timestamp) : match.match_date;
@@ -3364,7 +3367,7 @@
             all.forEach(m => {
                 const isLive = liveMatches.some(lm => lm.match_id == m.match_id);
                 if (isLive) container.innerHTML += renderLiveMatchCard(m);
-                else container.innerHTML += renderUpcomingFinishedCard(m, m.status === 'NS' || m.status === 0);
+                else container.innerHTML += renderUpcomingFinishedCard(m, m.status === 0);
             });
             container.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
@@ -3377,7 +3380,7 @@
         }
 
         // ============================================================
-        //  HIGHLIGHTS
+        //  HIGHLIGHTS (YSScores)
         // ============================================================
         async function loadHighlights() {
             const allMatches = [...liveMatches, ...todayMatches];
@@ -3409,11 +3412,11 @@
                     const matchId = v.url.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/);
                     if (matchId) thumb = `https://img.youtube.com/vi/${matchId[1]}/hqdefault.jpg`;
                 }
-                if (!thumb) thumb = 'https://via.placeholder.com/480x270/222/fff?text=Video';
+                if (!thumb) thumb = 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'480\' height=\'270\' viewBox=\'0 0 480 270\'%3E%3Crect width=\'480\' height=\'270\' fill=\'%23222\'/%3E%3Ctext x=\'180\' y=\'140\' font-family=\'sans-serif\' font-size=\'24\' fill=\'%23fff\'%3EVideo%3C/text%3E%3C/svg%3E';
                 html += `
                 <div class="highlight-card" onclick="openHighlightPlayer('${v.url}','${v.title.replace(/'/g,"\\'")}')">
                     <div class="highlight-thumb">
-                        <img src="${thumb}" alt="${v.title}" onerror="this.src='https://via.placeholder.com/480x270/222/fff?text=Video'" />
+                        <img src="${thumb}" alt="${v.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'480\' height=\'270\' viewBox=\'0 0 480 270\'%3E%3Crect width=\'480\' height=\'270\' fill=\'%23222\'/%3E%3Ctext x=\'180\' y=\'140\' font-family=\'sans-serif\' font-size=\'24\' fill=\'%23fff\'%3EVideo%3C/text%3E%3C/svg%3E'" />
                         <div class="play-overlay"></div>
                     </div>
                     <div class="highlight-body">
@@ -3449,95 +3452,58 @@
         }
 
         // ============================================================
-        //  MATCH DETAILS (FULL YSScores UI)
+        //  MATCH DETAILS (FULL YSScores UI with all events)
         // ============================================================
         async function openMatchDetails(matchId) {
             showLoading();
             try {
-                const url = `${API_BASE}/matches/match_info/${matchId}/L/60`;
-                const data = await fetchFromProxy(url);
-                if (data && data.data) {
-                    const [eventsRes, lineupRes, statsRes, h2hRes, homeLast5Res, awayLast5Res] = await Promise.all([
-                        fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`).catch(() => ({ data: { events: [] } })),
-                        fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`).catch(() => ({ data: {} })),
-                        fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`).catch(() => ({ data: { statics: {} } })),
-                        fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`).catch(() => ({ data: {} })),
-                        fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
-                        fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
-                    ]);
-                    const info = data.data;
-                    const events = eventsRes.data?.events || [];
-                    const lineups = lineupRes.data || {};
-                    const stats = statsRes.data?.statics || {};
-                    const h2h = h2hRes.data || {};
-                    const homeLast5 = homeLast5Res.data?.end?.data?.slice(0, 5) || [];
-                    const awayLast5 = awayLast5Res.data?.end?.data?.slice(0, 5) || [];
+                const [infoRes, eventsRes, lineupRes, statsRes, h2hRes, homeLast5Res, awayLast5Res] = await Promise.all([
+                    fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
+                    fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`).catch(() => ({ data: { events: [] } })),
+                    fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`).catch(() => ({ data: {} })),
+                    fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`).catch(() => ({ data: { statics: {} } })),
+                    fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`).catch(() => ({ data: {} })),
+                    fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
+                    fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
+                ]);
+                const info = infoRes.data;
+                if (!info) { showError('Match info not available');
+                    hideLoading(); return; }
+                const events = eventsRes.data?.events || [];
+                const lineups = lineupRes.data || {};
+                const stats = statsRes.data?.statics || {};
+                const h2h = h2hRes.data || {};
+                const homeLast5 = homeLast5Res.data?.end?.data?.slice(0, 5) || [];
+                const awayLast5 = awayLast5Res.data?.end?.data?.slice(0, 5) || [];
 
-                    let standingsData = null;
-                    if (info.championship && info.championship.url_id) {
-                        try {
-                            const sData = await fetchFromProxy(
-                                `${API_BASE}/matches/league_standing_stage/${info.championship.url_id}`);
-                            if (sData.data && sData.data.league && sData.data.league.stage0) standingsData = sData.data;
-                        } catch (e) {}
-                    }
-                    renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData);
-                    document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
-                    const modal = new bootstrap.Modal(document.getElementById('matchModal'));
-                    modal.show();
-                    startLiveMatchUpdates(matchId);
-                    hideLoading();
-                    return;
+                let standingsData = null;
+                if (info.championship && info.championship.url_id) {
+                    try {
+                        const sData = await fetchFromProxy(
+                            `${API_BASE}/matches/league_standing_stage/${info.championship.url_id}`);
+                        if (sData.data && sData.data.league && sData.data.league.stage0) standingsData = sData.data;
+                    } catch (e) {}
                 }
-            } catch (e) { console.log('YSScores match detail failed, trying API-Sports', e); }
 
-            // Fallback to API-Sports
-            try {
-                const response = await fetchApiSports(`/fixtures?id=${matchId}`);
-                if (response && response.response && response.response.length > 0) {
-                    const fixture = response.response[0];
-                    const match = {
-                        home_team: { row_id: fixture.teams.home.id, title: fixture.teams.home.name, image: null },
-                        away_team: { row_id: fixture.teams.away.id, title: fixture.teams.away.name, image: null },
-                        home_scores: fixture.goals.home ?? 0,
-                        away_scores: fixture.goals.away ?? 0,
-                        status: fixture.status.short,
-                        match_timestamp: fixture.fixture.timestamp,
-                        championship: { title: fixture.league.name, image: null, url_id: fixture.league.id, type: 1 },
-                        round: fixture.league.round || '',
-                        match_date: fixture.fixture.date,
-                        match_time: new Date(fixture.fixture.date).toLocaleTimeString(),
-                        Stadium: fixture.fixture.venue?.name || '',
-                        channel_commm: [],
-                        referees: [],
-                        video_links: [],
-                        match_penalties: null,
-                        score_time: null,
-                        ex_time: fixture.status.extra || null,
-                        minutes: (fixture.status.elapsed || 0) * 60,
-                        _api: true,
-                        _fixtureId: fixture.fixture.id,
-                    };
-                    renderMatchDetailsFull(match, [], {}, {}, {}, [], [], null);
-                    document.getElementById('matchModalTitle').textContent =
-                        `${fixture.teams.home.name} vs ${fixture.teams.away.name}`;
-                    const modal = new bootstrap.Modal(document.getElementById('matchModal'));
-                    modal.show();
-                    hideLoading();
-                    return;
-                }
-            } catch (e) { console.log('API-Sports detail failed', e); }
-
-            showError('Match details not available');
-            hideLoading();
+                renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData);
+                document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
+                const modal = new bootstrap.Modal(document.getElementById('matchModal'));
+                modal.show();
+                startLiveMatchUpdates(matchId);
+                hideLoading();
+            } catch (err) {
+                console.error('Match details error:', err);
+                showError('Failed to load match details');
+                hideLoading();
+            }
         }
 
         // ============================================================
-        //  FULL MATCH DETAILS RENDER (with tabs)
+        //  FULL MATCH DETAILS RENDER (with tabs, events, lineups, stats, H2H, standings)
         // ============================================================
         function renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
             const body = document.getElementById('matchModalBody');
-            const seconds = (info.minutes) || 0;
+            const seconds = getLiveSeconds(info);
             const status = info.status || 1;
             const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
             const period = getMatchPeriod(status);
@@ -3599,6 +3565,7 @@
                         <div class="timeline-container">
                             <div class="timeline-fill timeline-fill-modal" style="width:${progress}%"></div>
                             ${status === 2 ? '<div class="ht-marker"></div>' : ''}
+                            ${getGoalMarkers(info)}
                         </div>
                         ${videoHtml}
                     </div>
@@ -3609,7 +3576,7 @@
                 </div>
             </div>`;
 
-            // Standings preview
+            // Standings preview (highlighted teams)
             let standingsPreview = '';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
@@ -3640,80 +3607,141 @@
                 }
             }
 
-            // Events
-            let eventsHtml = '<div class="event-box">';
+            // ===== EVENTS (full with kick-off, half time, full time, extra time, penalties, etc.) =====
+            let eventsHtml = '<div class="event-box" style="display:flex;flex-direction:column-reverse;">';
             if (events && events.length) {
-                events.forEach(ev => {
-                    const isHome = ev.team_id == info.home_team.row_id;
-                    const isAway = ev.team_id == info.away_team.row_id;
-                    let side = '';
-                    if (isHome) side =
-                        `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})" /></div>`;
-                    else if (isAway) side =
-                        `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})" /></div>`;
-                    const min = ev.time_minute || 0;
-                    const plus = ev.time_plus && ev.time_plus > 0 ? `+${ev.time_plus}` : '';
-                    let icon = '⚽',
-                        text = ev.status_name || 'Event';
-                    if (ev.type === 2 || ev.type === 3) { icon = '🟨';
-                        text = 'Yellow Card'; }
-                    if (ev.type === 6 || ev.type === 4) { icon = '🟥';
-                        text = 'Red Card'; }
-                    if (ev.type === 8) { icon = '🔄';
-                        text = 'Substitution'; }
-                    const playerName = ev.player_name ? ev.player_name.title : '';
-                    eventsHtml += `
-                    <div class="event-row">
-                        ${side}
-                        <div class="event-time-cell">
-                            <div class="event-time-circle" style="background:#e8f5e9;color:#2e7d32;">
-                                ${plus ? `<span class="time-extra">${plus}</span>` : ''}
-                                <span class="time-main">${min}'</span>
-                            </div>
-                        </div>
-                        <div class="event-info-center">
-                            <div class="event-player">
-                                <span>${icon}</span>
-                                <span class="player-name-click" onclick="openPlayerModal(${ev.player?.row_id})">${playerName || text}</span>
-                            </div>
-                        </div>
-                    </div>`;
-                });
+                // Separate special events (type 100) and normal events
+                const special = events.filter(ev => ev.type === 100);
+                const normal = events.filter(ev => ev.type !== 100);
+                normal.sort((a, b) => (a.time_minute || 0) - (b.time_minute || 0) || ((a.time_plus || 0) - (b.time_plus ||
+                0)));
+
+                const firstHalf = normal.filter(e => (e.time_minute || 0) <= 45);
+                const secondHalf = normal.filter(e => (e.time_minute || 0) > 45 && (e.time_minute || 0) <= 90);
+                const extraTime1 = normal.filter(e => (e.time_minute || 0) > 90 && (e.time_minute || 0) <= 105);
+                const extraTime2 = normal.filter(e => (e.time_minute || 0) > 105 && (e.time_minute || 0) <= 120);
+                const penaltyEvents = normal.filter(e => (e.time_minute || 0) > 120);
+
+                const kickOff = special.find(ev => ev.status === 1);
+                const halfTime = special.find(ev => ev.status === 2);
+                const fullTime = special.find(ev => ev.status === 3);
+                const etHalf = special.find(ev => ev.status === 5);
+                const etFull = special.find(ev => ev.status === 7);
+                const etStart1 = special.find(ev => ev.status === 8);
+                const etStart2 = special.find(ev => ev.status === 9);
+                const penStart = special.find(ev => ev.status === 10);
+
+                function renderEventGroup(list, dividerHtml) {
+                    let g = '';
+                    list.forEach(ev => { g += renderSingleEvent(ev, info); });
+                    return g ? g + dividerHtml : '';
+                }
+
+                let all = '';
+                if (penStart) {
+                    let hP = 0,
+                        aP = 0;
+                    if (info.match_penalties) {
+                        hP = info.match_penalties[info.home_team.row_id] ? info.match_penalties[info.home_team.row_id]
+                            .filter(p => p.score === 1).length : 0;
+                        aP = info.match_penalties[info.away_team.row_id] ? info.match_penalties[info.away_team.row_id]
+                            .filter(p => p.score === 1).length : 0;
+                    }
+                    all +=
+                        `<div class="fulltime-divider penalty"><img src="${ICONS.penaltyKick}" style="width:16px;height:16px;" /> Penalty Shootout (${hP} - ${aP})</div>`;
+                    all += renderEventGroup(penaltyEvents, '');
+                }
+                if (etStart2 || etFull) {
+                    let hE = 0,
+                        aE = 0;
+                    if (info.se_scores && info.se_scores.length && info.se_scores[0]) {
+                        hE = parseInt(info.se_scores[0].home_scores) || 0;
+                        aE = parseInt(info.se_scores[0].away_scores) || 0;
+                    }
+                    all +=
+                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />Second Half ET</div>`;
+                    all += renderEventGroup(extraTime2, '');
+                }
+                if (etStart1 || etHalf) {
+                    let hE = 0,
+                        aE = 0;
+                    if (info.fe_scores && info.fe_scores.length && info.fe_scores[0]) {
+                        hE = parseInt(info.fe_scores[0].home_scores) || 0;
+                        aE = parseInt(info.fe_scores[0].away_scores) || 0;
+                    }
+                    all +=
+                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />First Half ET</div>`;
+                    all += renderEventGroup(extraTime1, '');
+                }
+                if (fullTime) all +=
+                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Full-Time</div>`;
+                all += renderEventGroup(secondHalf, '');
+                if (halfTime) {
+                    let hH = 0,
+                        aH = 0;
+                    if (info.fh_scores && info.fh_scores.length && info.fh_scores[0]) {
+                        hH = parseInt(info.fh_scores[0].home_scores) || 0;
+                        aH = parseInt(info.fh_scores[0].away_scores) || 0;
+                    }
+                    all +=
+                        `<div class="halftime-divider"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hH} - ${aH}</span><br />Half Time</div>`;
+                }
+                all += renderEventGroup(firstHalf, '');
+                if (kickOff) all +=
+                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Kick-Off</div>`;
+
+                eventsHtml += all;
             } else {
                 eventsHtml += '<p class="text-center text-muted">No events recorded</p>';
             }
             eventsHtml += '</div>';
 
-            // Lineups
+            // ===== LINEUPS =====
             let lineupHtml = '<p class="text-center text-muted">Lineups not available</p>';
             if (lineups.lineup) {
                 const homeLineup = lineups.lineup[info.home_team.row_id];
                 const awayLineup = lineups.lineup[info.away_team.row_id];
                 if (homeLineup && awayLineup) {
+                    const homeForm = lineups['0']?.home_formation || '4-3-3';
+                    const awayForm = lineups['0']?.away_formation || '4-3-3';
+                    // We'll render a simple pitch view
+                    const renderPitch = (team, lineupData, formation) => {
+                        const players = lineupData.lineup || [];
+                        const groups = { 'G': [], 'D': [], 'M': [], 'F': [] };
+                        players.forEach(p => {
+                            const pos = p.position || 'M';
+                            if (groups[pos]) groups[pos].push(p);
+                            else groups['M'].push(p);
+                        });
+                        const renderRow = (list) => list.map(p =>
+                            `<div class="lineup-player">
+                                <div class="lineup-player-num">${p.player.player_number || ''}</div>
+                                <img src="${IMG_BASE_PLAYER + p.player.image}" class="lineup-player-img" onclick="openPlayerModal(${p.player.row_id})" />
+                                <div class="lineup-player-name" onclick="openPlayerModal(${p.player.row_id})">${p.player.title}</div>
+                            </div>`
+                        ).join('');
+                        return `<div class="lineup-pitch">
+                            <div class="team-name"><img src="${IMG_BASE_TEAM + team.image}" onclick="openTeamModal(${team.row_id})" /> ${team.title} <span class="formation-label">(${formation})</span></div>
+                            <div class="lineup-row">${renderRow(groups['G'])}</div>
+                            <div class="lineup-row">${renderRow(groups['D'])}</div>
+                            <div class="lineup-row">${renderRow(groups['M'])}</div>
+                            <div class="lineup-row">${renderRow(groups['F'])}</div>
+                        </div>`;
+                    };
+                    const homePitch = renderPitch(info.home_team, homeLineup, homeForm);
+                    const awayPitch = renderPitch(info.away_team, awayLineup, awayForm);
                     lineupHtml = `
                     <div class="lineup-tabs">
-                        <button class="lineup-tab active" data-target="home">
-                            <img src="${IMG_BASE_TEAM + info.home_team.image}" /> ${info.home_team.title}
-                        </button>
-                        <button class="lineup-tab" data-target="away">
-                            ${info.away_team.title} <img src="${IMG_BASE_TEAM + info.away_team.image}" />
-                        </button>
+                        <button class="lineup-tab active" data-target="home"><img src="${IMG_BASE_TEAM + info.home_team.image}" /> ${info.home_team.title}</button>
+                        <button class="lineup-tab" data-target="away">${info.away_team.title} <img src="${IMG_BASE_TEAM + info.away_team.image}" /></button>
                     </div>
-                    <div id="lineup-content">
-                        <div class="lineup-pitch">
-                            <div class="team-name"><img src="${IMG_BASE_TEAM + info.home_team.image}" /> ${info.home_team.title}</div>
-                            <div class="lineup-row">${(homeLineup.lineup || []).slice(0, 11).map(p => `
-                                <div class="lineup-player">
-                                    <div class="lineup-player-num">${p.player.player_number || ''}</div>
-                                    <img src="${IMG_BASE_PLAYER + p.player.image}" class="lineup-player-img" onclick="openPlayerModal(${p.player.row_id})" />
-                                    <div class="lineup-player-name" onclick="openPlayerModal(${p.player.row_id})">${p.player.title}</div>
-                                </div>`).join('')}</div>
-                        </div>
-                    </div>`;
+                    <div id="lineup-content">${homePitch}</div>`;
+                    window.currentHomeLineupHtml = homePitch;
+                    window.currentAwayLineupHtml = awayPitch;
                 }
             }
 
-            // Statistics
+            // ===== STATISTICS =====
             let statsHtml = '<p class="text-center text-muted">No statistics available</p>';
             if (stats && Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
@@ -3735,7 +3763,7 @@
                 statsHtml = sHtml;
             }
 
-            // H2H
+            // ===== H2H =====
             let h2hHtml = '<p class="text-center text-muted">No H2H data</p>';
             if (h2h && Object.keys(h2h).length) {
                 let hW = 0,
@@ -3754,9 +3782,19 @@
                     <div class="h2h-stat"><span class="num">${aW}</span><span class="lbl">Wins</span></div></div>
                     <div class="h2h-team"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})" /><span>${info.away_team.title}</span></div>
                 </div>`;
+                // Show recent matches
+                const recent = Object.values(h2h).filter(m => m && m.home_team && m.away_team).slice(0, 5);
+                if (recent.length) {
+                    h2hHtml += '<div class="mt-2"><strong>Recent Meetings</strong><div class="small">';
+                    recent.forEach(m => {
+                        h2hHtml +=
+                            `<div class="d-flex justify-content-between border-bottom py-1"><span>${m.home_team.title} ${m.home_scores} - ${m.away_scores} ${m.away_team.title}</span><span class="text-muted">${m.match_date || ''}</span></div>`;
+                    });
+                    h2hHtml += '</div></div>';
+                }
             }
 
-            // Standings full
+            // ===== STANDINGS FULL =====
             let fullStandingsHtml = '<p class="text-center text-muted">No standings data</p>';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
@@ -3765,6 +3803,7 @@
                 fullStandingsHtml = renderStandingsTable(teams, null, colors, rules);
             }
 
+            // ===== TABS =====
             let tabsHtml = `
             <div class="match-detail-tabs-wrapper">
                 <ul class="nav nav-tabs match-modal-tabs" id="matchModalTabs" role="tablist">
@@ -3786,10 +3825,13 @@
             </div>`;
 
             body.innerHTML = headerHtml + standingsPreview + tabsHtml;
+
+            // Tab switching
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) { e.preventDefault();
                     new bootstrap.Tab(this).show(); });
             });
+            // Lineup tab switching
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -3803,6 +3845,102 @@
             });
         }
 
+        // ===== SINGLE EVENT RENDER =====
+        function renderSingleEvent(ev, info) {
+            const isHome = ev.team_id == info.home_team.row_id;
+            const isAway = ev.team_id == info.away_team.row_id;
+            let left = '',
+                right = '';
+            if (isHome) left =
+                `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})" /></div>`;
+            else if (isAway) right =
+                `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})" /></div>`;
+
+            let icon = ICONS.flag,
+                typeText = '';
+            let videoBtn = '';
+            if (ev.event_video) videoBtn =
+                `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;" /></a>`;
+
+            if (ev.type === 1 || ev.type === 13) { icon = ICONS.goal;
+                typeText = ev.status_name || 'Goal'; } else if (ev.type === 2 || ev.type === 3) { icon = ICONS
+                    .yellowCard;
+                typeText = 'Yellow Card'; } else if (ev.type === 6 || ev.type === 4) { icon = ICONS.redCard;
+                typeText = 'Red Card'; } else if (ev.type === 5) { icon = ICONS.penaltyKick;
+                typeText = 'Penalty Scored'; } else if (ev.type === 8) { icon = ICONS.substitutePlayer;
+                typeText = 'Substitution'; } else if (ev.type === 21) { icon = ICONS.flag;
+                typeText = 'Missed Chance'; } else if (ev.type === 22) { icon = ICONS.flag;
+                typeText = 'Crossbar'; } else if (ev.type === 7) { icon = ICONS.flag;
+                typeText = 'Offside'; } else if (ev.type === 9) { icon = ICONS.flag;
+                typeText = 'Foul'; } else if (ev.type === 10) { icon = ICONS.goal;
+                typeText = 'Own Goal'; } else if (ev.type === 11) { icon = ICONS.penaltyKick;
+                typeText = 'Penalty Missed'; } else if (ev.type === 12) { icon = ICONS.penaltyKick;
+                typeText = 'Penalty Saved'; } else if (ev.type === 14) { icon = ICONS.flag;
+                typeText = 'Shot Off Target'; } else if (ev.type === 15) { icon = ICONS.flag;
+                typeText = 'Shot On Target'; } else { icon = ICONS.flag;
+                typeText = ev.status_name || 'Event'; }
+
+            let playerHtml = '',
+                subHtml = '';
+            if (ev.type === 8) {
+                const out = ev.assist_player_name ? ev.assist_player_name.title : '';
+                const inn = ev.player_name ? ev.player_name.title : '';
+                playerHtml =
+                    `<span class="in-arrow">&#8594;</span> <span class="player-name-click" onclick="openPlayerModal(${ev.player.row_id})">${inn}</span>`;
+                subHtml =
+                    `<span class="out-arrow">&#8592;</span> <span class="player-name-click" onclick="openPlayerModal(${ev.assist_player.row_id})">${out}</span>`;
+            } else {
+                const name = ev.player_name ? ev.player_name.title : '';
+                playerHtml =
+                    `<span class="player-name-click" onclick="openPlayerModal(${ev.player?.row_id})">${name || typeText}</span>`;
+                subHtml = ev.assist_player_name ? `<span>Assist: ${ev.assist_player_name.title}</span>` : '';
+            }
+
+            const min = ev.time_minute || 0;
+            let periodLabel = '';
+            if (min > 90 && min <= 105) periodLabel = 'ET1';
+            else if (min > 105 && min <= 120) periodLabel = 'ET2';
+            else if (min > 120) periodLabel = 'PEN';
+            const plus = ev.time_plus && ev.time_plus > 0 ? `+${ev.time_plus}` : '';
+
+            let bg = '#e8f5e9',
+                color = '#2e7d32';
+            if (ev.type === 2 || ev.type === 3) { bg = '#fff3e0';
+                color = '#e65100'; }
+            if (ev.type === 6 || ev.type === 4) { bg = '#fce4ec';
+                color = '#c62828'; }
+            if (ev.type === 1 || ev.type === 5 || ev.type === 13) { bg = '#e3f2fd';
+                color = '#0d47a1'; }
+            if (ev.type === 8) { bg = '#f3e5f5';
+                color = '#4a148c'; }
+            if (periodLabel === 'ET1' || periodLabel === 'ET2') { bg = '#fff8e1';
+                color = '#f57f17'; }
+            if (periodLabel === 'PEN') { bg = '#fce4ec';
+                color = '#c62828'; }
+
+            return `
+            <div class="event-row">
+                ${left}
+                <div class="event-time-cell">
+                    <div class="event-time-circle" style="background:${bg};color:${color};">
+                        ${plus ? `<span class="time-extra">${plus}</span>` : ''}
+                        <span class="time-main">${min}'</span>
+                        ${periodLabel ? `<span class="time-period">${periodLabel}</span>` : ''}
+                    </div>
+                </div>
+                <div class="event-info-center">
+                    <div class="event-player">
+                        <img src="${icon}" class="event-icon" />
+                        ${playerHtml}
+                        ${videoBtn}
+                    </div>
+                    ${subHtml ? `<div class="event-sub">${subHtml}</div>` : ''}
+                </div>
+                ${right}
+            </div>`;
+        }
+
+        // ===== DETAILS TAB =====
         function renderDetailsTab(info, standingsData) {
             let html = '<div class="mt-2">';
             html +=
@@ -3851,6 +3989,7 @@
             return html;
         }
 
+        // ===== STANDINGS TABLE RENDER (used in More and match details) =====
         function renderStandingsTable(teams, highlightId, colors, rules) {
             let html =
                 '<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
@@ -4095,7 +4234,31 @@
         }
 
         // ============================================================
-        //  TRANSFERS PAGE
+        //  TEAM, PLAYER, COACH, REFEREE, NEWS MODALS (stubs)
+        // ============================================================
+        async function openTeamModal(id) {
+            // Minimal stub – we can implement later
+            alert('Team modal: ' + id);
+        }
+
+        async function openPlayerModal(id) {
+            alert('Player modal: ' + id);
+        }
+
+        async function openCoachModal(id) {
+            alert('Coach modal: ' + id);
+        }
+
+        async function openRefereeModal(id) {
+            alert('Referee modal: ' + id);
+        }
+
+        async function openNewsModal(id) {
+            alert('News modal: ' + id);
+        }
+
+        // ============================================================
+        //  TRANSFERS PAGE (iframe)
         // ============================================================
         async function loadTransfersPage() {
             const container = document.getElementById('transfersContainer');
@@ -4207,6 +4370,19 @@
         });
 
         // ============================================================
+        //  LIVE UPDATE INTERVALS
+        // ============================================================
+        function startLiveUpdates() {
+            if (liveUpdateInterval) clearInterval(liveUpdateInterval);
+            if (todayUpdateInterval) clearInterval(todayUpdateInterval);
+            liveUpdateInterval = setInterval(() => loadLiveMatches(), 3000);
+            todayUpdateInterval = setInterval(() => {
+                loadTodayMatches();
+                loadHighlights();
+            }, 60000);
+        }
+
+        // ============================================================
         //  INIT
         // ============================================================
         (async function init() {
@@ -4217,13 +4393,7 @@
             await loadLiveAndTodayMatches();
             await loadHighlights();
             await loadTransfersPage();
-
-            liveUpdateInterval = setInterval(() => loadLiveMatches(), 5000);
-            todayUpdateInterval = setInterval(() => {
-                loadTodayMatches();
-                loadHighlights();
-            }, 60000);
-
+            startLiveUpdates();
             initScrollProgress();
 
             document.querySelector('.bottom-nav .nav-item[data-page="live"]')?.click();
@@ -4245,22 +4415,10 @@
             window.applyCalendarFilter = applyCalendarFilter;
         })();
 
-        // Placeholder functions for modals (will be implemented if needed)
-        function openTeamModal(id) { alert('Team modal (YSScores)'); }
-
-        function openPlayerModal(id) { alert('Player modal (YSScores)'); }
-
-        function openCoachModal(id) { alert('Coach modal (YSScores)'); }
-
-        function openRefereeModal(id) { alert('Referee modal (YSScores)'); }
-
-        function openNewsModal(id) { alert('News modal (YSScores)'); }
-
-        function openStreamPlayer(url, data) { alert('Stream player'); }
+        // Placeholder for stream player
+        function openStreamPlayer(url, data) { alert('Stream player not implemented'); }
 
         function startLiveMatchUpdates(id) {}
-
-        function startCountdown(el, ts) { /* placeholder */ }
 
         function formatMatchLocalDateTime(ts) {
             if (!ts) return 'N/A';
@@ -4277,7 +4435,7 @@
             return new Date(ts * 1000).toLocaleDateString();
         }
 
-        console.log('Football Center fully restored with YSScores + API-Sports live integration.');
+        console.log('Football Center restored to YSScores only with full features.');
     </script>
 </body>
 </html>
