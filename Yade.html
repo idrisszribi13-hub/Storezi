@@ -1534,6 +1534,19 @@
             display: none;
         }
 
+        /* Standings tab in match details */
+        .match-standings-table .table td {
+            vertical-align: middle;
+            padding: 0.4rem 0.3rem;
+        }
+        .match-standings-table .team-color-indicator {
+            width: 4px;
+            height: 28px;
+            border-radius: 2px;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
         @media (max-width: 768px) {
             .scroll-progress {
                 width: 40px;
@@ -1816,7 +1829,6 @@
                 const offset = circumference * (1 - progress);
                 circle.style.strokeDashoffset = offset;
 
-                // Update arrow direction
                 const isAtTop = scrollTop < 50;
                 const isAtBottom = scrollTop > docHeight - 50;
                 if (isAtTop) {
@@ -1831,7 +1843,6 @@
                 }
             }
 
-            // Click handler - scroll to top or bottom
             el.addEventListener('click', function() {
                 const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
                 const docHeight = document.documentElement.scrollHeight - window.innerHeight;
@@ -1839,18 +1850,14 @@
                 const isAtBottom = scrollTop > docHeight - 50;
 
                 if (isAtTop) {
-                    // Scroll to bottom
                     window.scrollTo({ top: docHeight, behavior: 'smooth' });
                 } else if (isAtBottom) {
-                    // Scroll to top
                     window.scrollTo({ top: 0, behavior: 'smooth' });
                 } else {
-                    // Scroll to bottom
                     window.scrollTo({ top: docHeight, behavior: 'smooth' });
                 }
             });
 
-            // Throttled scroll listener
             let ticking = false;
             window.addEventListener('scroll', function() {
                 if (!ticking) {
@@ -1862,7 +1869,6 @@
                 }
             });
 
-            // Initial update
             updateScroll();
         }
 
@@ -1948,28 +1954,27 @@
         }
 
         // ============================================================
-        //  FIXED: Time display - direct from API without timezone conversion
+        //  FIXED: Time display using match_timestamp (local timezone)
         // ============================================================
 
-        function formatMatchDateTimeDirect(dateStr, timeStr) {
-            if (!dateStr || !timeStr) return 'N/A';
-            const d = new Date(dateStr);
-            const month = d.toLocaleString('en-US', { month: 'short' });
-            const day = d.getDate();
-            const year = d.getFullYear();
-            const time = timeStr.substring(0,5);
-            return `${month} ${day}, ${year} ${time}`;
+        function formatMatchLocalDateTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp * 1000);
+            const dateStr = date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+            const timeStr = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
+            return `${dateStr} ${timeStr}`;
         }
 
-        function formatMatchDateShort(dateStr) {
-            if (!dateStr) return 'N/A';
-            const d = new Date(dateStr);
-            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+        function formatMatchLocalTime(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
         }
 
-        function formatMatchTimeOnly(timeStr) {
-            if (!timeStr) return 'N/A';
-            return timeStr.substring(0,5);
+        function formatMatchLocalDate(timestamp) {
+            if (!timestamp) return 'N/A';
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
         }
 
         // ============================================================
@@ -2097,6 +2102,8 @@
                 </div>`;
             }
 
+            const matchTime = match.match_timestamp ? formatMatchLocalTime(match.match_timestamp) : match.match_time;
+
             const card = document.createElement('div');
             card.className = 'col-12 mb-3';
             card.innerHTML = `
@@ -2123,7 +2130,7 @@
                             <div class="team-title">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small pb-2">${compImg} ${comp} | ${match.match_date} ${match.match_time}</div>
+                    <div class="text-center text-muted small pb-2">${compImg} ${comp} | ${match.match_date} ${matchTime}</div>
                 </div>
             `;
             return card;
@@ -2140,18 +2147,21 @@
             const homeLogoUrl = IMG_BASE_TEAM + home.image;
             const awayLogoUrl = IMG_BASE_TEAM + away.image;
 
+            const matchTime = match.match_timestamp ? formatMatchLocalTime(match.match_timestamp) : match.match_time;
+            const matchDate = match.match_timestamp ? formatMatchLocalDate(match.match_timestamp) : match.match_date;
+
             let middleContent = '';
             if (isUpcoming) {
-                const matchTime = new Date(match.match_date + 'T' + match.match_time);
-                const now = new Date();
-                const diff = Math.max(0, Math.floor((matchTime - now) / 1000));
+                const matchTimestamp = match.match_timestamp * 1000;
+                const now = Date.now();
+                const diff = Math.max(0, Math.floor((matchTimestamp - now) / 1000));
                 const hours = Math.floor(diff / 3600);
                 const minutes = Math.floor((diff % 3600) / 60);
                 const secs = diff % 60;
                 const countdown = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m ${secs}s`;
                 middleContent = `
                     <div class="upcoming-center">
-                        <div class="upcoming-time">${match.match_time.substring(0,5)}</div>
+                        <div class="upcoming-time">${matchTime}</div>
                         <div class="countdown-timer">${countdown}</div>
                         <div class="upcoming-vs">VS</div>
                     </div>
@@ -2159,8 +2169,8 @@
                 setTimeout(() => {
                     const timerEl = card.querySelector('.countdown-timer');
                     if (timerEl) {
-                        const now2 = new Date();
-                        const diff2 = Math.max(0, Math.floor((matchTime - now2) / 1000));
+                        const now2 = Date.now();
+                        const diff2 = Math.max(0, Math.floor((matchTimestamp - now2) / 1000));
                         const hours2 = Math.floor(diff2 / 3600);
                         const minutes2 = Math.floor((diff2 % 3600) / 60);
                         const secs2 = diff2 % 60;
@@ -2199,7 +2209,7 @@
                             <div class="team-title">${away.title}</div>
                         </div>
                     </div>
-                    <div class="text-center text-muted small pb-2">${compImg} ${comp} | ${match.match_date} ${match.match_time}</div>
+                    <div class="text-center text-muted small pb-2">${compImg} ${comp} | ${matchDate} ${matchTime}</div>
                 </div>
             `;
             return card;
@@ -2445,7 +2455,7 @@
             matches.forEach(match => {
                 const home = match.home_team;
                 const away = match.away_team;
-                const dateTime = formatMatchDateTimeDirect(match.match_date, match.match_time);
+                const dateTime = match.match_timestamp ? formatMatchLocalDateTime(match.match_timestamp) : formatMatchDateTimeDirect(match.match_date, match.match_time);
                 const comp = match.championship ? match.championship.title : '';
                 const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
 
@@ -3319,7 +3329,7 @@
         }
 
         // ============================================================
-        //  RENDER MATCH DETAILS
+        //  RENDER MATCH DETAILS - ADDED STANDINGS TAB
         // ============================================================
 
         function renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
@@ -3369,8 +3379,9 @@
             }
 
             const champ = info.championship || {};
-            const matchDateTime = formatMatchDateTimeDirect(info.match_date, info.match_time);
+            const matchDateTime = info.match_timestamp ? formatMatchLocalDateTime(info.match_timestamp) : (info.match_date + ' ' + info.match_time);
 
+            // ===== MATCH HEADER =====
             let headerHtml = `
                 <div class="match-header">
                     <div class="champ-badge">
@@ -3413,16 +3424,17 @@
                 </div>
             `;
 
-            let standingsHtml = '';
+            // ===== STANDINGS PREVIEW (short) =====
+            let standingsPreviewHtml = '';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
                 const homeTeam = teams.find(t => t.team_id == info.home_team.row_id);
                 const awayTeam = teams.find(t => t.team_id == info.away_team.row_id);
                 if (homeTeam || awayTeam) {
-                    standingsHtml = '<div class="row mt-2 mb-2">';
+                    standingsPreviewHtml = '<div class="row mt-2 mb-2">';
                     if (homeTeam) {
                         const rank = teams.indexOf(homeTeam) + 1;
-                        standingsHtml += `
+                        standingsPreviewHtml += `
                             <div class="col-6 text-center">
                                 <strong>${info.home_team.title}</strong>
                                 <div>Rank: #${rank} | Pts: ${homeTeam.points}</div>
@@ -3432,7 +3444,7 @@
                     }
                     if (awayTeam) {
                         const rank = teams.indexOf(awayTeam) + 1;
-                        standingsHtml += `
+                        standingsPreviewHtml += `
                             <div class="col-6 text-center">
                                 <strong>${info.away_team.title}</strong>
                                 <div>Rank: #${rank} | Pts: ${awayTeam.points}</div>
@@ -3440,10 +3452,11 @@
                             </div>
                         `;
                     }
-                    standingsHtml += '</div>';
+                    standingsPreviewHtml += '</div>';
                 }
             }
 
+            // ===== TABS (added Standings) =====
             let tabsHtml = `
                 <div class="match-detail-tabs-wrapper">
                     <ul class="nav nav-tabs match-modal-tabs" id="matchModalTabs" role="tablist">
@@ -3452,6 +3465,7 @@
                         <li class="nav-item"><button class="nav-link" id="lineup-tab-modal" data-bs-toggle="tab" data-bs-target="#md-lineup" type="button" role="tab">${t.lineups || 'Lineups'}</button></li>
                         <li class="nav-item"><button class="nav-link" id="stats-tab-modal" data-bs-toggle="tab" data-bs-target="#md-stats" type="button" role="tab">${t.statistics || 'Statistics'}</button></li>
                         <li class="nav-item"><button class="nav-link" id="h2h-tab" data-bs-toggle="tab" data-bs-target="#md-h2h" type="button" role="tab">${t.h2h || 'H2H'}</button></li>
+                        <li class="nav-item"><button class="nav-link" id="standings-tab-modal" data-bs-toggle="tab" data-bs-target="#md-standings" type="button" role="tab">${t.standings || 'Standings'}</button></li>
                     </ul>
                     <div class="tab-content match-modal-tab-content" id="matchModalTabContent">
                         <div class="tab-pane fade show active" id="md-events" role="tabpanel">${renderEventsFixed(events, info)}</div>
@@ -3459,12 +3473,14 @@
                         <div class="tab-pane fade" id="md-lineup" role="tabpanel">${renderLineups(info, lineups)}</div>
                         <div class="tab-pane fade" id="md-stats" role="tabpanel">${renderStats(info, stats)}</div>
                         <div class="tab-pane fade" id="md-h2h" role="tabpanel">${renderH2H(h2h, info)}</div>
+                        <div class="tab-pane fade" id="md-standings" role="tabpanel">${renderMatchStandings(standingsData, info)}</div>
                     </div>
                 </div>
             `;
 
-            body.innerHTML = headerHtml + standingsHtml + tabsHtml;
+            body.innerHTML = headerHtml + standingsPreviewHtml + tabsHtml;
 
+            // Re-bind tab clicks
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -3472,6 +3488,7 @@
                 });
             });
 
+            // Lineup tab switching (home/away)
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -3487,7 +3504,68 @@
         }
 
         // ============================================================
-        //  EVENTS
+        //  MATCH STANDINGS (full table with colors)
+        // ============================================================
+
+        function renderMatchStandings(standingsData, info) {
+            if (!standingsData || !standingsData.league || !standingsData.league.stage0) {
+                return '<p class="text-center text-muted">No standings data available.</p>';
+            }
+            const teams = standingsData.league.stage0;
+            const colors = standingsData.color ? standingsData.color.stage0 : [];
+            const rules = standingsData.rules_list ? standingsData.rules_list.stage0 : [];
+
+            // Highlight the two teams
+            const homeId = info.home_team.row_id;
+            const awayId = info.away_team.row_id;
+
+            let html = '<div class="match-standings-table"><h5 class="mt-2 mb-3">League Standings</h5>';
+            html += '<div class="table-responsive"><table class="table table-striped table-hover">';
+            html += '<thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+            teams.forEach((team, idx) => {
+                const teamInfo = team.team_name;
+                const isHome = teamInfo.row_id == homeId;
+                const isAway = teamInfo.row_id == awayId;
+                let rowClass = '';
+                if (isHome || isAway) rowClass = 'highlight-row';
+                const color = team.color || '';
+                const colorStyle = color ? `border-left: 4px solid ${color};` : '';
+                html += `<tr class="${rowClass}" style="${colorStyle}">
+                    <td>${idx+1}</td>
+                    <td><img src="${IMG_BASE_TEAM + teamInfo.image}" class="team-img" style="width:20px;height:20px;margin-right:5px;" onclick="openTeamModal(${teamInfo.row_id})"> <span class="link-item" onclick="openTeamModal(${teamInfo.row_id})">${teamInfo.title}</span></td>
+                    <td>${team.play}</td><td>${team.wins}</td><td>${team.draw}</td><td>${team.lose}</td>
+                    <td>${team.for}</td><td>${team.against}</td><td>${team.diff}</td><td>${team.points}</td>
+                </tr>`;
+            });
+            html += '</tbody></table></div>';
+
+            // Ranking key
+            if (colors && colors.length > 0) {
+                html += '<div class="standings-key">';
+                colors.forEach(c => {
+                    if (c.color) {
+                        const label = c.league_to || c.group_name || 'Qualification';
+                        html += `<div class="key-item"><span class="color-box" style="background:${c.color};"></span> ${label}</div>`;
+                    }
+                });
+                html += '</div>';
+            }
+
+            // Rules
+            if (rules && rules.length > 0) {
+                html += '<div class="standings-rules"><strong>Championship Rules</strong><ol>';
+                rules.forEach(rule => {
+                    html += `<li>${rule}</li>`;
+                });
+                html += '</ol></div>';
+            }
+
+            html += '</div>';
+            return html;
+        }
+
+        // ============================================================
+        //  EVENTS (unchanged)
         // ============================================================
 
         function renderEventsFixed(events, info) {
@@ -3749,7 +3827,8 @@
                 html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" class="icon-16"> Referee</strong><span class="link-item" onclick="openRefereeModal(${ref.id})">${ref.title}</span></div></div>`;
             }
 
-            html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Date & Time</strong><span>${formatMatchDateTimeDirect(info.match_date, info.match_time)}</span></div></div>`;
+            const matchDateTime = info.match_timestamp ? formatMatchLocalDateTime(info.match_timestamp) : (info.match_date + ' ' + info.match_time);
+            html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Date & Time</strong><span>${matchDateTime}</span></div></div>`;
 
             if (info.return) {
                 html += `<div class="detail-card"><div class="detail-row"><strong>Aggregate</strong><span>${info.return}</span></div></div>`;
