@@ -26,6 +26,8 @@
             --highlight-bg: rgba(13, 110, 253, 0.12);
             --border-color: #eaeaea;
             --table-border: #dee2e6;
+            --input-bg: #fff;
+            --input-border: #ddd;
         }
         [data-theme="dark"] {
             --light-bg: #1a1a2e;
@@ -36,6 +38,8 @@
             --highlight-bg: rgba(13, 110, 253, 0.25);
             --border-color: #2a2a4a;
             --table-border: #333;
+            --input-bg: #1a1a2e;
+            --input-border: #333;
         }
         * { box-sizing: border-box; }
         body {
@@ -1553,10 +1557,11 @@
         .scroll-progress .arrow-icon.down { color: #dc3545; }
         .scroll-progress .arrow-icon.up { color: #dc3545; }
 
-        /* ===== STANDINGS - CLEAN, NO ALTERNATING ROWS ===== */
+        /* ===== STANDINGS - CLEAN, ONLY HIGHLIGHTED TEAMS ===== */
         .standings-main-table .table {
             border-collapse: collapse;
             font-size: 0.8rem;
+            width: 100%;
         }
         .standings-main-table .table td {
             padding: 0.35rem 0.25rem;
@@ -1620,6 +1625,7 @@
         .match-standings-table .table {
             border-collapse: collapse;
             font-size: 0.75rem;
+            width: 100%;
         }
         .match-standings-table .table td {
             padding: 0.25rem 0.2rem;
@@ -1739,6 +1745,50 @@
             color: rgba(255,255,255,0.6);
             font-size: 14px;
         }
+        .app-header .header-search .search-results-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: var(--card-bg);
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+            margin-top: 4px;
+            padding: 8px 0;
+            max-height: 280px;
+            overflow-y: auto;
+            display: none;
+            z-index: 200;
+            color: var(--text-color);
+        }
+        .app-header .header-search .search-results-dropdown.active { display: block; }
+        .app-header .header-search .search-results-dropdown .result-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 12px;
+            cursor: pointer;
+            transition: background 0.2s;
+            color: var(--text-color);
+        }
+        .app-header .header-search .search-results-dropdown .result-item:hover { background: var(--light-bg); }
+        .app-header .header-search .search-results-dropdown .result-item img {
+            width: 26px;
+            height: 26px;
+            object-fit: contain;
+        }
+        .app-header .header-search .search-results-dropdown .result-item .result-type {
+            font-size: 9px;
+            color: #999;
+            margin-left: auto;
+        }
+        .app-header .header-search .search-results-dropdown .no-results {
+            padding: 12px;
+            text-align: center;
+            color: #999;
+            font-size: 13px;
+        }
+
         .app-header .header-actions {
             display: flex;
             align-items: center;
@@ -1789,48 +1839,6 @@
             text-transform: uppercase;
             margin-left: 4px;
         }
-        .search-results-dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            right: 0;
-            background: var(--card-bg);
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.2);
-            margin-top: 4px;
-            padding: 8px 0;
-            max-height: 280px;
-            overflow-y: auto;
-            display: none;
-            z-index: 200;
-        }
-        .search-results-dropdown.active { display: block; }
-        .search-results-dropdown .result-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 6px 12px;
-            cursor: pointer;
-            transition: background 0.2s;
-            color: var(--text-color);
-        }
-        .search-results-dropdown .result-item:hover { background: var(--light-bg); }
-        .search-results-dropdown .result-item img {
-            width: 26px;
-            height: 26px;
-            object-fit: contain;
-        }
-        .search-results-dropdown .result-item .result-type {
-            font-size: 9px;
-            color: #999;
-            margin-left: auto;
-        }
-        .search-results-dropdown .no-results {
-            padding: 12px;
-            text-align: center;
-            color: #999;
-            font-size: 13px;
-        }
         .theme-toggle-header {
             background: rgba(255,255,255,0.1);
             border: none;
@@ -1856,6 +1864,45 @@
         }
         .favorite-btn-header:hover { transform: scale(1.2); }
         .favorite-btn-header.active { color: #ffc107; }
+
+        /* ===== THEME TOGGLE SWITCH IN HEADER ===== */
+        .theme-toggle-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .theme-toggle-wrapper .toggle-switch {
+            width: 40px;
+            height: 22px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 11px;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.3s;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+        .theme-toggle-wrapper .toggle-switch.active {
+            background: #0d6efd;
+        }
+        .theme-toggle-wrapper .toggle-switch .toggle-dot {
+            width: 16px;
+            height: 16px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            transition: transform 0.3s;
+        }
+        .theme-toggle-wrapper .toggle-switch.active .toggle-dot {
+            transform: translateX(18px);
+        }
+        .theme-toggle-wrapper .theme-label {
+            font-size: 11px;
+            color: rgba(255,255,255,0.7);
+            font-weight: 600;
+        }
+
         .no-underline-link {
             text-decoration: none !important;
             color: inherit;
@@ -1938,6 +1985,10 @@
             .match-standings-table .table td { font-size: 10px; padding: 0.2rem 0.15rem; }
             .match-standings-table .table th { font-size: 9px; padding: 0.2rem 0.15rem; }
             .connection-status { font-size: 12px; padding: 8px 12px; }
+            .theme-toggle-wrapper .toggle-switch { width: 34px; height: 18px; }
+            .theme-toggle-wrapper .toggle-switch .toggle-dot { width: 12px; height: 12px; }
+            .theme-toggle-wrapper .toggle-switch.active .toggle-dot { transform: translateX(16px); }
+            .theme-toggle-wrapper .theme-label { font-size: 9px; }
         }
         @media (max-width: 480px) {
             .app-header .header-search { max-width: 100px; min-width: 60px; }
@@ -1983,8 +2034,13 @@
                     <div class="search-results-dropdown" id="searchResultsDropdown"></div>
                 </div>
                 <div class="header-actions">
+                    <div class="theme-toggle-wrapper">
+                        <span class="theme-label" id="themeLabel">🌙</span>
+                        <div class="toggle-switch" id="themeSwitchHeader">
+                            <div class="toggle-dot"></div>
+                        </div>
+                    </div>
                     <button class="favorite-btn-header" id="favoriteToggleHeader" title="Favorites">⭐</button>
-                    <button class="theme-toggle-header" id="themeToggleHeader" title="Toggle Theme">🌙</button>
                     <div class="lang-selector" id="headerLangSelector">
                         <img src="https://flagcdn.com/gb.svg" alt="EN"> EN
                     </div>
@@ -2201,9 +2257,11 @@
         let todayMatches = [];
         let liveUpdateInterval = null;
         let liveFetchInterval = null;
+        let todayUpdateInterval = null;
         let timeFormat = '24';
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         let currentFilter = 'all';
+        let searchQuery = '';
 
         let selectedDate = new Date();
         let calViewDate = new Date();
@@ -2305,8 +2363,19 @@
         }
 
         function updateThemeUI(theme) {
-            const btn = document.getElementById('themeToggleHeader');
-            if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
+            const isDark = theme === 'dark';
+            const switchEl = document.getElementById('themeSwitchHeader');
+            const labelEl = document.getElementById('themeLabel');
+            if (switchEl) {
+                switchEl.classList.toggle('active', isDark);
+                const dot = switchEl.querySelector('.toggle-dot');
+                if (dot) {
+                    dot.style.transform = isDark ? 'translateX(18px)' : 'translateX(0)';
+                }
+            }
+            if (labelEl) {
+                labelEl.textContent = isDark ? '☀️' : '🌙';
+            }
         }
 
         function loadTheme() {
@@ -2316,6 +2385,12 @@
             document.documentElement.setAttribute('data-theme', theme);
             updateThemeUI(theme);
         }
+
+        // Theme switch click
+        document.getElementById('themeSwitchHeader')?.addEventListener('click', function(e) {
+            e.stopPropagation();
+            toggleTheme();
+        });
 
         // ============================================================
         //  SCROLL PROGRESS INDICATOR
@@ -2410,26 +2485,32 @@
         }
 
         // ============================================================
-        //  HEADER SEARCH
+        //  HEADER SEARCH - FIXED using /api/search/{query}/L/60
         // ============================================================
         const searchInput = document.getElementById('headerSearchInput');
         const searchDropdown = document.getElementById('searchResultsDropdown');
 
         searchInput.addEventListener('input', function() {
             const query = this.value.trim();
+            searchQuery = query;
             if (query.length < 2) { searchDropdown.classList.remove('active'); return; }
             performSearch(query);
         });
+
         searchInput.addEventListener('focus', function() {
             if (this.value.trim().length >= 2) searchDropdown.classList.add('active');
         });
+
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.header-search')) searchDropdown.classList.remove('active');
+            if (!e.target.closest('.header-search')) {
+                searchDropdown.classList.remove('active');
+            }
         });
 
         async function performSearch(query) {
             try {
-                const url = `${API_BASE}/search_result?q=${encodeURIComponent(query)}`;
+                // Use the correct search endpoint: /api/search/{query}/L/60
+                const url = `${API_BASE}/search/${encodeURIComponent(query)}/L/60`;
                 const data = await fetchFromProxy(url);
                 const results = data.data || {};
                 renderSearchResults(results, query);
@@ -2444,37 +2525,47 @@
             let html = '';
             let hasResults = false;
 
+            // Teams
             if (results.teams && results.teams.length > 0) {
                 hasResults = true;
                 results.teams.slice(0, 5).forEach(team => {
                     const img = team.name?.image ? IMG_BASE_TEAM + team.name.image : 'https://via.placeholder.com/30';
-                    html += `<div class="result-item" onclick="openTeamModal(${team.name.row_id})">
-                        <img src="${img}" alt="${team.name.title}">
-                        <span>${team.name.title}</span>
+                    const title = team.name?.title || 'Unknown';
+                    const id = team.name?.row_id || team.id;
+                    html += `<div class="result-item" onclick="openTeamModal(${id})">
+                        <img src="${img}" alt="${title}">
+                        <span>${title}</span>
                         <span class="result-type">Team</span>
                     </div>`;
                 });
             }
 
+            // Championships
             if (results.championship && results.championship.length > 0) {
                 hasResults = true;
                 results.championship.slice(0, 5).forEach(champ => {
                     const img = champ.name?.image ? IMG_BASE_CHAMP + champ.name.image : 'https://via.placeholder.com/30';
-                    html += `<div class="result-item" onclick="quickSelectChampionship('${champ.name.url_id}', '${champ.name.title.replace(/'/g, "\\'")}', ${champ.name.type || 1})">
-                        <img src="${img}" alt="${champ.name.title}">
-                        <span>${champ.name.title}</span>
+                    const title = champ.name?.title || 'Unknown';
+                    const urlId = champ.name?.url_id || champ.id;
+                    const type = champ.name?.type || 1;
+                    html += `<div class="result-item" onclick="quickSelectChampionship('${urlId}', '${title.replace(/'/g, "\\'")}', ${type})">
+                        <img src="${img}" alt="${title}">
+                        <span>${title}</span>
                         <span class="result-type">Championship</span>
                     </div>`;
                 });
             }
 
+            // Players
             if (results.player && results.player.length > 0) {
                 hasResults = true;
                 results.player.slice(0, 5).forEach(player => {
                     const img = player.name?.image ? IMG_BASE_PLAYER + player.name.image : 'https://via.placeholder.com/30';
-                    html += `<div class="result-item" onclick="openPlayerModal(${player.name.row_id})">
-                        <img src="${img}" alt="${player.name.title}">
-                        <span>${player.name.title}</span>
+                    const title = player.name?.title || 'Unknown';
+                    const id = player.name?.row_id || player.id;
+                    html += `<div class="result-item" onclick="openPlayerModal(${id})">
+                        <img src="${img}" alt="${title}">
+                        <span>${title}</span>
                         <span class="result-type">Player</span>
                     </div>`;
                 });
@@ -2507,7 +2598,7 @@
         function changeDate(offset) {
             selectedDate.setDate(selectedDate.getDate() + offset);
             updateDateUI();
-            loadLiveAndTodayMatches();
+            loadTodayMatches();
         }
 
         function renderCalendar() {
@@ -2525,7 +2616,7 @@
         }
         function changeCalMonth(offset) { calViewDate.setMonth(calViewDate.getMonth() + offset); renderCalendar(); }
         function selectCalDate(dateStr) { const parts = dateStr.split('-'); selectedCalDate = new Date(parts[0], parts[1]-1, parts[2]); renderCalendar(); }
-        function applyCalendarFilter() { if (selectedCalDate) { selectedDate = new Date(selectedCalDate); bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide(); updateDateUI(); loadLiveAndTodayMatches(); } }
+        function applyCalendarFilter() { if (selectedCalDate) { selectedDate = new Date(selectedCalDate); bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide(); updateDateUI(); loadTodayMatches(); } }
 
         function cleanupModalBackdrops() {
             document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
@@ -2913,62 +3004,40 @@
         }
 
         // ============================================================
-        //  LOAD LIVE & TODAY MATCHES
+        //  LOAD LIVE & TODAY MATCHES (separate intervals)
         // ============================================================
 
-        async function loadLiveAndTodayMatches() {
+        async function loadLiveMatches() {
             try {
                 const liveUrl = `${API_BASE}/matches/matches_in_proccess/L/60`;
                 const liveData = await fetchFromProxy(liveUrl);
-                liveMatches = liveData.data || [];
+                const newLiveMatches = liveData.data || [];
+                handleScoreChanges(liveMatches, newLiveMatches);
+                liveMatches = newLiveMatches;
+                await loadStreamEvents();
+                renderLiveAndToday();
+            } catch (err) {
+                console.error('Failed to load live matches:', err);
+            }
+        }
 
+        async function loadTodayMatches() {
+            try {
                 const dateStr = getLocalDateStr(selectedDate);
                 const todayUrl = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
                 const todayData = await fetchFromProxy(todayUrl).catch(() => ({ data: [] }));
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (todayData.data || []).filter(m => !liveIds.has(m.match_id));
-
                 await loadStreamEvents();
                 renderLiveAndToday();
-
-                if (liveUpdateInterval) clearInterval(liveUpdateInterval);
-                liveUpdateInterval = setInterval(() => {
-                    document.querySelectorAll('.match-card').forEach(el => {
-                        const match = liveMatches.find(m => m.match_id == el.dataset.matchId);
-                        if (match) {
-                            const seconds = getLiveSeconds(match);
-                            const status = match.status || 1;
-                            const timerData = formatLiveTimeRealtime(seconds, status, match.ex_time);
-                            const timeEl = el.querySelector('.time-text');
-                            const fillEl = el.querySelector('.timeline-fill');
-                            if (timeEl) {
-                                const stoppage = timerData.stoppage;
-                                if (stoppage) {
-                                    timeEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:3px;">
-                                        <span>${timerData.display}</span>
-                                        <span style="background:#dc3545;color:white;font-size:9px;font-weight:700;padding:0px 5px;border-radius:10px;border:1px solid white;">${stoppage}</span>
-                                    </div>`;
-                                } else {
-                                    timeEl.innerHTML = timerData.display;
-                                }
-                            }
-                            if (fillEl) fillEl.style.width = `${getMatchProgress(seconds, status)}%`;
-                        }
-                    });
-                }, 1000);
-
-                if (liveFetchInterval) clearInterval(liveFetchInterval);
-                liveFetchInterval = setInterval(async () => {
-                    const newLiveData = await fetchFromProxy(liveUrl).catch(() => ({ data: [] }));
-                    const newLiveMatches = newLiveData.data || [];
-                    handleScoreChanges(liveMatches, newLiveMatches);
-                    liveMatches = newLiveMatches;
-                    await loadStreamEvents();
-                    renderLiveAndToday();
-                }, 25000);
             } catch (err) {
-                console.error('Failed to load live/today matches:', err);
+                console.error('Failed to load today matches:', err);
             }
+        }
+
+        async function loadLiveAndTodayMatches() {
+            await loadLiveMatches();
+            await loadTodayMatches();
         }
 
         // ============================================================
@@ -3151,7 +3220,7 @@
         }
 
         // ============================================================
-        //  STANDINGS - CLEAN, ONLY HIGHLIGHTED TEAMS
+        //  STANDINGS - ONLY HIGHLIGHTED TEAMS
         // ============================================================
 
         async function loadStandings() {
@@ -3733,13 +3802,8 @@
             new bootstrap.Modal(document.getElementById('calendarModal')).show();
         });
 
-        setInterval(() => {
-            if (getLocalDateStr(new Date()) !== getLocalDateStr(selectedDate)) {
-                selectedDate = new Date();
-                updateDateUI();
-                loadLiveAndTodayMatches();
-            }
-        }, 60000);
+        // Don't auto-reset date to today - keep user selection
+        // Only check midnight to update the date label
 
         // ============================================================
         //  FILTER BAR
@@ -4690,11 +4754,8 @@
         //  HEADER ACTIONS
         // ============================================================
 
-        document.getElementById('themeToggleHeader')?.addEventListener('click', toggleTheme);
-
         document.getElementById('favoriteToggleHeader')?.addEventListener('click', function() {
             this.classList.toggle('active');
-            // Toggle filter to show favorites
             const filterBtns = document.querySelectorAll('.filter-bar .filter-btn');
             if (this.classList.contains('active')) {
                 filterBtns.forEach(b => b.classList.remove('active'));
@@ -4779,7 +4840,7 @@
         document.addEventListener('click', function() { langMenu.style.display = 'none'; });
 
         // ============================================================
-        //  INIT
+        //  INIT - with separate intervals for live and today
         // ============================================================
 
         loadTheme();
@@ -4787,9 +4848,23 @@
         updateDateUI();
         loadChampionships();
         loadStreamEvents();
-        loadLiveAndTodayMatches();
+
+        // Initial load
+        await loadLiveAndTodayMatches();
+
+        // Live matches update every 1 second (real-time)
+        liveUpdateInterval = setInterval(() => {
+            loadLiveMatches();
+        }, 1000);
+
+        // Today matches update every 60 seconds (less frequent)
+        todayUpdateInterval = setInterval(() => {
+            loadTodayMatches();
+        }, 60000);
+
         initScrollProgress();
 
+        // Make functions globally accessible
         window.toggleTheme = toggleTheme;
         window.openTeamModal = openTeamModal;
         window.openPlayerModal = openPlayerModal;
