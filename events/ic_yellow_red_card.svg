@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="24.081"
+    height="26.834" viewBox="0 0 24.081 26.834">
+    <defs>
+        <filter id="Path_53359" x="2.969" y="10.166" width="12.112" height="16.668"
+            filterUnits="userSpaceOnUse">
+            <feOffset dx="-1.3" dy="1.5" />
+            <feGaussianBlur result="blur" />
+            <feFlood flood-opacity="0.302" />
+            <feComposite operator="in" in2="blur" />
+            <feComposite in="SourceGraphic" />
+        </filter>
+        <filter id="Path_53360" x="6.998" y="0" width="17.082" height="23.334"
+            filterUnits="userSpaceOnUse">
+            <feOffset dx="-2" dy="2" />
+            <feGaussianBlur result="blur-2" />
+            <feFlood flood-opacity="0.302" />
+            <feComposite operator="in" in2="blur-2" />
+            <feComposite in="SourceGraphic" />
+        </filter>
+    </defs>
+    <g id="Group_2044" data-name="Group 2044" transform="translate(-143.501 -717.5)">
+        <path id="Path_53357" data-name="Path 53357"
+            d="M-178.886-56.077l-5.584.583a1.32,1.32,0,0,1-1.454-1.233L-186.6-67.92a1.32,1.32,0,0,1,1.317-1.4h6.94a1.32,1.32,0,0,1,1.317,1.4l-.681,10.61A1.32,1.32,0,0,1-178.886-56.077Z"
+            transform="translate(330.103 797.819)" fill="#ffda46" />
+        <g transform="matrix(1, 0, 0, 1, 143.5, 717.5)" filter="url(#Path_53359)">
+            <path id="Path_53359-2" data-name="Path 53359"
+                d="M-178.7-55.757l-5.719.6a1.352,1.352,0,0,1-1.489-1.263l-.691-11.463a1.352,1.352,0,0,1,1.349-1.433h7.107a1.352,1.352,0,0,1,1.349,1.438l-.7,10.866A1.352,1.352,0,0,1-178.7-55.757Z"
+                transform="translate(191.37 79.98)" fill="#ffda46" stroke="rgba(0,0,0,0)"
+                stroke-width="1" />
+        </g>
+        <g transform="matrix(1, 0, 0, 1, 143.5, 717.5)" filter="url(#Path_53360)">
+            <path id="Path_53360-2" data-name="Path 53360"
+                d="M-175.26-49.855l-8.208.858a1.94,1.94,0,0,1-2.138-1.813l-.992-16.453a1.94,1.94,0,0,1,1.936-2.056h10.2a1.94,1.94,0,0,1,1.936,2.064l-1,15.6A1.94,1.94,0,0,1-175.26-49.855Z"
+                transform="translate(196.1 69.82)" fill="#fc4d4d" stroke="rgba(0,0,0,0)"
+                stroke-width="1" />
+        </g>
+    </g>
+</svg>

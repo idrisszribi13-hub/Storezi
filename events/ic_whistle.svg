@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="15" viewBox="0 0 16 15">
+    <g id="whistle" transform="translate(0 -16)">
+        <g id="Group_1576" data-name="Group 1576" transform="translate(0 20.917)">
+            <g id="Group_1575" data-name="Group 1575">
+                <path id="Path_53333" data-name="Path 53333"
+                    d="M15.5,176h-3a.5.5,0,0,0-.354.147l-.853.861H10v-.5a.5.5,0,0,0-.5-.5H5a5.042,5.042,0,1,0,4.938,5.852l5.75-2.361a.5.5,0,0,0,.312-.467V176.5A.5.5,0,0,0,15.5,176ZM5,183.563a2.521,2.521,0,1,1,2.5-2.521A2.51,2.51,0,0,1,5,183.563Z"
+                    transform="translate(0 -176)" fill="#5a83ff" />
+            </g>
+        </g>
+        <g id="Group_1578" data-name="Group 1578" transform="translate(10.494 16)">
+            <g id="Group_1577" data-name="Group 1577">
+                <path id="Path_53334" data-name="Path 53334"
+                    d="M336.5,16a.5.5,0,0,0-.5.5v3.025a.5.5,0,1,0,1.008,0V16.5A.5.5,0,0,0,336.5,16Z"
+                    transform="translate(-336 -16)" fill="#5a83ff" />
+            </g>
+        </g>
+        <g id="Group_1580" data-name="Group 1580" transform="translate(6.989 17.008)">
+            <g id="Group_1579" data-name="Group 1579">
+                <path id="Path_53335" data-name="Path 53335"
+                    d="M226.414,50.2,224.9,48.187a.5.5,0,0,0-.807.6l1.512,2.017a.5.5,0,0,0,.807-.6Z"
+                    transform="translate(-223.994 -47.984)" fill="#5a83ff" />
+            </g>
+        </g>
+        <g id="Group_1582" data-name="Group 1582" transform="translate(12.47 17.009)">
+            <g id="Group_1581" data-name="Group 1581">
+                <path id="Path_53336" data-name="Path 53336"
+                    d="M402.306,48.112a.505.505,0,0,0-.706.1l-1.512,2.017a.5.5,0,0,0,.808.6l1.513-2.017A.5.5,0,0,0,402.306,48.112Z"
+                    transform="translate(-399.987 -48.012)" fill="#5a83ff" />
+            </g>
+        </g>
+    </g>
+</svg>
