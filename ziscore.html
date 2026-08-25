@@ -2967,11 +2967,9 @@
         }
 
         function getLiveSecondsFromFixture(fixture) {
-            const elapsed = fixture.status.elapsed || 0;
+            const elapsed = fixture?.status?.elapsed || 0;
             return elapsed * 60;
         }
-
-        function getGoalMarkersFromFixture() { return ''; }
 
         // ============================================================
         //  HEADER SEARCH
@@ -3118,60 +3116,63 @@
         }
 
         // ============================================================
-        //  LIVE MATCHES FROM API-SPORTS
+        //  LIVE MATCHES FROM API-SPORTS (FIXED)
         // ============================================================
         async function loadLiveMatches() {
             try {
                 const response = await fetchApiSports('/fixtures?live=all');
-                if (!response || !response.response) {
+                // Safety checks
+                if (!response || !response.response || !Array.isArray(response.response)) {
                     liveMatches = [];
                     renderLiveAndToday();
                     return;
                 }
                 const fixtures = response.response;
-                const newLive = fixtures.map(f => {
-                    const home = f.teams.home;
-                    const away = f.teams.away;
-                    const status = f.status.short;
-                    const elapsed = f.status.elapsed || 0;
-                    const extra = f.status.extra || null;
-                    return {
-                        match_id: f.fixture.id,
-                        home_team: {
-                            row_id: home.id,
-                            title: home.name,
-                            image: null,
-                        },
-                        away_team: {
-                            row_id: away.id,
-                            title: away.name,
-                            image: null,
-                        },
-                        home_scores: f.goals.home ?? 0,
-                        away_scores: f.goals.away ?? 0,
-                        status: status,
-                        minutes: elapsed * 60,
-                        ex_time: extra || null,
-                        match_timestamp: f.fixture.timestamp,
-                        championship: {
-                            title: f.league.name,
-                            image: null,
-                            url_id: f.league.id,
-                            type: 1,
-                        },
-                        round: f.league.round || '',
-                        match_date: f.fixture.date,
-                        match_time: new Date(f.fixture.date).toLocaleTimeString(),
-                        score_time: null,
-                        match_penalties: null,
-                        video_links: [],
-                        Stadium: f.fixture.venue?.name || '',
-                        channel_commm: [],
-                        referees: [],
-                        _api: true,
-                        _fixtureId: f.fixture.id,
-                    };
-                });
+                const newLive = fixtures
+                    .filter(f => f && f.fixture && f.fixture.status) // filter invalid
+                    .map(f => {
+                        const home = f.teams?.home || { id: 0, name: 'Unknown' };
+                        const away = f.teams?.away || { id: 0, name: 'Unknown' };
+                        const status = f.fixture.status.short || 'NS';
+                        const elapsed = f.fixture.status.elapsed || 0;
+                        const extra = f.fixture.status.extra || null;
+                        return {
+                            match_id: f.fixture.id || Date.now() + Math.random(),
+                            home_team: {
+                                row_id: home.id,
+                                title: home.name,
+                                image: null,
+                            },
+                            away_team: {
+                                row_id: away.id,
+                                title: away.name,
+                                image: null,
+                            },
+                            home_scores: f.goals?.home ?? 0,
+                            away_scores: f.goals?.away ?? 0,
+                            status: status,
+                            minutes: elapsed * 60,
+                            ex_time: extra || null,
+                            match_timestamp: f.fixture.timestamp || Math.floor(Date.now() / 1000),
+                            championship: {
+                                title: f.league?.name || 'Unknown',
+                                image: null,
+                                url_id: f.league?.id || 0,
+                                type: 1,
+                            },
+                            round: f.league?.round || '',
+                            match_date: f.fixture?.date || new Date().toISOString(),
+                            match_time: f.fixture?.date ? new Date(f.fixture.date).toLocaleTimeString() : '',
+                            score_time: null,
+                            match_penalties: null,
+                            video_links: [],
+                            Stadium: f.fixture?.venue?.name || '',
+                            channel_commm: [],
+                            referees: [],
+                            _api: true,
+                            _fixtureId: f.fixture?.id || 0,
+                        };
+                    });
                 liveMatches = newLive;
                 await loadTodayMatches();
             } catch (err) {
@@ -3217,13 +3218,12 @@
                 '';
             const homeLogo = home.image ? IMG_BASE_TEAM + home.image : 'https://via.placeholder.com/34';
             const awayLogo = away.image ? IMG_BASE_TEAM + away.image : 'https://via.placeholder.com/34';
-            const seconds = getLiveSecondsFromFixture({ status: { elapsed: match.minutes / 60, extra: match.ex_time } });
+            const seconds = match.minutes || 0;
             const status = match.status;
             const timer = formatLiveTimeRealtime(seconds, status, match.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
             const isFav = isFavorite(match.match_id);
-            let penaltyHtml = '';
             let timerHtml =
                 `<div class="time-text">${timer.display}${timer.stoppage ? `<span class="stoppage-badge">${timer.stoppage}</span>` : ''}</div>`;
             return `
@@ -3236,7 +3236,6 @@
                         </div>
                         <div class="center-col">
                             <div class="score-big">${match.home_scores || 0} - ${match.away_scores || 0}</div>
-                            ${penaltyHtml}
                             <div class="live-badge">${period}</div>
                             ${timerHtml}
                             <div class="timeline-container">
@@ -3458,7 +3457,6 @@
                 const url = `${API_BASE}/matches/match_info/${matchId}/L/60`;
                 const data = await fetchFromProxy(url);
                 if (data && data.data) {
-                    // Fetch additional data
                     const [eventsRes, lineupRes, statsRes, h2hRes, homeLast5Res, awayLast5Res] = await Promise.all([
                         fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`).catch(() => ({ data: { events: [] } })),
                         fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`).catch(() => ({ data: {} })),
@@ -3539,7 +3537,7 @@
         // ============================================================
         function renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
             const body = document.getElementById('matchModalBody');
-            const seconds = (info.minutes) || getLiveSecondsFromFixture({ status: { elapsed: 0 } });
+            const seconds = (info.minutes) || 0;
             const status = info.status || 1;
             const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
             const period = getMatchPeriod(status);
@@ -3601,7 +3599,6 @@
                         <div class="timeline-container">
                             <div class="timeline-fill timeline-fill-modal" style="width:${progress}%"></div>
                             ${status === 2 ? '<div class="ht-marker"></div>' : ''}
-                            ${getGoalMarkersFromFixture()}
                         </div>
                         ${videoHtml}
                     </div>
@@ -3646,12 +3643,12 @@
             // Events
             let eventsHtml = '<div class="event-box">';
             if (events && events.length) {
-                // Simple event rendering
                 events.forEach(ev => {
                     const isHome = ev.team_id == info.home_team.row_id;
                     const isAway = ev.team_id == info.away_team.row_id;
                     let side = '';
-                    if (isHome) side = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})" /></div>`;
+                    if (isHome) side =
+                        `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})" /></div>`;
                     else if (isAway) side =
                         `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})" /></div>`;
                     const min = ev.time_minute || 0;
@@ -3789,12 +3786,10 @@
             </div>`;
 
             body.innerHTML = headerHtml + standingsPreview + tabsHtml;
-            // Tab switching
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) { e.preventDefault();
                     new bootstrap.Tab(this).show(); });
             });
-            // Lineup tab switching
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
