@@ -642,6 +642,19 @@
             padding: 4px 16px;
             border-radius: 20px;
             display: inline-block;
+            position: relative;
+        }
+        .match-time-display .stoppage-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #dc3545;
+            color: white;
+            font-size: 10px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 10px;
+            border: 1px solid #fff;
         }
         .match-period {
             font-size: 14px;
@@ -1438,7 +1451,98 @@
             font-weight: 800;
             color: #ffc107;
         }
+        .match-timer-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        .match-timer-container .timer-main {
+            font-size: 16px;
+            font-weight: 700;
+            color: #2c3e50;
+            background: #e9ecef;
+            padding: 4px 16px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+        .match-timer-container .timer-stoppage {
+            background: #dc3545;
+            color: white;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+        }
+
+        /* ===== SCROLL PROGRESS INDICATOR (like DeepSeek) ===== */
+        .scroll-progress {
+            position: fixed;
+            right: 20px;
+            bottom: 50%;
+            transform: translateY(50%);
+            z-index: 3000;
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: #fff;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: 2px solid #eaeaea;
+        }
+        .scroll-progress:hover {
+            transform: translateY(50%) scale(1.05);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        }
+        .scroll-progress svg {
+            width: 100%;
+            height: 100%;
+            transform: rotate(-90deg);
+        }
+        .scroll-progress .bg-circle {
+            fill: none;
+            stroke: #e9ecef;
+            stroke-width: 3;
+        }
+        .scroll-progress .progress-circle {
+            fill: none;
+            stroke: #dc3545;
+            stroke-width: 3;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.15s ease;
+        }
+        .scroll-progress .arrow-icon {
+            position: absolute;
+            font-size: 20px;
+            color: #333;
+            font-weight: 700;
+            pointer-events: none;
+            line-height: 1;
+        }
+        .scroll-progress .arrow-icon.down {
+            color: #dc3545;
+        }
+        .scroll-progress .arrow-icon.up {
+            color: #dc3545;
+        }
+        .scroll-progress .arrow-icon.hidden {
+            display: none;
+        }
+
         @media (max-width: 768px) {
+            .scroll-progress {
+                width: 40px;
+                height: 40px;
+                right: 12px;
+            }
+            .scroll-progress .arrow-icon {
+                font-size: 16px;
+            }
             .container { padding: 10px; }
             .nav-tabs .nav-link { font-size: 0.85rem; padding: 8px 10px; }
             .tab-content { padding: 10px; }
@@ -1463,7 +1567,7 @@
             .stat-row .home-val, .stat-row .away-val { width: 45px; font-size: 12px; }
             .stat-row .stat-label { font-size: 11px; }
             .match-team-side span { font-size: 12px; }
-            .match-time-display { font-size: 13px; padding: 3px 12px; }
+            .match-timer-container .timer-main { font-size: 13px; padding: 3px 12px; }
             .match-modal-tabs .nav-link { font-size: 12px; padding: 6px 10px; }
             .match-header .champ-badge { font-size: 10px; }
             .match-header .champ-badge .match-meta { font-size: 10px; }
@@ -1522,6 +1626,16 @@
 
         <div id="loadingIndicator" class="loader hidden text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-2" data-i18n="loading">Loading...</p></div>
         <div id="errorIndicator" class="error-message hidden text-center text-danger py-3"></div>
+    </div>
+
+    <!-- ===== SCROLL PROGRESS INDICATOR (like DeepSeek) ===== -->
+    <div class="scroll-progress" id="scrollProgress" title="Scroll progress">
+        <svg viewBox="0 0 50 50">
+            <circle class="bg-circle" cx="25" cy="25" r="20"/>
+            <circle class="progress-circle" id="progressCircle" cx="25" cy="25" r="20"
+                    stroke-dasharray="125.6" stroke-dashoffset="125.6"/>
+        </svg>
+        <span class="arrow-icon" id="scrollArrow">↓</span>
     </div>
 
     <!-- Modals -->
@@ -1687,6 +1801,72 @@
         let selectedCalDate = null;
 
         // ============================================================
+        //  SCROLL PROGRESS INDICATOR
+        // ============================================================
+        function initScrollProgress() {
+            const el = document.getElementById('scrollProgress');
+            const circle = document.getElementById('progressCircle');
+            const arrow = document.getElementById('scrollArrow');
+            const circumference = 2 * Math.PI * 20; // r=20
+
+            function updateScroll() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const progress = docHeight > 0 ? Math.min(1, scrollTop / docHeight) : 0;
+                const offset = circumference * (1 - progress);
+                circle.style.strokeDashoffset = offset;
+
+                // Update arrow direction
+                const isAtTop = scrollTop < 50;
+                const isAtBottom = scrollTop > docHeight - 50;
+                if (isAtTop) {
+                    arrow.textContent = '↓';
+                    arrow.className = 'arrow-icon down';
+                } else if (isAtBottom) {
+                    arrow.textContent = '↑';
+                    arrow.className = 'arrow-icon up';
+                } else {
+                    arrow.textContent = '↓';
+                    arrow.className = 'arrow-icon';
+                }
+            }
+
+            // Click handler - scroll to top or bottom
+            el.addEventListener('click', function() {
+                const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+                const docHeight = document.documentElement.scrollHeight - window.innerHeight;
+                const isAtTop = scrollTop < 50;
+                const isAtBottom = scrollTop > docHeight - 50;
+
+                if (isAtTop) {
+                    // Scroll to bottom
+                    window.scrollTo({ top: docHeight, behavior: 'smooth' });
+                } else if (isAtBottom) {
+                    // Scroll to top
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                } else {
+                    // Scroll to bottom
+                    window.scrollTo({ top: docHeight, behavior: 'smooth' });
+                }
+            });
+
+            // Throttled scroll listener
+            let ticking = false;
+            window.addEventListener('scroll', function() {
+                if (!ticking) {
+                    window.requestAnimationFrame(function() {
+                        updateScroll();
+                        ticking = false;
+                    });
+                    ticking = true;
+                }
+            });
+
+            // Initial update
+            updateScroll();
+        }
+
+        // ============================================================
         //  UTILITY FUNCTIONS
         // ============================================================
         function getLocalDateStr(date) {
@@ -1767,234 +1947,33 @@
             }
         }
 
-        function formatMatchDateTime(dateStr, timeStr, timestamp) {
-            const baseDate = timestamp ? new Date(timestamp * 1000) : new Date(dateStr + 'T' + timeStr + 'Z');
-            return formatDate(baseDate) + ' ' + formatTime(baseDate);
+        // ============================================================
+        //  FIXED: Time display - direct from API without timezone conversion
+        // ============================================================
+
+        function formatMatchDateTimeDirect(dateStr, timeStr) {
+            if (!dateStr || !timeStr) return 'N/A';
+            const d = new Date(dateStr);
+            const month = d.toLocaleString('en-US', { month: 'short' });
+            const day = d.getDate();
+            const year = d.getFullYear();
+            const time = timeStr.substring(0,5);
+            return `${month} ${day}, ${year} ${time}`;
         }
 
-        function formatDate(date) {
-            return date.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+        function formatMatchDateShort(dateStr) {
+            if (!dateStr) return 'N/A';
+            const d = new Date(dateStr);
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         }
 
-        function formatTime(date) {
-            if (timeFormat === '12') {
-                return date.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: true });
-            } else {
-                return date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit', hour12: false });
-            }
-        }
-
-        function cleanupModalBackdrops() {
-            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
-            document.body.classList.remove('modal-open');
-            document.body.style.overflow = '';
-            document.body.style.paddingRight = '';
-        }
-        document.addEventListener('hidden.bs.modal', cleanupModalBackdrops);
-        document.addEventListener('show.bs.modal', cleanupModalBackdrops);
-
-        function showLoading() {
-            loadingCount++;
-            const loader = document.getElementById('loadingIndicator');
-            loader.classList.remove('hidden');
-            document.getElementById('errorIndicator').classList.add('hidden');
-            clearTimeout(window.loaderTimeout);
-            window.loaderTimeout = setTimeout(() => { if (loadingCount > 0) { loadingCount = 0; loader.classList.add('hidden'); } }, 10000);
-        }
-        function hideLoading() {
-            loadingCount = Math.max(0, loadingCount - 1);
-            if (loadingCount === 0) document.getElementById('loadingIndicator').classList.add('hidden');
-        }
-        function showError(msg) {
-            document.getElementById('errorIndicator').textContent = msg;
-            document.getElementById('errorIndicator').classList.remove('hidden');
-        }
-
-        async function fetchFromProxy(url) {
-            try {
-                const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(url)}`;
-                const response = await fetch(proxied);
-                if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                return await response.json();
-            } catch (err) {
-                const fallbackUrl = url.replace(/\/api-(ar|fr|es|it|pt|br)\//, '/api-en/');
-                if (fallbackUrl !== url) {
-                    const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(fallbackUrl)}`;
-                    const response = await fetch(proxied);
-                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                    return await response.json();
-                }
-                throw err;
-            }
-        }
-
-        function getPositionFullName(pos) {
-            const mapping = {
-                'G': 'Goalkeeper', 'D': 'Defender', 'M': 'Midfielder', 'F': 'Forward',
-                'GK': 'Goalkeeper', 'CB': 'Centre Back', 'LB': 'Left Back', 'RB': 'Right Back',
-                'CDM': 'Defensive Midfielder', 'CM': 'Central Midfielder', 'CAM': 'Attacking Midfielder',
-                'LM': 'Left Midfielder', 'RM': 'Right Midfielder', 'LW': 'Left Winger', 'RW': 'Right Winger',
-                'CF': 'Centre Forward', 'SS': 'Second Striker', 'AM': 'Attacking Midfielder', 'DM': 'Defensive Midfielder'
-            };
-            return mapping[pos] || pos || 'Unknown';
+        function formatMatchTimeOnly(timeStr) {
+            if (!timeStr) return 'N/A';
+            return timeStr.substring(0,5);
         }
 
         // ============================================================
-        //  STREAM EVENTS
-        // ============================================================
-        async function loadStreamEvents() {
-            try {
-                const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
-                const response = await fetch(fullUrl);
-                if (!response.ok) throw new Error('HTTP ' + response.status);
-                const data = await response.json();
-                streamEvents = data || [];
-            } catch (err) {
-                streamEvents = [];
-            }
-        }
-
-        const teamAliases = {
-            'manchester united': ['man utd', 'man u', 'man united', 'manchester u'],
-            'man city': ['manchester city', 'manchester c'],
-            'tottenham': ['tottenham hotspur', 'spurs'],
-            'arsenal': ['arsenal fc'],
-            'chelsea': ['chelsea fc'],
-            'liverpool': ['liverpool fc'],
-            'newcastle': ['newcastle united', 'newcastle utd'],
-            'aston villa': ['aston villa fc'],
-            'brighton': ['brighton and hove albion', 'brighton & hove albion'],
-            'leeds': ['leeds united', 'leeds utd'],
-            'manchester': ['man utd', 'man united'],
-            'paris sg': ['paris-sg', 'paris saint-germain', 'paris saint germain', 'psg'],
-            'rennais': ['stade rennais', 'rennes', 'stade rennais fc'],
-            'real madrid': ['real madrid cf', 'real'],
-            'barcelona': ['fc barcelona', 'barca'],
-            'bayern munich': ['fc bayern munich', 'bayern'],
-            'juventus': ['juve', 'juventus fc'],
-            'inter': ['inter milan', 'fc internazionale'],
-            'ac milan': ['milan', 'ac milan'],
-            'roma': ['as roma', 'rome'],
-            'napoli': ['ssc napoli'],
-            'lazio': ['ss lazio'],
-            'atletico madrid': ['atletico madrid cf', 'atleti'],
-            'sevilla': ['sevilla fc'],
-            'valencia': ['valencia cf'],
-            'villarreal': ['villarreal cf'],
-            'benfica': ['sl benfica'],
-            'porto': ['fc porto'],
-            'ajax': ['afc ajax'],
-            'psv': ['psv eindhoven'],
-            'feyenoord': ['feyenoord rotterdam'],
-            'galatasaray': ['galatasaray sk'],
-            'fenerbahce': ['fenerbahçe sk'],
-            'besiktas': ['beşiktaş jk'],
-            'wolfsburg': ['vfl wolfsburg'],
-            'hamburger sv': ['hamburg'],
-            'fc köln': ['fc koln', 'koln', '1. fc köln'],
-            'wuerzburger kickers': ['würzburger kickers', 'wurzburger kickers', 'kickers wurzburg'],
-            'altglienicke': ['vs altglienicke'],
-            'sc verl': ['sc verls', 'verl']
-        };
-
-        function normalizeTeamName(name) {
-            if (!name) return '';
-            let n = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
-            n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl|vfl|vs|1\.)\b/g, '').replace(/\s+/g, ' ').trim();
-            for (const key in teamAliases) {
-                const aliases = teamAliases[key];
-                if (n === key || aliases.includes(n)) {
-                    return key;
-                }
-            }
-            return n;
-        }
-
-        function findStreamEvent(match) {
-            if (!streamEvents.length || !match.home_team || !match.away_team) return null;
-            const home = normalizeTeamName(match.home_team.title || match.home_team.full_title);
-            const away = normalizeTeamName(match.away_team.title || match.away_team.full_title);
-            const event = streamEvents.find(event => {
-                const eventHome = normalizeTeamName(event.homeName);
-                const eventAway = normalizeTeamName(event.awayName);
-                return eventHome === home && eventAway === away;
-            });
-            if (event && event.sources && event.sources.length > 0 && event.sources[0].streamUrl) {
-                return event;
-            }
-            return null;
-        }
-
-        function openStreamPlayer(streamUrl, matchData) {
-            const modalElement = document.getElementById('streamPlayerModal');
-            const videoElement = document.getElementById('streamVideo');
-            const streamCompLogo = document.getElementById('streamCompLogo');
-            const streamCompName = document.getElementById('streamCompName');
-            const streamMatchInfo = document.getElementById('streamMatchInfo');
-            const streamHomeLogo = document.getElementById('streamHomeLogo');
-            const streamAwayLogo = document.getElementById('streamAwayLogo');
-
-            if (matchData && matchData.compLogoUrl) {
-                streamCompLogo.src = matchData.compLogoUrl;
-                streamCompLogo.style.display = 'inline-block';
-            } else {
-                streamCompLogo.style.display = 'none';
-            }
-
-            if (streamCompName) streamCompName.textContent = matchData ? (matchData.compName || '') : '';
-            if (streamMatchInfo) streamMatchInfo.textContent = matchData ? `${matchData.homeName} ${matchData.homeScore} - ${matchData.awayScore} ${matchData.awayName}` : '';
-
-            if (matchData && matchData.homeLogoUrl) {
-                streamHomeLogo.src = matchData.homeLogoUrl;
-                streamHomeLogo.style.display = 'inline-block';
-            } else {
-                streamHomeLogo.style.display = 'none';
-            }
-
-            if (matchData && matchData.awayLogoUrl) {
-                streamAwayLogo.src = matchData.awayLogoUrl;
-                streamAwayLogo.style.display = 'inline-block';
-            } else {
-                streamAwayLogo.style.display = 'none';
-            }
-
-            let finalStreamUrl = streamUrl;
-            if (finalStreamUrl.startsWith('http://')) {
-                finalStreamUrl = finalStreamUrl.replace('http://', 'https://');
-            }
-
-            if (Hls.isSupported()) {
-                const hls = new Hls();
-                hls.loadSource(finalStreamUrl);
-                hls.attachMedia(videoElement);
-                hls.on(Hls.Events.ERROR, (event, data) => {
-                    if (data.fatal) {
-                        console.error('HLS fatal error:', data);
-                        alert('Unable to play stream. Please try again later.');
-                        videoElement.pause();
-                    }
-                });
-                videoElement.addEventListener('ended', () => hls.destroy());
-                window.currentHls = hls;
-            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
-                videoElement.src = finalStreamUrl;
-            } else {
-                alert('Your browser does not support HLS');
-                return;
-            }
-
-            const modal = new bootstrap.Modal(modalElement);
-            modal.show();
-            modalElement.addEventListener('hidden.bs.modal', () => {
-                videoElement.pause();
-                videoElement.removeAttribute('src');
-                videoElement.load();
-                if (window.currentHls) { window.currentHls.destroy(); window.currentHls = null; }
-            }, { once: true });
-        }
-
-        // ============================================================
-        //  CORE MATCH LOGIC
+        //  LIVE TIMER FUNCTIONS
         // ============================================================
 
         function getLiveSeconds(match) {
@@ -2024,24 +2003,22 @@
             return 'Live';
         }
 
-        function formatLiveTime(seconds, status, exTime) {
+        function formatLiveTimeWithStoppage(seconds, status, exTime) {
             const totalSeconds = Math.max(0, seconds);
             const minutes = Math.floor(totalSeconds / 60);
             const secs = Math.floor(totalSeconds % 60);
             const paddedSecs = String(secs).padStart(2, '0');
 
-            if (status === 0) return 'VS';
-            if (status === 4) return 'FT';
-            if (status === 2) return 'HT';
+            if (status === 0) return { display: 'VS', stoppage: null };
+            if (status === 4) return { display: 'FT', stoppage: null };
+            if (status === 2) return { display: 'HT', stoppage: null };
 
-            let timeStr = `${minutes}'`;
-            if (minutes >= 45 || status === 8 || status === 9 || status === 5 || status === 7) {
-                timeStr = `${minutes}'+${paddedSecs}`;
-            }
+            let timeStr = `${minutes}:${paddedSecs}`;
+            let stoppage = null;
             if (exTime && exTime > 0) {
-                timeStr = `${minutes}'+${exTime}`;
+                stoppage = `+${exTime}'`;
             }
-            return timeStr;
+            return { display: timeStr, stoppage: stoppage };
         }
 
         function getMatchProgress(seconds, status) {
@@ -2080,7 +2057,7 @@
         }
 
         // ============================================================
-        //  RENDER MATCH CARDS (Live & Today)
+        //  RENDER MATCH CARDS
         // ============================================================
 
         function renderLiveMatchCard(match) {
@@ -2091,7 +2068,9 @@
 
             const seconds = getLiveSeconds(match);
             const status = match.status || 1;
-            const timeDisplay = formatLiveTime(seconds, status, match.ex_time);
+            const timerData = formatLiveTimeWithStoppage(seconds, status, match.ex_time);
+            const timeDisplay = timerData.display;
+            const stoppageBadge = timerData.stoppage;
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
             const goalMarkers = getGoalMarkers(match);
@@ -2110,6 +2089,14 @@
                 penaltyHtml = `<div class="penalty-score">PK: ${homePens} - ${awayPens}</div>`;
             }
 
+            let timerHtml = `<div class="time-text">${timeDisplay}</div>`;
+            if (stoppageBadge) {
+                timerHtml = `<div class="time-text" style="display:flex;align-items:center;justify-content:center;gap:4px;">
+                    <span>${timeDisplay}</span>
+                    <span style="background:#dc3545;color:white;font-size:10px;font-weight:700;padding:0px 6px;border-radius:10px;border:1px solid white;">${stoppageBadge}</span>
+                </div>`;
+            }
+
             const card = document.createElement('div');
             card.className = 'col-12 mb-3';
             card.innerHTML = `
@@ -2123,7 +2110,7 @@
                             <div class="score-big">${match.home_scores} - ${match.away_scores}</div>
                             ${penaltyHtml}
                             <div class="live-badge">${period}</div>
-                            <div class="time-text">${timeDisplay}</div>
+                            ${timerHtml}
                             <div class="timeline-container">
                                 <div class="timeline-fill" style="width: ${progress}%"></div>
                                 ${status === 2 ? '<div class="ht-marker"></div>' : ''}
@@ -2155,7 +2142,7 @@
 
             let middleContent = '';
             if (isUpcoming) {
-                const matchTime = new Date(match.match_date + 'T' + match.match_time + 'Z');
+                const matchTime = new Date(match.match_date + 'T' + match.match_time);
                 const now = new Date();
                 const diff = Math.max(0, Math.floor((matchTime - now) / 1000));
                 const hours = Math.floor(diff / 3600);
@@ -2289,9 +2276,20 @@
                         if (match) {
                             const seconds = getLiveSeconds(match);
                             const status = match.status || 1;
+                            const timerData = formatLiveTimeWithStoppage(seconds, status, match.ex_time);
                             const timeEl = el.querySelector('.time-text');
                             const fillEl = el.querySelector('.timeline-fill');
-                            if (timeEl) timeEl.innerHTML = formatLiveTime(seconds, status, match.ex_time);
+                            if (timeEl) {
+                                const stoppage = timerData.stoppage;
+                                if (stoppage) {
+                                    timeEl.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;gap:4px;">
+                                        <span>${timerData.display}</span>
+                                        <span style="background:#dc3545;color:white;font-size:10px;font-weight:700;padding:0px 6px;border-radius:10px;border:1px solid white;">${stoppage}</span>
+                                    </div>`;
+                                } else {
+                                    timeEl.innerHTML = timerData.display;
+                                }
+                            }
                             if (fillEl) fillEl.style.width = `${getMatchProgress(seconds, status)}%`;
                         }
                     });
@@ -2447,7 +2445,7 @@
             matches.forEach(match => {
                 const home = match.home_team;
                 const away = match.away_team;
-                const dateTime = formatMatchDateTime(match.match_date, match.match_time, match.match_timestamp);
+                const dateTime = formatMatchDateTimeDirect(match.match_date, match.match_time);
                 const comp = match.championship ? match.championship.title : '';
                 const compImg = match.championship?.image ? `<img src="${IMG_BASE_CHAMP + match.championship.image}" class="champ-img" style="width:16px;height:16px;vertical-align:middle;">` : '';
 
@@ -3078,7 +3076,162 @@
         }, 60000);
 
         // ============================================================
-        //  MATCH DETAILS - COMPLETE REWRITE
+        //  STREAM EVENTS
+        // ============================================================
+
+        async function loadStreamEvents() {
+            try {
+                const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
+                const response = await fetch(fullUrl);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                const data = await response.json();
+                streamEvents = data || [];
+            } catch (err) {
+                streamEvents = [];
+            }
+        }
+
+        const teamAliases = {
+            'manchester united': ['man utd', 'man u', 'man united', 'manchester u'],
+            'man city': ['manchester city', 'manchester c'],
+            'tottenham': ['tottenham hotspur', 'spurs'],
+            'arsenal': ['arsenal fc'],
+            'chelsea': ['chelsea fc'],
+            'liverpool': ['liverpool fc'],
+            'newcastle': ['newcastle united', 'newcastle utd'],
+            'aston villa': ['aston villa fc'],
+            'brighton': ['brighton and hove albion', 'brighton & hove albion'],
+            'leeds': ['leeds united', 'leeds utd'],
+            'manchester': ['man utd', 'man united'],
+            'paris sg': ['paris-sg', 'paris saint-germain', 'paris saint germain', 'psg'],
+            'rennais': ['stade rennais', 'rennes', 'stade rennais fc'],
+            'real madrid': ['real madrid cf', 'real'],
+            'barcelona': ['fc barcelona', 'barca'],
+            'bayern munich': ['fc bayern munich', 'bayern'],
+            'juventus': ['juve', 'juventus fc'],
+            'inter': ['inter milan', 'fc internazionale'],
+            'ac milan': ['milan', 'ac milan'],
+            'roma': ['as roma', 'rome'],
+            'napoli': ['ssc napoli'],
+            'lazio': ['ss lazio'],
+            'atletico madrid': ['atletico madrid cf', 'atleti'],
+            'sevilla': ['sevilla fc'],
+            'valencia': ['valencia cf'],
+            'villarreal': ['villarreal cf'],
+            'benfica': ['sl benfica'],
+            'porto': ['fc porto'],
+            'ajax': ['afc ajax'],
+            'psv': ['psv eindhoven'],
+            'feyenoord': ['feyenoord rotterdam'],
+            'galatasaray': ['galatasaray sk'],
+            'fenerbahce': ['fenerbahçe sk'],
+            'besiktas': ['beşiktaş jk'],
+            'wolfsburg': ['vfl wolfsburg'],
+            'hamburger sv': ['hamburg'],
+            'fc köln': ['fc koln', 'koln', '1. fc köln'],
+            'wuerzburger kickers': ['würzburger kickers', 'wurzburger kickers', 'kickers wurzburg'],
+            'altglienicke': ['vs altglienicke'],
+            'sc verl': ['sc verls', 'verl']
+        };
+
+        function normalizeTeamName(name) {
+            if (!name) return '';
+            let n = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl|vfl|vs|1\.)\b/g, '').replace(/\s+/g, ' ').trim();
+            for (const key in teamAliases) {
+                const aliases = teamAliases[key];
+                if (n === key || aliases.includes(n)) {
+                    return key;
+                }
+            }
+            return n;
+        }
+
+        function findStreamEvent(match) {
+            if (!streamEvents.length || !match.home_team || !match.away_team) return null;
+            const home = normalizeTeamName(match.home_team.title || match.home_team.full_title);
+            const away = normalizeTeamName(match.away_team.title || match.away_team.full_title);
+            const event = streamEvents.find(event => {
+                const eventHome = normalizeTeamName(event.homeName);
+                const eventAway = normalizeTeamName(event.awayName);
+                return eventHome === home && eventAway === away;
+            });
+            if (event && event.sources && event.sources.length > 0 && event.sources[0].streamUrl) {
+                return event;
+            }
+            return null;
+        }
+
+        function openStreamPlayer(streamUrl, matchData) {
+            const modalElement = document.getElementById('streamPlayerModal');
+            const videoElement = document.getElementById('streamVideo');
+            const streamCompLogo = document.getElementById('streamCompLogo');
+            const streamCompName = document.getElementById('streamCompName');
+            const streamMatchInfo = document.getElementById('streamMatchInfo');
+            const streamHomeLogo = document.getElementById('streamHomeLogo');
+            const streamAwayLogo = document.getElementById('streamAwayLogo');
+
+            if (matchData && matchData.compLogoUrl) {
+                streamCompLogo.src = matchData.compLogoUrl;
+                streamCompLogo.style.display = 'inline-block';
+            } else {
+                streamCompLogo.style.display = 'none';
+            }
+
+            if (streamCompName) streamCompName.textContent = matchData ? (matchData.compName || '') : '';
+            if (streamMatchInfo) streamMatchInfo.textContent = matchData ? `${matchData.homeName} ${matchData.homeScore} - ${matchData.awayScore} ${matchData.awayName}` : '';
+
+            if (matchData && matchData.homeLogoUrl) {
+                streamHomeLogo.src = matchData.homeLogoUrl;
+                streamHomeLogo.style.display = 'inline-block';
+            } else {
+                streamHomeLogo.style.display = 'none';
+            }
+
+            if (matchData && matchData.awayLogoUrl) {
+                streamAwayLogo.src = matchData.awayLogoUrl;
+                streamAwayLogo.style.display = 'inline-block';
+            } else {
+                streamAwayLogo.style.display = 'none';
+            }
+
+            let finalStreamUrl = streamUrl;
+            if (finalStreamUrl.startsWith('http://')) {
+                finalStreamUrl = finalStreamUrl.replace('http://', 'https://');
+            }
+
+            if (Hls.isSupported()) {
+                const hls = new Hls();
+                hls.loadSource(finalStreamUrl);
+                hls.attachMedia(videoElement);
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.error('HLS fatal error:', data);
+                        alert('Unable to play stream. Please try again later.');
+                        videoElement.pause();
+                    }
+                });
+                videoElement.addEventListener('ended', () => hls.destroy());
+                window.currentHls = hls;
+            } else if (videoElement.canPlayType('application/vnd.apple.mpegurl')) {
+                videoElement.src = finalStreamUrl;
+            } else {
+                alert('Your browser does not support HLS');
+                return;
+            }
+
+            const modal = new bootstrap.Modal(modalElement);
+            modal.show();
+            modalElement.addEventListener('hidden.bs.modal', () => {
+                videoElement.pause();
+                videoElement.removeAttribute('src');
+                videoElement.load();
+                if (window.currentHls) { window.currentHls.destroy(); window.currentHls = null; }
+            }, { once: true });
+        }
+
+        // ============================================================
+        //  MATCH DETAILS
         // ============================================================
 
         async function openMatchDetails(matchId) {
@@ -3137,11 +3290,25 @@
                     const infoData = await fetchFromProxy(infoUrl);
                     const info = infoData.data;
                     const liveScoreEl = document.querySelector('#matchModalBody .match-score');
-                    const liveTimerEl = document.querySelector('#matchModalBody .match-timer-display');
+                    const liveTimerDisplay = document.querySelector('#matchModalBody .timer-main');
+                    const liveTimerStoppage = document.querySelector('#matchModalBody .timer-stoppage');
                     const livePeriodEl = document.querySelector('#matchModalBody .match-period');
                     const liveTimelineFillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
                     if (liveScoreEl) liveScoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
-                    if (liveTimerEl) liveTimerEl.textContent = formatLiveTime(getLiveSeconds(info), info.status, info.ex_time);
+                    if (liveTimerDisplay) {
+                        const seconds = getLiveSeconds(info);
+                        const status = info.status || 1;
+                        const timerData = formatLiveTimeWithStoppage(seconds, status, info.ex_time);
+                        liveTimerDisplay.textContent = timerData.display;
+                        if (liveTimerStoppage) {
+                            if (timerData.stoppage) {
+                                liveTimerStoppage.textContent = timerData.stoppage;
+                                liveTimerStoppage.style.display = 'inline-block';
+                            } else {
+                                liveTimerStoppage.style.display = 'none';
+                            }
+                        }
+                    }
                     if (livePeriodEl) livePeriodEl.textContent = getMatchPeriod(info.status);
                     if (liveTimelineFillEl) liveTimelineFillEl.style.width = `${getMatchProgress(getLiveSeconds(info), info.status)}%`;
                 } catch (e) {}
@@ -3152,22 +3319,20 @@
         }
 
         // ============================================================
-        //  RENDER MATCH DETAILS - FIXED
+        //  RENDER MATCH DETAILS
         // ============================================================
 
         function renderMatchDetails(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
             const body = document.getElementById('matchModalBody');
             const lang = localStorage.getItem('preferred_language') || 'en';
             const t = translations[lang];
-            const dateTime = formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp);
 
             const seconds = getLiveSeconds(info);
             const status = info.status || 1;
-            const timeDisplay = formatLiveTime(seconds, status, info.ex_time);
+            const timerData = formatLiveTimeWithStoppage(seconds, status, info.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
 
-            // Penalty shootout summary
             let penaltyHtml = '';
             let penaltySummaryHtml = '';
             if (info.match_penalties) {
@@ -3191,7 +3356,6 @@
                 `;
             }
 
-            // Video highlights
             let videoHtml = '';
             if (info.video_links && info.video_links.length > 0) {
                 videoHtml = '<div class="video-highlights">';
@@ -3204,8 +3368,9 @@
                 videoHtml += '</div>';
             }
 
-            // ===== MATCH HEADER =====
             const champ = info.championship || {};
+            const matchDateTime = formatMatchDateTimeDirect(info.match_date, info.match_time);
+
             let headerHtml = `
                 <div class="match-header">
                     <div class="champ-badge">
@@ -3215,9 +3380,7 @@
                             <span>|</span>
                             <span>${info.round || ''}</span>
                             <span>|</span>
-                            <span>${formatDate(new Date(info.match_date))}</span>
-                            <span>|</span>
-                            <span>${info.match_time ? info.match_time.substring(0,5) : ''}</span>
+                            <span>${matchDateTime}</span>
                         </span>
                     </div>
                     <div class="match-teams">
@@ -3229,14 +3392,17 @@
                             <div class="match-score">${info.home_scores} - ${info.away_scores}</div>
                             ${penaltyHtml}
                             ${penaltySummaryHtml}
-                            <div class="match-time-display match-timer-display">${timeDisplay}</div>
+                            <div class="match-timer-container">
+                                <span class="timer-main">${timerData.display}</span>
+                                ${timerData.stoppage ? `<span class="timer-stoppage">${timerData.stoppage}</span>` : ''}
+                            </div>
                             <div class="match-period">${period}</div>
                             <div class="timeline-container" style="width:80%;margin:5px auto;">
                                 <div class="timeline-fill timeline-fill-modal" style="width: ${progress}%"></div>
                                 ${status === 2 ? '<div class="ht-marker"></div>' : ''}
                                 ${getGoalMarkers(info)}
                             </div>
-                            <div class="text-muted small">${dateTime}</div>
+                            <div class="text-muted small">${matchDateTime}</div>
                             ${videoHtml}
                         </div>
                         <div class="match-team-side">
@@ -3247,7 +3413,6 @@
                 </div>
             `;
 
-            // ===== STANDINGS PREVIEW =====
             let standingsHtml = '';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
@@ -3256,19 +3421,21 @@
                 if (homeTeam || awayTeam) {
                     standingsHtml = '<div class="row mt-2 mb-2">';
                     if (homeTeam) {
+                        const rank = teams.indexOf(homeTeam) + 1;
                         standingsHtml += `
                             <div class="col-6 text-center">
                                 <strong>${info.home_team.title}</strong>
-                                <div>Rank: #${teams.indexOf(homeTeam)+1} | Pts: ${homeTeam.points}</div>
+                                <div>Rank: #${rank} | Pts: ${homeTeam.points}</div>
                                 <div class="small text-muted">${homeTeam.play} matches</div>
                             </div>
                         `;
                     }
                     if (awayTeam) {
+                        const rank = teams.indexOf(awayTeam) + 1;
                         standingsHtml += `
                             <div class="col-6 text-center">
                                 <strong>${info.away_team.title}</strong>
-                                <div>Rank: #${teams.indexOf(awayTeam)+1} | Pts: ${awayTeam.points}</div>
+                                <div>Rank: #${rank} | Pts: ${awayTeam.points}</div>
                                 <div class="small text-muted">${awayTeam.play} matches</div>
                             </div>
                         `;
@@ -3277,7 +3444,6 @@
                 }
             }
 
-            // ===== TABS =====
             let tabsHtml = `
                 <div class="match-detail-tabs-wrapper">
                     <ul class="nav nav-tabs match-modal-tabs" id="matchModalTabs" role="tablist">
@@ -3321,7 +3487,7 @@
         }
 
         // ============================================================
-        //  EVENTS - FIXED with proper order and all types
+        //  EVENTS
         // ============================================================
 
         function renderEventsFixed(events, info) {
@@ -3370,7 +3536,6 @@
 
             let allHtml = '';
 
-            // Penalty shootout (top)
             if (penStart) {
                 let homePens = 0, awayPens = 0;
                 if (info.match_penalties) {
@@ -3381,7 +3546,6 @@
                 allHtml += renderEventGroup(penaltyEvents, '');
             }
 
-            // Extra Time Second Half
             if (etStart2 || etFullTime) {
                 let homeET = 0, awayET = 0;
                 if (info.se_scores && info.se_scores.length > 0 && info.se_scores[0]) {
@@ -3392,7 +3556,6 @@
                 allHtml += renderEventGroup(extraTime2, '');
             }
 
-            // Extra Time First Half
             if (etStart1 || etHalfTime) {
                 let homeET = 0, awayET = 0;
                 if (info.fe_scores && info.fe_scores.length > 0 && info.fe_scores[0]) {
@@ -3403,15 +3566,12 @@
                 allHtml += renderEventGroup(extraTime1, '');
             }
 
-            // Full-Time
             if (fullTime) {
                 allHtml += `<div class="fulltime-divider"><img src="${ICONS.whistle}" class="icon-16"> Full-Time</div>`;
             }
 
-            // Second Half events
             allHtml += renderEventGroup(secondHalf, '');
 
-            // Half-Time
             if (halfTime) {
                 let homeHT = 0, awayHT = 0;
                 if (info.fh_scores && info.fh_scores.length > 0 && info.fh_scores[0]) {
@@ -3421,10 +3581,8 @@
                 allHtml += `<div class="halftime-divider"><img src="${ICONS.clock}" class="icon-16"> <span class="ht-score">${homeHT} - ${awayHT}</span><br>Half Time</div>`;
             }
 
-            // First Half events
             allHtml += renderEventGroup(firstHalf, '');
 
-            // Kick-Off (bottom)
             if (kickOff) {
                 allHtml += `<div class="kickoff-divider"><img src="${ICONS.whistle}" class="icon-16"> Kick-Off</div>`;
             }
@@ -3434,10 +3592,6 @@
 
             return html;
         }
-
-        // ============================================================
-        //  SINGLE EVENT - FIXED with all types
-        // ============================================================
 
         function renderSingleEventFixed(ev, info, homeId, awayId) {
             let isHome = ev.team_id == homeId;
@@ -3595,7 +3749,7 @@
                 html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.whistle}" class="icon-16"> Referee</strong><span class="link-item" onclick="openRefereeModal(${ref.id})">${ref.title}</span></div></div>`;
             }
 
-            html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Date & Time</strong><span>${formatMatchDateTime(info.match_date, info.match_time, info.match_timestamp)}</span></div></div>`;
+            html += `<div class="detail-card"><div class="detail-row"><strong><img src="${ICONS.clock}" class="icon-16"> Date & Time</strong><span>${formatMatchDateTimeDirect(info.match_date, info.match_time)}</span></div></div>`;
 
             if (info.return) {
                 html += `<div class="detail-card"><div class="detail-row"><strong>Aggregate</strong><span>${info.return}</span></div></div>`;
@@ -3624,7 +3778,7 @@
         }
 
         // ============================================================
-        //  LINEUPS - FIXED with formation and player icons
+        //  LINEUPS
         // ============================================================
 
         function renderLineups(info, lineups) {
@@ -3886,11 +4040,73 @@
         //  INIT
         // ============================================================
 
+        function cleanupModalBackdrops() {
+            document.querySelectorAll('.modal-backdrop').forEach(backdrop => backdrop.remove());
+            document.body.classList.remove('modal-open');
+            document.body.style.overflow = '';
+            document.body.style.paddingRight = '';
+        }
+        document.addEventListener('hidden.bs.modal', cleanupModalBackdrops);
+        document.addEventListener('show.bs.modal', cleanupModalBackdrops);
+
+        function showLoading() {
+            loadingCount++;
+            const loader = document.getElementById('loadingIndicator');
+            loader.classList.remove('hidden');
+            document.getElementById('errorIndicator').classList.add('hidden');
+            clearTimeout(window.loaderTimeout);
+            window.loaderTimeout = setTimeout(() => { if (loadingCount > 0) { loadingCount = 0; loader.classList.add('hidden'); } }, 10000);
+        }
+
+        function hideLoading() {
+            loadingCount = Math.max(0, loadingCount - 1);
+            if (loadingCount === 0) document.getElementById('loadingIndicator').classList.add('hidden');
+        }
+
+        function showError(msg) {
+            document.getElementById('errorIndicator').textContent = msg;
+            document.getElementById('errorIndicator').classList.remove('hidden');
+        }
+
+        async function fetchFromProxy(url) {
+            try {
+                const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(url)}`;
+                const response = await fetch(proxied);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                return await response.json();
+            } catch (err) {
+                const fallbackUrl = url.replace(/\/api-(ar|fr|es|it|pt|br)\//, '/api-en/');
+                if (fallbackUrl !== url) {
+                    const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(fallbackUrl)}`;
+                    const response = await fetch(proxied);
+                    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+                    return await response.json();
+                }
+                throw err;
+            }
+        }
+
+        function getPositionFullName(pos) {
+            const mapping = {
+                'G': 'Goalkeeper', 'D': 'Defender', 'M': 'Midfielder', 'F': 'Forward',
+                'GK': 'Goalkeeper', 'CB': 'Centre Back', 'LB': 'Left Back', 'RB': 'Right Back',
+                'CDM': 'Defensive Midfielder', 'CM': 'Central Midfielder', 'CAM': 'Attacking Midfielder',
+                'LM': 'Left Midfielder', 'RM': 'Right Midfielder', 'LW': 'Left Winger', 'RW': 'Right Winger',
+                'CF': 'Centre Forward', 'SS': 'Second Striker', 'AM': 'Attacking Midfielder', 'DM': 'Defensive Midfielder'
+            };
+            return mapping[pos] || pos || 'Unknown';
+        }
+
+        // ============================================================
+        //  START
+        // ============================================================
+
         updateDateUI();
         initLanguageSystem();
         loadChampionships();
         loadStreamEvents();
         loadLiveAndTodayMatches();
+        initScrollProgress();
     </script>
 </body>
     </html>
