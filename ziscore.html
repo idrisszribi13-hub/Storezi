@@ -3794,13 +3794,15 @@
                 }
             }
 
-            // ===== STANDINGS FULL =====
+            // ===== STANDINGS FULL with two-team highlight =====
             let fullStandingsHtml = '<p class="text-center text-muted">No standings data</p>';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
                 const colors = standingsData.color ? standingsData.color.stage0 : [];
                 const rules = standingsData.rules_list ? standingsData.rules_list.stage0 : [];
-                fullStandingsHtml = renderStandingsTable(teams, null, colors, rules);
+                // Highlight both teams
+                const highlightIds = [info.home_team.row_id, info.away_team.row_id];
+                fullStandingsHtml = renderStandingsTable(teams, highlightIds, colors, rules);
             }
 
             // ===== TABS =====
@@ -3845,7 +3847,7 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER =====
+        // ===== SINGLE EVENT RENDER (safe) =====
         function renderSingleEvent(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
@@ -3885,14 +3887,18 @@
             if (ev.type === 8) {
                 const out = ev.assist_player_name ? ev.assist_player_name.title : '';
                 const inn = ev.player_name ? ev.player_name.title : '';
+                // Safe access to player and assist_player row_id
+                const playerId = ev.player && ev.player.row_id ? ev.player.row_id : null;
+                const assistId = ev.assist_player && ev.assist_player.row_id ? ev.assist_player.row_id : null;
                 playerHtml =
-                    `<span class="in-arrow">&#8594;</span> <span class="player-name-click" onclick="openPlayerModal(${ev.player.row_id})">${inn}</span>`;
+                    `<span class="in-arrow">&#8594;</span> <span class="player-name-click" onclick="${playerId ? `openPlayerModal(${playerId})` : ''}">${inn}</span>`;
                 subHtml =
-                    `<span class="out-arrow">&#8592;</span> <span class="player-name-click" onclick="openPlayerModal(${ev.assist_player.row_id})">${out}</span>`;
+                    `<span class="out-arrow">&#8592;</span> <span class="player-name-click" onclick="${assistId ? `openPlayerModal(${assistId})` : ''}">${out}</span>`;
             } else {
                 const name = ev.player_name ? ev.player_name.title : '';
+                const playerId = ev.player && ev.player.row_id ? ev.player.row_id : null;
                 playerHtml =
-                    `<span class="player-name-click" onclick="openPlayerModal(${ev.player?.row_id})">${name || typeText}</span>`;
+                    `<span class="player-name-click" onclick="${playerId ? `openPlayerModal(${playerId})` : ''}">${name || typeText}</span>`;
                 subHtml = ev.assist_player_name ? `<span>Assist: ${ev.assist_player_name.title}</span>` : '';
             }
 
@@ -3989,13 +3995,14 @@
             return html;
         }
 
-        // ===== STANDINGS TABLE RENDER (used in More and match details) =====
-        function renderStandingsTable(teams, highlightId, colors, rules) {
+        // ===== STANDINGS TABLE RENDER (supports array of highlight IDs) =====
+        function renderStandingsTable(teams, highlightIds, colors, rules) {
+            if (!Array.isArray(highlightIds)) highlightIds = highlightIds ? [highlightIds] : [];
             let html =
                 '<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
             teams.forEach((team, idx) => {
                 const info = team.team_name;
-                const isH = highlightId && info && info.row_id == highlightId;
+                const isH = highlightIds.includes(info.row_id);
                 const cls = isH ? 'highlight-row' : '';
                 const color = team.color || '';
                 const bar = color ? `<span class="color-bar" style="background:${color};"></span>` : '';
