@@ -1254,8 +1254,8 @@
             margin-top: 1px;
         }
         .event-icon {
-            width: 12px;
-            height: 12px;
+            width: 14px;
+            height: 14px;
             object-fit: contain;
         }
         .in-arrow {
@@ -2464,6 +2464,41 @@
         //  CONFIGURATION – YSScores ONLY
         // ============================================================
         const ICON_BASE = 'https://zi-store.online/icon/';
+        const EVENT_ICON_BASE = 'https://zi-store.online/events/';
+
+        // Map event types to icon filenames
+        const EVENT_ICON_MAP = {
+            'goal': 'ic_goal.svg',
+            'own_goal': 'ic_own_goal.svg',
+            'penalty': 'ic_penalty.svg',
+            'success_penalty': 'ic_success_penalty.svg',
+            'missed_penalty': 'ic_missed_penalty.svg',
+            'yellow_card': 'ic_yellow_card.svg',
+            'red_card': 'ic_red_card.svg',
+            'two_yellow_cards': 'ic_two_yellow_cards.svg',
+            'substitution': 'ic_substitution.svg',
+            'miss_chance': 'ic_miss_chance.svg',
+            'shoot_crossbar': 'ic_shoot_crossbar.svg',
+            'disallowed_goal': 'ic_disallowed_goal.svg',
+            'video': 'ic_video.svg',
+            'video_internal': 'ic_video_internal.svg',
+            'video_missed_chance': 'ic_video_missed_chance.svg',
+            'whistle': 'ic_whistle.svg',
+            'paused': 'ic_paused.svg',
+            'formation_substitution': 'ic_formation_substitution.svg',
+            'lineup_player_in': 'ic_lineup_player_in.svg',
+            'lineup_player_out': 'ic_lineup_player_out.svg',
+            'star': 'ic_star.svg',
+            'banned': 'ic_banned.svg',
+            'coach_order': 'ic_coach_order.svg',
+            'country': 'ic_country.svg',
+            'injury': 'ic_injury.svg',
+            'injury_little': 'ic_injury_little.svg',
+            'no_more_forigen': 'ic_no_more_forigen.svg',
+            'rest': 'ic_rest.svg',
+            'goal_marker': 'ic_goal.svg', // for timeline markers
+        };
+
         const ICONS = {
             clock: ICON_BASE + 'clock.png',
             calendar: ICON_BASE + 'calendar.png',
@@ -2481,17 +2516,17 @@
             change: ICON_BASE + 'change.png',
             transfer: ICON_BASE + 'transfer.png',
             play: ICON_BASE + 'clapperboard.png',
-            goal: ICON_BASE + 'clapperboard.png',
+            goal: EVENT_ICON_BASE + 'ic_goal.svg',
             flag: ICON_BASE + 'research.png',
             shirt: ICON_BASE + 'change.png',
-            whistle: ICON_BASE + 'change.png',
-            yellowCard: ICON_BASE + 'change.png',
-            redCard: ICON_BASE + 'change.png',
-            penaltyKick: ICON_BASE + 'change.png',
-            substitutePlayer: ICON_BASE + 'change.png',
-            firstAid: ICON_BASE + 'change.png',
+            whistle: EVENT_ICON_BASE + 'ic_whistle.svg',
+            yellowCard: EVENT_ICON_BASE + 'ic_yellow_card.svg',
+            redCard: EVENT_ICON_BASE + 'ic_red_card.svg',
+            penaltyKick: EVENT_ICON_BASE + 'ic_penalty.svg',
+            substitutePlayer: EVENT_ICON_BASE + 'ic_substitution.svg',
+            firstAid: EVENT_ICON_BASE + 'ic_injury.svg',
             cup: ICON_BASE + 'soccer-championship.png',
-            video: ICON_BASE + 'clapperboard.png',
+            video: EVENT_ICON_BASE + 'ic_video.svg',
             football: ICON_BASE + 'soccer-field.png',
             ranking: ICON_BASE + 'research.png',
             assist: ICON_BASE + 'research.png',
@@ -2499,6 +2534,11 @@
             bracket: ICON_BASE + 'research.png',
             arena: ICON_BASE + 'soccer-field.png',
             schedule: ICON_BASE + 'calendar.png',
+            paused: EVENT_ICON_BASE + 'ic_paused.svg',
+            crossbar: EVENT_ICON_BASE + 'ic_shoot_crossbar.svg',
+            missChance: EVENT_ICON_BASE + 'ic_miss_chance.svg',
+            ownGoal: EVENT_ICON_BASE + 'ic_own_goal.svg',
+            disallowedGoal: EVENT_ICON_BASE + 'ic_disallowed_goal.svg',
         };
 
         let API_BASE = 'https://api-en.ysscores.com/api';
@@ -2675,7 +2715,7 @@
         }
 
         // ============================================================
-        //  REST OF THE CODE (same as before with fixes)
+        //  REST OF THE CODE
         // ============================================================
 
         let championshipsList = [];
@@ -2934,7 +2974,7 @@
         }
 
         // ============================================================
-        //  MATCH FUNCTIONS (YSScores) – UPDATED FOR SMOOTH TIMING
+        //  MATCH FUNCTIONS (YSScores)
         // ============================================================
         function getLiveSeconds(match) {
             if (match.match_timestamp && match.match_timestamp > 1000000000) {
@@ -3569,12 +3609,6 @@
                     const progress = getMatchProgress(seconds, status);
                     const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
                     if (fillEl) fillEl.style.width = `${progress}%`;
-                    // Update goal markers (if any new goals)
-                    const markersEl = document.querySelector('#matchModalBody .goal-marker-modal');
-                    if (markersEl) {
-                        // We'll just update the entire timeline container by re-rendering the markers
-                        // For simplicity, we'll just update the fill and let the markers be handled by re-render if needed
-                    }
                 } catch (e) { /* silent */ }
             }, 1000);
             // Cleanup when modal closes
@@ -3584,7 +3618,7 @@
         }
 
         // ============================================================
-        //  FULL MATCH DETAILS RENDER (with proper half-time/full-time scores)
+        //  FULL MATCH DETAILS RENDER (with proper events icons)
         // ============================================================
         function renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
             const body = document.getElementById('matchModalBody');
@@ -3732,10 +3766,9 @@
                 }
             }
 
-            // ===== EVENTS (full with proper half-time/full-time scores) =====
+            // ===== EVENTS with proper icons =====
             let eventsHtml = '<div class="event-box" style="display:flex;flex-direction:column-reverse;">';
             if (events && events.length) {
-                // Separate special events (type 100) and normal events
                 const special = events.filter(ev => ev.type === 100);
                 const normal = events.filter(ev => ev.type !== 100);
                 normal.sort((a, b) => (a.time_minute || 0) - (b.time_minute || 0) || ((a.time_plus || 0) - (b.time_plus || 0)));
@@ -3757,7 +3790,7 @@
 
                 function renderEventGroup(list, dividerHtml) {
                     let g = '';
-                    list.forEach(ev => { g += renderSingleEvent(ev, info); });
+                    list.forEach(ev => { g += renderSingleEventWithIcon(ev, info); });
                     return g ? g + dividerHtml : '';
                 }
 
@@ -3792,7 +3825,6 @@
                 if (fullTime) all += `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Full-Time</div>`;
                 all += renderEventGroup(secondHalf, '');
                 if (halfTime) {
-                    // Get half-time scores from fh_scores
                     let hH = 0, aH = 0;
                     if (info.fh_scores && info.fh_scores.length && info.fh_scores[0]) {
                         hH = parseInt(info.fh_scores[0].home_scores) || 0;
@@ -3853,7 +3885,7 @@
                 }
             }
 
-            // ===== STATISTICS (with beautiful possession) =====
+            // ===== STATISTICS =====
             let statsHtml = '<p class="text-center text-muted">No statistics available</p>';
             if (stats && Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
@@ -3944,11 +3976,9 @@
 
             body.innerHTML = headerHtml + standingsPreview + tabsHtml;
 
-            // Tab switching
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) { e.preventDefault(); new bootstrap.Tab(this).show(); });
             });
-            // Lineup tab switching
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -3962,33 +3992,37 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER (safe) =====
-        function renderSingleEvent(ev, info) {
+        // ===== SINGLE EVENT RENDER WITH ICONS =====
+        function renderSingleEventWithIcon(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
             let left = '', right = '';
             if (isHome) left = `<div class="event-side event-side-left"><img src="${IMG_BASE_TEAM + info.home_team.image}" onclick="openTeamModal(${info.home_team.row_id})" /></div>`;
             else if (isAway) right = `<div class="event-side event-side-right"><img src="${IMG_BASE_TEAM + info.away_team.image}" onclick="openTeamModal(${info.away_team.row_id})" /></div>`;
 
-            let icon = ICONS.flag, typeText = '';
+            let iconUrl = ICONS.flag;
+            let typeText = ev.status_name || 'Event';
             let videoBtn = '';
             if (ev.event_video) videoBtn = `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;" /></a>`;
 
-            if (ev.type === 1 || ev.type === 13) { icon = ICONS.goal; typeText = ev.status_name || 'Goal'; }
-            else if (ev.type === 2 || ev.type === 3) { icon = ICONS.yellowCard; typeText = 'Yellow Card'; }
-            else if (ev.type === 6 || ev.type === 4) { icon = ICONS.redCard; typeText = 'Red Card'; }
-            else if (ev.type === 5) { icon = ICONS.penaltyKick; typeText = 'Penalty Scored'; }
-            else if (ev.type === 8) { icon = ICONS.substitutePlayer; typeText = 'Substitution'; }
-            else if (ev.type === 21) { icon = ICONS.flag; typeText = 'Missed Chance'; }
-            else if (ev.type === 22) { icon = ICONS.flag; typeText = 'Crossbar'; }
-            else if (ev.type === 7) { icon = ICONS.flag; typeText = 'Offside'; }
-            else if (ev.type === 9) { icon = ICONS.flag; typeText = 'Foul'; }
-            else if (ev.type === 10) { icon = ICONS.goal; typeText = 'Own Goal'; }
-            else if (ev.type === 11) { icon = ICONS.penaltyKick; typeText = 'Penalty Missed'; }
-            else if (ev.type === 12) { icon = ICONS.penaltyKick; typeText = 'Penalty Saved'; }
-            else if (ev.type === 14) { icon = ICONS.flag; typeText = 'Shot Off Target'; }
-            else if (ev.type === 15) { icon = ICONS.flag; typeText = 'Shot On Target'; }
-            else { icon = ICONS.flag; typeText = ev.status_name || 'Event'; }
+            // Determine icon based on event type
+            if (ev.type === 1 || ev.type === 13) { iconUrl = ICONS.goal; typeText = ev.status_name || 'Goal'; }
+            else if (ev.type === 2 || ev.type === 3) { iconUrl = ICONS.yellowCard; typeText = 'Yellow Card'; }
+            else if (ev.type === 6 || ev.type === 4) { iconUrl = ICONS.redCard; typeText = 'Red Card'; }
+            else if (ev.type === 5) { iconUrl = ICONS.penaltyKick; typeText = 'Penalty Scored'; }
+            else if (ev.type === 8) { iconUrl = ICONS.substitutePlayer; typeText = 'Substitution'; }
+            else if (ev.type === 21) { iconUrl = ICONS.missChance; typeText = 'Missed Chance'; }
+            else if (ev.type === 22) { iconUrl = ICONS.crossbar; typeText = 'Crossbar'; }
+            else if (ev.type === 7) { iconUrl = ICONS.flag; typeText = 'Offside'; }
+            else if (ev.type === 9) { iconUrl = ICONS.flag; typeText = 'Foul'; }
+            else if (ev.type === 10) { iconUrl = ICONS.ownGoal; typeText = 'Own Goal'; }
+            else if (ev.type === 11) { iconUrl = ICONS.penaltyKick; typeText = 'Penalty Missed'; }
+            else if (ev.type === 12) { iconUrl = ICONS.penaltyKick; typeText = 'Penalty Saved'; }
+            else if (ev.type === 14) { iconUrl = ICONS.flag; typeText = 'Shot Off Target'; }
+            else if (ev.type === 15) { iconUrl = ICONS.flag; typeText = 'Shot On Target'; }
+            else if (ev.type === 10) { iconUrl = ICONS.ownGoal; typeText = 'Own Goal'; }
+            else if (ev.type === 13) { iconUrl = ICONS.goal; typeText = 'Goal'; }
+            else { iconUrl = ICONS.flag; typeText = ev.status_name || 'Event'; }
 
             let playerHtml = '', subHtml = '';
             if (ev.type === 8) {
@@ -4032,7 +4066,7 @@
                 </div>
                 <div class="event-info-center">
                     <div class="event-player">
-                        <img src="${icon}" class="event-icon" />
+                        <img src="${iconUrl}" class="event-icon" />
                         ${playerHtml}
                         ${videoBtn}
                     </div>
@@ -4081,7 +4115,7 @@
             return html;
         }
 
-        // ===== STANDINGS TABLE RENDER (supports array of highlight IDs) =====
+        // ===== STANDINGS TABLE RENDER =====
         function renderStandingsTable(teams, highlightIds, colors, rules) {
             if (!Array.isArray(highlightIds)) highlightIds = highlightIds ? [highlightIds] : [];
             let html = '<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
@@ -4625,7 +4659,7 @@
         function formatMatchLocalTime(ts) { if (!ts) return 'N/A'; return new Date(ts * 1000).toLocaleTimeString(); }
         function formatMatchLocalDate(ts) { if (!ts) return 'N/A'; return new Date(ts * 1000).toLocaleDateString(); }
 
-        console.log('Football Center fully restored with stream, highlights, proper events, and functional modals.');
+        console.log('Football Center fully restored with event icons from /events/ folder.');
     </script>
 </body>
     </html>
