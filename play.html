@@ -1820,84 +1820,43 @@
             text-align: center;
             margin-bottom: 12px;
         }
-        .possession-circle {
-            width: 68px;
-            height: 68px;
-            border: 5px solid #6c5ce7;
-            border-left-color: #0984e3;
-            border-radius: 50%;
+        .possession-box .possession-row {
             display: flex;
-            justify-content: center;
+            justify-content: space-between;
             align-items: center;
-            margin: 0 auto;
-            font-size: calc(14px * var(--font-scale));
+            gap: 8px;
+        }
+        .possession-box .possession-row .pos-item {
+            flex: 1;
+            text-align: center;
+        }
+        .possession-box .possession-row .pos-item .pos-value {
+            font-size: calc(18px * var(--font-scale));
             font-weight: 800;
             color: var(--text-color);
         }
-        .pos-split {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 700;
-            color: var(--text-color);
-            margin-top: 3px;
-            font-size: calc(12px * var(--font-scale));
-        }
-        .pos-split span:first-child {
-            color: #0984e3;
-        }
-        .pos-split span:last-child {
-            color: #6c5ce7;
-        }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3px;
-            padding: 0 3px;
-        }
-        .stat-row .home-val {
-            width: 36px;
-            color: #0984e3;
-            font-weight: 700;
-            text-align: left;
+        .possession-box .possession-row .pos-item .pos-label {
             font-size: calc(10px * var(--font-scale));
+            color: var(--secondary);
         }
-        .stat-row .away-val {
-            width: 36px;
-            color: #6c5ce7;
-            font-weight: 700;
-            text-align: right;
-            font-size: calc(10px * var(--font-scale));
-        }
-        .stat-row .stat-label {
-            flex: 1;
-            text-align: center;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: calc(9px * var(--font-scale));
-        }
-        .stat-line {
-            height: 3px;
+        .possession-box .possession-bar {
             width: 100%;
+            height: 6px;
             background: var(--border-color);
-            border-radius: 2px;
+            border-radius: 3px;
             overflow: hidden;
-            margin-bottom: 6px;
-            position: relative;
+            margin: 6px 0;
+            display: flex;
         }
-        .stat-line-home {
+        .possession-box .possession-bar .pos-bar-home {
             height: 100%;
-            position: absolute;
-            left: 0;
             background: #0984e3;
-            border-radius: 2px 0 0 2px;
+            border-radius: 3px 0 0 3px;
         }
-        .stat-line-away {
+        .possession-box .possession-bar .pos-bar-away {
             height: 100%;
-            position: absolute;
-            right: 0;
             background: #6c5ce7;
-            border-radius: 0 2px 2px 0;
+            border-radius: 0 3px 3px 0;
         }
 
         /* ===== VIDEO HIGHLIGHTS BUTTONS ===== */
@@ -2935,7 +2894,7 @@
         }
 
         // ============================================================
-        //  MATCH FUNCTIONS (YSScores)
+        //  MATCH FUNCTIONS (YSScores) – UPDATED FOR SMOOTH TIMING
         // ============================================================
         function getLiveSeconds(match) {
             if (match.match_timestamp && match.match_timestamp > 1000000000) {
@@ -3191,7 +3150,6 @@
                 const newLive = data.data || [];
                 handleScoreChanges(liveMatches, newLive);
                 liveMatches = newLive;
-                // Also load stream events for live matches
                 await loadStreamEvents();
                 renderLiveAndToday();
             } catch (err) { console.error('Live matches error:', err); }
@@ -3249,7 +3207,6 @@
             const awayLogo = IMG_BASE_TEAM + away.image;
             const isFav = isFavorite(match.match_id);
 
-            // Find stream
             const stream = findStreamEvent(match);
             const compLogoUrl = match.championship?.image ? IMG_BASE_CHAMP + match.championship.image : '';
             let playBtn = '';
@@ -3412,7 +3369,6 @@
 
             let videos = [];
             for (const match of allMatches) {
-                // Try to get video_links from match data first
                 if (match.video_links && match.video_links.length) {
                     match.video_links.forEach(v => {
                         if (v.video_link) {
@@ -3425,7 +3381,6 @@
                         }
                     });
                 } else {
-                    // Fetch match detail to get video_links
                     try {
                         const detailUrl = `${API_BASE}/matches/match_info/${match.match_id}/L/60`;
                         const detailData = await fetchFromProxy(detailUrl);
@@ -3531,6 +3486,7 @@
                 document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
+                // Start live update for this match (every 1 second)
                 startLiveMatchUpdates(matchId);
                 hideLoading();
             } catch (err) {
@@ -3540,6 +3496,9 @@
             }
         }
 
+        // ============================================================
+        //  LIVE MATCH UPDATE FOR MODAL (every 1 second)
+        // ============================================================
         let matchLiveInterval = null;
         function startLiveMatchUpdates(matchId) {
             if (matchLiveInterval) clearInterval(matchLiveInterval);
@@ -3549,8 +3508,10 @@
                     const data = await fetchFromProxy(url);
                     const info = data.data;
                     if (!info) return;
+                    // Update score
                     const scoreEl = document.querySelector('#matchModalBody .match-score');
                     if (scoreEl) scoreEl.textContent = `${info.home_scores || 0} - ${info.away_scores || 0}`;
+                    // Update timer
                     const seconds = getLiveSeconds(info);
                     const status = info.status || 1;
                     const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
@@ -3561,13 +3522,22 @@
                         if (timer.stoppage) { stoppageEl.textContent = timer.stoppage; stoppageEl.style.display = 'inline-block'; }
                         else { stoppageEl.style.display = 'none'; }
                     }
+                    // Update period
                     const periodEl = document.querySelector('#matchModalBody .match-period');
                     if (periodEl) periodEl.textContent = getMatchPeriod(status);
+                    // Update progress bar
                     const progress = getMatchProgress(seconds, status);
                     const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
                     if (fillEl) fillEl.style.width = `${progress}%`;
+                    // Update goal markers (if any new goals)
+                    const markersEl = document.querySelector('#matchModalBody .goal-marker-modal');
+                    if (markersEl) {
+                        // We'll just update the entire timeline container by re-rendering the markers
+                        // For simplicity, we'll just update the fill and let the markers be handled by re-render if needed
+                    }
                 } catch (e) { /* silent */ }
             }, 1000);
+            // Cleanup when modal closes
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', function() {
                 if (matchLiveInterval) { clearInterval(matchLiveInterval); matchLiveInterval = null; }
             }, { once: true });
@@ -3725,6 +3695,7 @@
             // ===== EVENTS (full with proper half-time/full-time scores) =====
             let eventsHtml = '<div class="event-box" style="display:flex;flex-direction:column-reverse;">';
             if (events && events.length) {
+                // Separate special events (type 100) and normal events
                 const special = events.filter(ev => ev.type === 100);
                 const normal = events.filter(ev => ev.type !== 100);
                 normal.sort((a, b) => (a.time_minute || 0) - (b.time_minute || 0) || ((a.time_plus || 0) - (b.time_plus || 0)));
@@ -3842,13 +3813,28 @@
                 }
             }
 
-            // ===== STATISTICS =====
+            // ===== STATISTICS (with proper possession display) =====
             let statsHtml = '<p class="text-center text-muted">No statistics available</p>';
             if (stats && Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
                 const awayStats = stats[info.away_team.row_id] || {};
-                let sHtml = '<div class="stats-container"><div class="possession-box"><div class="possession-circle">' +
-                    (homeStats.ball_possession || 50) + '%</div><div class="pos-split"><span>' + info.home_team.title + '</span><span>' + info.away_team.title + '</span></div></div>';
+                const homePoss = parseInt(homeStats.ball_possession) || 50;
+                const awayPoss = parseInt(awayStats.ball_possession) || 50;
+                const totalPoss = homePoss + awayPoss;
+                const homePct = totalPoss > 0 ? Math.round((homePoss / totalPoss) * 100) : 50;
+                const awayPct = totalPoss > 0 ? Math.round((awayPoss / totalPoss) * 100) : 50;
+
+                let sHtml = `<div class="stats-container">
+                    <div class="possession-box">
+                        <div class="possession-row">
+                            <div class="pos-item"><div class="pos-value">${homePct}%</div><div class="pos-label">${info.home_team.title}</div></div>
+                            <div class="pos-item"><div class="pos-value">${awayPct}%</div><div class="pos-label">${info.away_team.title}</div></div>
+                        </div>
+                        <div class="possession-bar">
+                            <div class="pos-bar-home" style="width:${homePct}%;"></div>
+                            <div class="pos-bar-away" style="width:${awayPct}%;"></div>
+                        </div>
+                    </div>`;
                 const fields = ['total_shots', 'shots_on_goal', 'fouls', 'corner_kicks', 'yellow_cards', 'red_cards'];
                 fields.forEach(key => {
                     const hVal = homeStats[key] || 0, aVal = awayStats[key] || 0;
@@ -3921,9 +3907,11 @@
 
             body.innerHTML = headerHtml + standingsPreview + tabsHtml;
 
+            // Tab switching
             document.querySelectorAll('#matchModalTabs button[data-bs-toggle="tab"]').forEach(btn => {
                 btn.addEventListener('click', function(e) { e.preventDefault(); new bootstrap.Tab(this).show(); });
             });
+            // Lineup tab switching
             document.querySelectorAll('.lineup-tab').forEach(tab => {
                 tab.addEventListener('click', function(e) {
                     e.preventDefault();
@@ -3937,7 +3925,7 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER =====
+        // ===== SINGLE EVENT RENDER (safe) =====
         function renderSingleEvent(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
@@ -4056,7 +4044,7 @@
             return html;
         }
 
-        // ===== STANDINGS TABLE RENDER =====
+        // ===== STANDINGS TABLE RENDER (supports array of highlight IDs) =====
         function renderStandingsTable(teams, highlightIds, colors, rules) {
             if (!Array.isArray(highlightIds)) highlightIds = highlightIds ? [highlightIds] : [];
             let html = '<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
@@ -4283,7 +4271,6 @@
         //  MODALS (stubs)
         // ============================================================
         async function openTeamModal(id) { 
-            // Try to fetch team info from YSScores
             try {
                 const url = `${API_BASE}/info/team_info/${id}/L/60`;
                 const data = await fetchFromProxy(url);
@@ -4451,4 +4438,4 @@
         console.log('Football Center fully restored with stream, highlights, and proper event scores.');
     </script>
 </body>
-</html>
+    </html>
