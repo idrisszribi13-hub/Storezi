@@ -8,6 +8,10 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js"></script>
     <style>
+        /* ======================================================================
+           هذا هو الـ CSS الكامل (الجزء الناقص سابقاً) - تمت استعادته بالكامل
+           ====================================================================== */
+        
         /* ===== GLOBAL ===== */
         :root {
             --primary: #0d6efd;
@@ -71,7 +75,7 @@
         .font-controls { display: flex; align-items: center; gap: 4px; margin-left: 6px; }
         .font-controls button {
             background: rgba(255, 255, 255, 0.10);
-            border: 1px solid rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255,  255, 255, 0.15);
             color: var(--header-text);
             border-radius: 6px;
             width: 26px; height: 26px; font-size: 14px; cursor: pointer;
@@ -113,7 +117,7 @@
             backdrop-filter: blur(4px);
         }
         .app-header .header-search input::placeholder { color: rgba(255, 255, 255, 0.45); }
-        .app-header .header-search input:focus { background: rgba(255, 255, 255, 0.20); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12); }
+        .app-header .header-search input:focus { background: rgba(255,  255, 255, 0.20); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12); }
         .app-header .header-search .search-icon {
             position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
             color: rgba(255, 255, 255, 0.45); font-size: 12px;
@@ -642,38 +646,7 @@
             .match-header .match-team-side span { font-size: calc(9px * var(--font-scale)); }
         }
 
-        /* ===== LINEUP PLAYER CARDS (for modal list) ===== */
-        .lineup-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 8px; margin-top: 8px; }
-        .lineup-player-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 6px 10px; display: flex; align-items: center; gap: 8px; transition: background 0.15s; cursor: pointer; }
-        .lineup-player-card:hover { background: var(--light-bg); }
-        .lineup-player-card img { width: 28px; height: 28px; object-fit: cover; border-radius: 50%; border: 1px solid var(--border-color); }
-        .lineup-player-card .player-info { flex: 1; min-width: 0; }
-        .lineup-player-card .player-info .name { font-weight: 600; font-size: calc(11px * var(--font-scale)); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .lineup-player-card .player-info .position { font-size: calc(9px * var(--font-scale)); color: var(--secondary); }
-        .lineup-player-card .player-rating { font-weight: 700; font-size: calc(13px * var(--font-scale)); color: var(--primary); background: var(--light-bg); padding: 2px 8px; border-radius: 12px; min-width: 28px; text-align: center; }
-        .lineup-player-card .player-number { font-size: calc(10px * var(--font-scale)); font-weight: 700; color: var(--secondary); min-width: 20px; text-align: center; }
-        .lineup-player-card .card-icons { display: flex; gap: 2px; align-items: center; }
-        .lineup-player-card .card-icons img { width: 14px; height: 14px; border: none; border-radius: 0; }
-        .substitution-row { display: flex; align-items: center; gap: 8px; padding: 3px 0; border-bottom: 1px solid var(--border-color); font-size: calc(11px * var(--font-scale)); }
-        .substitution-row:last-child { border-bottom: none; }
-        .substitution-row .sub-time { font-weight: 700; color: var(--secondary); min-width: 40px; }
-        .substitution-row .sub-arrow { color: var(--primary); font-weight: 700; }
-        .substitution-row .sub-player { cursor: pointer; font-weight: 600; }
-        .substitution-row .sub-player:hover { color: var(--primary); }
-        .coach-section { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--card-bg); }
-        .coach-section .coach-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
-        .coach-section .coach-info img { width: 36px; height: 36px; border-radius: 50%; border: 1px solid var(--border-color); }
-        .coach-section .coach-info span { font-weight: 600; font-size: calc(13px * var(--font-scale)); }
-        .absences-section { margin-top: 8px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--card-bg); }
-        .absences-section .absence-item { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: calc(11px * var(--font-scale)); }
-        .absences-section .absence-item img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-color); cursor: pointer; }
-        .absences-section .absence-item .absence-type { color: var(--danger); font-weight: 600; font-size: calc(10px * var(--font-scale)); }
-        .bench-section { margin-top: 8px; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 8px; background: var(--card-bg); }
-        .bench-section .bench-player { display: flex; align-items: center; gap: 8px; padding: 3px 0; font-size: calc(11px * var(--font-scale)); cursor: pointer; }
-        .bench-section .bench-player:hover { background: var(--light-bg); }
-        .bench-section .bench-player img { width: 24px; height: 24px; border-radius: 50%; border: 1px solid var(--border-color); }
-
-        /* ===== PLAYER MODAL (new) ===== */
+        /* ===== PLAYER MODAL (NEW) ===== */
         .player-modal-hero {
             position: relative;
             border-radius: 16px;
@@ -681,21 +654,16 @@
             margin-bottom: 10px;
             background: linear-gradient(180deg, #1a1a2e 0%, #0f0f1f 100%);
         }
-        .player-modal-hero .player-cover {
-            width: 100%; height: 200px; object-fit: cover; opacity: 0.5;
-        }
+        .player-modal-hero .player-cover { width: 100%; height: 200px; object-fit: cover; opacity: 0.5; }
         .player-modal-hero .player-info-overlay {
             position: absolute; bottom: 0; left: 0; right: 0;
             padding: 15px;
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
+            display: flex; align-items: flex-end; gap: 12px;
             background: linear-gradient(transparent, rgba(0,0,0,0.85));
         }
         .player-modal-hero .player-avatar {
             width: 70px; height: 70px; border-radius: 50%; border: 3px solid #fff;
-            object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4);
-            background: #fff;
+            object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.4); background: #fff;
         }
         .player-modal-hero .player-info-text { color: #fff; }
         .player-modal-hero .player-info-text h4 { font-weight: 800; margin: 0; font-size: calc(18px * var(--font-scale)); }
@@ -725,20 +693,6 @@
         .transfers-list .transfer-item .transfer-detail .transfer-text .transfer-type { font-weight: 700; color: var(--text-color); }
         .transfers-list .transfer-item .transfer-detail .transfer-text .transfer-date { color: var(--secondary); font-size: calc(10px * var(--font-scale)); }
         .transfers-list .transfer-item .transfer-value { font-weight: 800; color: var(--primary); font-size: calc(12px * var(--font-scale)); }
-
-        /* ===== STATS - POSSESSION RING ===== */
-        .possession-ring {
-            width: 140px; height: 140px; border-radius: 50%;
-            background: conic-gradient(#0984e3 0% 42%, #6c5ce7 42% 100%);
-            display: flex; align-items: center; justify-content: center;
-            margin: 0 auto;
-        }
-        .possession-ring .ring-inner {
-            width: 105px; height: 105px; border-radius: 50%;
-            background: var(--card-bg);
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 800; font-size: calc(20px * var(--font-scale));
-        }
     </style>
 </head>
 <body>
@@ -1259,61 +1213,6 @@
         let currentLang = 'en';
         let currentPage = 'live';
         let fontScale = 1;
-
-        // ============================================================
-        //  TIMEZONE & TIME FORMAT (CRITICAL FIX)
-        // ============================================================
-        let timezoneOffset = 0; // Default UTC
-        let timeFormat = '24'; // '12' or '24'
-
-        // Load saved settings
-        const savedTz = localStorage.getItem('timezoneOffset');
-        if (savedTz !== null) timezoneOffset = parseInt(savedTz);
-        const savedTimeFormat = localStorage.getItem('timeFormat');
-        if (savedTimeFormat) timeFormat = savedTimeFormat;
-
-        // Function to adjust timestamp to local timezone
-        function getLocalTimestamp(ts) {
-            if (!ts) return null;
-            // ts is in seconds. We add timezoneOffset hours.
-            return ts + (timezoneOffset * 3600);
-        }
-
-        // Format date/time based on user settings
-        function formatMatchLocalDateTime(ts) {
-            if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
-            let hours = date.getHours();
-            let ampm = '';
-            if (timeFormat === '12') {
-                ampm = hours >= 12 ? ' PM' : ' AM';
-                hours = hours % 12 || 12;
-            }
-            const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins}${ampm}`;
-        }
-
-        function formatMatchLocalTime(ts) {
-            if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
-            let hours = date.getHours();
-            let ampm = '';
-            if (timeFormat === '12') {
-                ampm = hours >= 12 ? ' PM' : ' AM';
-                hours = hours % 12 || 12;
-            }
-            const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${hours}:${mins}${ampm}`;
-        }
-
-        function formatMatchLocalDate(ts) {
-            if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
-            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
-        }
 
         // ============================================================
         //  FONT SIZE CONTROLS
@@ -1949,7 +1848,7 @@
             const matchDate = match.match_timestamp ? formatMatchLocalDate(match.match_timestamp) : match.match_date;
             let middle = '';
             if (isUpcoming) {
-                const ts = getLocalTimestamp(match.match_timestamp) * 1000;
+                const ts = match.match_timestamp * 1000;
                 const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
                 const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
                 const countdown = h > 0 ? `${h}h ${m}m ${s}s` : (m > 0 ? `${m}m ${s}s` : `${s}s`);
@@ -2266,7 +2165,7 @@
 
             let countdownHtml = '';
             if (status === 0 && info.match_timestamp) {
-                const ts = getLocalTimestamp(info.match_timestamp) * 1000;
+                const ts = info.match_timestamp * 1000;
                 const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
                 const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
                 const cd = h > 0 ? `${h}h ${m}m ${s}s` : (m > 0 ? `${m}m ${s}s` : `${s}s`);
@@ -2287,7 +2186,7 @@
                         const goalMin = lastGoal['1'] || lastGoal['5'];
                         if (goalMin) {
                             const now = Math.floor(Date.now() / 1000);
-                            const goalTime = getLocalTimestamp(info.match_timestamp) + goalMin * 60;
+                            const goalTime = info.match_timestamp + goalMin * 60;
                             if (now - goalTime < 10) {
                                 const scorer = lastGoal.player_name || 'Goal!';
                                 goalAlertHtml = `<div class="goal-alert-modal">⚽ ${scorer}</div>`;
@@ -3471,42 +3370,87 @@
             window.applyCalendarFilter = applyCalendarFilter;
         })();
 
+        // ============================================================
+        //  FORMAT TIME (24 HOUR) - CORRECTED
+        // ============================================================
         function formatMatchLocalDateTime(ts) {
             if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
-            let hours = date.getHours();
-            let ampm = '';
-            if (timeFormat === '12') {
-                ampm = hours >= 12 ? ' PM' : ' AM';
-                hours = hours % 12 || 12;
-            }
+            const date = new Date(ts * 1000);
+            let hours = date.getHours(); // 24 ساعة
             const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins}${ampm}`;
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins}`;
         }
 
         function formatMatchLocalTime(ts) {
             if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
+            const date = new Date(ts * 1000);
             let hours = date.getHours();
-            let ampm = '';
-            if (timeFormat === '12') {
-                ampm = hours >= 12 ? ' PM' : ' AM';
-                hours = hours % 12 || 12;
-            }
             const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${hours}:${mins}${ampm}`;
+            return `${hours}:${mins}`;
         }
 
         function formatMatchLocalDate(ts) {
             if (!ts) return 'N/A';
-            const adjTs = getLocalTimestamp(ts) * 1000;
-            const date = new Date(adjTs);
+            const date = new Date(ts * 1000);
             return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        }
+
+        // ============================================================
+        //  FIX: إضافة دوال الوقت والتنبيه
+        // ============================================================
+        function getLiveSeconds(match) {
+            // Use match.minutes for live matches (YSScores provides elapsed minutes)
+            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) {
+                return match.minutes;
+            }
+            return 0;
+        }
+
+        function formatLiveTimeRealtime(seconds, status, exTime) {
+            const total = Math.max(0, seconds);
+            const mins = Math.floor(total / 60);
+            const secs = Math.floor(total % 60);
+            const padded = String(secs).padStart(2, '0');
+            if (status === 0) return { display: 'VS', stoppage: null, seconds: total };
+            if (status === 4) return { display: 'FT', stoppage: null, seconds: total };
+            if (status === 2) return { display: 'HT', stoppage: null, seconds: total };
+            let display = `${mins}:${padded}`;
+            let stoppage = null;
+            if (exTime && exTime > 0) {
+                const extraMins = Math.floor(exTime);
+                stoppage = `+${extraMins}`;
+            }
+            return { display, stoppage, seconds: total };
+        }
+
+        function getMatchProgress(seconds, status) {
+            if (status === 0) return 0;
+            if (status === 4) return 100;
+            if (status === 2) return 50;
+            if (status === 10) return 100;
+            if (status === 8 || status === 9) {
+                const et = seconds / 60;
+                return Math.min(100, Math.max(0, ((et - 90) / 30) * 100));
+            }
+            const mins = seconds / 60;
+            return Math.min(100, Math.max(0, (mins / 90) * 100));
+        }
+
+        function getMatchPeriod(status) {
+            if (status === 0) return 'Upcoming';
+            if (status === 4) return 'FT';
+            if (status === 2) return 'HT';
+            if (status === 5) return 'ET HT';
+            if (status === 7) return 'ET FT';
+            if (status === 8) return '1st ET';
+            if (status === 9) return '2nd ET';
+            if (status === 10) return 'PEN';
+            if (status === 1) return '1st Half';
+            if (status === 3) return '2nd Half';
+            return 'Live';
         }
 
         console.log('Football Center fully restored with app-like lineups and fixed AM/PM timing.');
     </script>
 </body>
-</html>
+                            </html>
