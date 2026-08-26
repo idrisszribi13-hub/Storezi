@@ -1271,201 +1271,6 @@
             border-color: #f39c12;
             color: #f1c40f;
         }
-        .lineup-pitch {
-            background: linear-gradient(180deg, #1a7a3a 0%, #2a9d5a 50%, #1a7a3a 100%);
-            border-radius: 12px;
-            padding: 12px 8px;
-            position: relative;
-            min-height: 280px;
-            border: 2px solid rgba(255, 255, 255, 0.08);
-        }
-        .lineup-pitch .team-name {
-            text-align: center;
-            font-weight: 700;
-            margin-bottom: 10px;
-            font-size: calc(0.9rem * var(--font-scale));
-            color: #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 6px;
-            flex-wrap: wrap;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-        }
-        .lineup-pitch .team-name .formation-label {
-            font-size: calc(0.65rem * var(--font-scale));
-            opacity: 0.8;
-            font-weight: 400;
-        }
-        .lineup-pitch .team-name img {
-            width: 22px;
-            height: 22px;
-            object-fit: contain;
-            cursor: pointer;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 2px;
-        }
-        .lineup-row {
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-            gap: 3px;
-        }
-        .lineup-player {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            width: 44px;
-            position: relative;
-        }
-        .lineup-player-img {
-            width: 34px;
-            height: 34px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            background: #fff;
-            cursor: pointer;
-            position: relative;
-            z-index: 2;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
-        }
-        .lineup-player-img:hover {
-            transform: scale(1.04);
-        }
-        .lineup-player-num {
-            position: absolute;
-            top: -4px;
-            right: -2px;
-            background: #000;
-            color: #fff;
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            font-size: 7px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 700;
-            z-index: 3;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-        }
-        .lineup-player-name {
-            font-size: 7px;
-            text-align: center;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 44px;
-            color: #fff;
-            font-weight: 600;
-            margin-top: 2px;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-            cursor: pointer;
-        }
-        .lineup-player-name:hover {
-            text-decoration: underline;
-        }
-        .lineup-player-rate {
-            position: absolute;
-            bottom: -4px;
-            background: #f39c12;
-            color: #000;
-            font-size: 7px;
-            padding: 0px 4px;
-            border-radius: 3px;
-            font-weight: 700;
-            z-index: 3;
-        }
-        .lineup-player-icons {
-            position: absolute;
-            top: -5px;
-            left: -5px;
-            width: calc(100% + 10px);
-            height: calc(100% + 10px);
-            pointer-events: none;
-            z-index: 4;
-        }
-        .lineup-player-icons .icon-card {
-            width: 12px;
-            height: 12px;
-            position: absolute;
-        }
-        .lineup-player-icons .icon-yellow {
-            left: -5px;
-            top: -5px;
-        }
-        .lineup-player-icons .icon-red {
-            left: -5px;
-            top: 10px;
-        }
-        .lineup-player-icons .icon-goal {
-            right: -5px;
-            top: -5px;
-        }
-        .lineup-player-icons .icon-assist {
-            right: -5px;
-            bottom: 10px;
-        }
-        .lineup-player-icons .icon-captain {
-            left: -2px;
-            bottom: -4px;
-            width: 10px;
-            height: 10px;
-            background: gold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 6px;
-            color: #000;
-            font-weight: 900;
-            border: 1px solid #fff;
-        }
-        .lineup-subs {
-            margin-top: 8px;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 8px;
-            border-radius: 8px;
-            backdrop-filter: blur(4px);
-        }
-        .lineup-subs h6 {
-            color: #fff;
-            text-align: center;
-            margin-bottom: 4px;
-            font-weight: 700;
-            font-size: calc(10px * var(--font-scale));
-        }
-        .sub-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            padding: 3px 5px;
-            color: #fff;
-            font-size: calc(9px * var(--font-scale));
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .sub-item:last-child {
-            border-bottom: none;
-        }
-        .sub-item img {
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-        }
-        .sub-item .sub-in-out {
-            margin-left: auto;
-            font-size: 8px;
-            opacity: 0.7;
-        }
-        .sub-item .sub-arrow {
-            color: #ffc107;
-        }
         .detail-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -1794,19 +1599,18 @@
             text-align: center;
             margin-bottom: 12px;
         }
-        .possession-box .possession-row {
+        .possession-box .possession-label {
             display: flex;
             justify-content: space-between;
-            align-items: center;
             font-weight: 700;
             font-size: calc(12px * var(--font-scale));
             color: var(--text-color);
             margin-bottom: 4px;
         }
-        .possession-box .possession-row .home-pos {
+        .possession-box .possession-label .home-pos {
             color: #0984e3;
         }
-        .possession-box .possession-row .away-pos {
+        .possession-box .possession-label .away-pos {
             color: #6c5ce7;
         }
         .possession-box .possession-bar {
@@ -1877,6 +1681,35 @@
             right: 0;
             background: #6c5ce7;
             border-radius: 0 2px 2px 0;
+        }
+        .stat-extra-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px 12px;
+            margin-top: 6px;
+        }
+        .stat-extra-grid .stat-extra-item {
+            display: flex;
+            justify-content: space-between;
+            font-size: calc(10px * var(--font-scale));
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-color);
+            color: var(--text-color);
+        }
+        .stat-extra-item .stat-extra-label {
+            color: var(--secondary);
+            font-weight: 500;
+        }
+        .stat-extra-item .stat-extra-values {
+            display: flex;
+            gap: 8px;
+            font-weight: 600;
+        }
+        .stat-extra-item .stat-extra-values .home-stat {
+            color: #0984e3;
+        }
+        .stat-extra-item .stat-extra-values .away-stat {
+            color: #6c5ce7;
         }
         .video-highlights {
             display: flex;
@@ -2546,7 +2379,10 @@
         }
         /* ===== PITCH LINEUP ===== */
         .pitch-container {
-            background: #2a9d5a;
+            background-image: url('https://zi-store.online/events/formation_pitch.webp');
+            background-size: cover;
+            background-position: center;
+            background-color: #2a9d5a;
             border-radius: 16px;
             padding: 12px 8px;
             position: relative;
@@ -2691,7 +2527,6 @@
             color: #000;
             border: 1px solid #fff;
         }
-        /* Position rows */
         .pitch-grid .row-gk {
             grid-row: 5;
             display: flex;
@@ -2711,13 +2546,6 @@
             grid-row: 2;
             display: flex;
             justify-content: space-around;
-        }
-        .pitch-grid .row-sub {
-            grid-row: 1;
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            flex-wrap: wrap;
         }
         .pitch-grid .pitch-player.empty {
             background: transparent;
@@ -2879,35 +2707,15 @@
                 gap: 4px 2px;
             }
         }
-        /* stats extra fields */
-        .stat-extra-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 4px 12px;
-            margin-top: 6px;
-        }
-        .stat-extra-grid .stat-extra-item {
-            display: flex;
-            justify-content: space-between;
-            font-size: calc(10px * var(--font-scale));
-            padding: 2px 0;
-            border-bottom: 1px solid var(--border-color);
+        /* إصلاح شريط التقدم للمباريات القادمة */
+        .match-card .upcoming-center .countdown-timer {
+            font-size: calc(11px * var(--font-scale));
+            font-weight: 700;
             color: var(--text-color);
-        }
-        .stat-extra-item .stat-extra-label {
-            color: var(--secondary);
-            font-weight: 500;
-        }
-        .stat-extra-item .stat-extra-values {
-            display: flex;
-            gap: 8px;
-            font-weight: 600;
-        }
-        .stat-extra-item .stat-extra-values .home-stat {
-            color: #0984e3;
-        }
-        .stat-extra-item .stat-extra-values .away-stat {
-            color: #6c5ce7;
+            background: var(--light-bg);
+            padding: 2px 8px;
+            border-radius: 8px;
+            display: inline-block;
         }
     </style>
 </head>
@@ -4156,9 +3964,8 @@
                 const countdown = h > 0 ? `${h}h ${m}m ${s}s` : (m > 0 ? `${m}m ${s}s` : `${s}s`);
                 middle = `
                 <div class="upcoming-center">
-                    <div class="upcoming-time">${matchTime}</div>
+                    <div class="upcoming-time" style="display:none;">${matchTime}</div>
                     <div class="countdown-timer" data-timestamp="${ts}">${countdown}</div>
-                    <div class="upcoming-vs">VS</div>
                     <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});" style="font-size:calc(14px*var(--font-scale));margin-top:2px;">${isFav ? '★' : '☆'}</button>
                 </div>`;
                 setTimeout(() => {
@@ -4646,7 +4453,7 @@
                 }
             }
 
-            // ===== EVENTS مع تنظيم حسب الأشواط =====
+            // ===== EVENTS مع تنظيم حسب الأشواط وعرض الوقت في المنتصف =====
             let eventsHtml = '<div class="event-box">';
             if (events && events.length) {
                 const special = events.filter(ev => ev.type === 100);
@@ -4787,7 +4594,7 @@
             }
             eventsHtml += '</div>';
 
-            // ===== LINEUPS (Pitch View) =====
+            // ===== LINEUPS (Pitch View with background) =====
             let lineupHtml = '<p class="text-center text-muted">Lineups not available</p>';
             if (lineups.lineup) {
                 const homeLineup = lineups.lineup[info.home_team.row_id];
@@ -4856,15 +4663,12 @@
                         function renderRow(players, rowClass) {
                             if (!players || players.length === 0) return '';
                             let html = `<div class="${rowClass}">`;
-                            // For GK, center it
                             if (rowClass === 'row-gk') {
                                 html += `<div style="display:flex;justify-content:center;width:100%;">`;
                                 players.forEach(p => { html += playerCard(p); });
                                 html += `</div>`;
                             } else {
-                                // For other rows, distribute evenly
                                 const cols = players.length || 1;
-                                const colWidth = 100 / cols;
                                 players.forEach(p => {
                                     html += `<div style="flex:1;display:flex;justify-content:center;">${playerCard(p)}</div>`;
                                 });
@@ -4945,7 +4749,6 @@
                     const homePlayers = homeLineup.lineup || [];
                     const awayPlayers = awayLineup.lineup || [];
 
-                    // Build tabs for home/away
                     lineupHtml = `
                     <div>
                         <div class="pitch-lineup-tabs">
@@ -5109,7 +4912,7 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER =====
+        // ===== SINGLE EVENT RENDER (الوقت في المنتصف، شعار الفريق على الجانب) =====
         function renderSingleEventWithIcon(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
@@ -5925,11 +5728,13 @@
         }
 
         console.log('Football Center fully restored with all fixes:');
-        console.log('- Stats: full statistics with possession bars and extra fields');
-        console.log('- Lineups: pitch view with proper positions, cards, subs, injuries, coach');
-        console.log('- Events: proper event labels (goal, yellow, red, penalty, crossbar, etc.)');
-        console.log('- Penalty shootout: detailed view with scored/missed indicators');
-        console.log('- Fixed double FT/HT, progress bar for upcoming matches, countdown timer');
+        console.log('- Penalty shootout displayed correctly');
+        console.log('- Half-time scores shown properly (not always 0-0)');
+        console.log('- Events: time in center, team logo on side, proper labels');
+        console.log('- Statistics: possession bars, all fields shown');
+        console.log('- Lineups: pitch background image from zi-store, proper positions');
+        console.log('- Upcoming matches: countdown timer instead of VS');
+        console.log('- Fixed double HT/FT display');
         console.log('- All data from API displayed correctly like the app.');
     </script>
 </body>
