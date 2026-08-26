@@ -1554,8 +1554,7 @@
             let stoppage = null;
             if (exTime && exTime > 0) {
                 const extraMins = Math.floor(exTime);
-                const extraSecs = Math.round((exTime - extraMins) * 60);
-                stoppage = `+${extraMins}:${String(extraSecs).padStart(2, '0')}`;
+                stoppage = `+${extraMins}`;
             }
             return { display, stoppage, seconds: total };
         }
@@ -3087,32 +3086,36 @@
                 if (data && data.data) {
                     const info = data.data;
                     const body = document.getElementById('playerModalBody');
+                    
+                    // حساب العمر
+                    const age = info.birth_day ? Math.floor((Date.now() - new Date(info.birth_day).getTime()) / (365.25*24*60*60*1000)) : 'N/A';
+                    
+                    // بناء الإحصائيات
                     let statsHtml = '';
                     if (info.player_statistics && info.player_statistics.length > 0) {
                         const s = info.player_statistics[0];
                         statsHtml = `
-                            <div class="player-stats-card">
-                                <div class="row g-2">
-                                    <div class="col-3 stat-item"><div class="stat-icon">📅</div><div class="stat-value">${s.appearances || 0}</div><div class="stat-label">Apps</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">⚽</div><div class="stat-value">${s.goals || 0}</div><div class="stat-label">Goals</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">🅰️</div><div class="stat-value">${s.assist || 0}</div><div class="stat-label">Assists</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">🟨</div><div class="stat-value">${s.yellow_card || 0}</div><div class="stat-label">YC</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">🟥</div><div class="stat-value">${s.red_card || 0}</div><div class="stat-label">RC</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">🥅</div><div class="stat-value">${s.own_goal || 0}</div><div class="stat-label">OG</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">⭐</div><div class="stat-value">${s.man_match || 0}</div><div class="stat-label">MVP</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">⚪</div><div class="stat-value">${s.score_penalty || 0}</div><div class="stat-label">Pen Scored</div></div>
-                                    <div class="col-3 stat-item"><div class="stat-icon">❌</div><div class="stat-value">${s.miss_penalty || 0}</div><div class="stat-label">Pen Missed</div></div>
-                                </div>
+                        <div class="player-stats-card">
+                            <div class="row g-2 text-center">
+                                <div class="col-4"><strong>${s.appearances || 0}</strong><br /><span class="text-muted">Apps</span></div>
+                                <div class="col-4"><strong>${s.goals || 0}</strong><br /><span class="text-muted">Goals</span></div>
+                                <div class="col-4"><strong>${s.assist || 0}</strong><br /><span class="text-muted">Assists</span></div>
+                                <div class="col-4"><strong>${s.yellow_card || 0}</strong><br /><span class="text-muted">YC</span></div>
+                                <div class="col-4"><strong>${s.red_card || 0}</strong><br /><span class="text-muted">RC</span></div>
+                                <div class="col-4"><strong>${s.man_match || 0}</strong><br /><span class="text-muted">MVP</span></div>
+                                <div class="col-4"><strong>${s.score_penalty || 0}</strong><br /><span class="text-muted">Pen Scored</span></div>
+                                <div class="col-4"><strong>${s.miss_penalty || 0}</strong><br /><span class="text-muted">Pen Missed</span></div>
+                                <div class="col-4"><strong>${s.own_goal || 0}</strong><br /><span class="text-muted">OG</span></div>
                             </div>
-                        `;
+                        </div>`;
                     }
-                    // Transfers
+
+                    // بناء الانتقالات
                     let transferHtml = '';
                     if (info.transfers && info.transfers.length > 0) {
                         transferHtml = '<h6 class="mt-3">Transfers</h6><div class="transfers-list">';
                         info.transfers.slice(0, 10).forEach(t => {
                             const to = t.team_in?.title || 'Unknown';
-                            const from = t.team_out?.title || '';
                             const value = t.value || 'Undisclosed';
                             const date = t.date_from || '';
                             const type = t.trans || 'Transfer';
@@ -3122,7 +3125,7 @@
                                     <img src="${teamImg}" />
                                     <div class="transfer-text">
                                         <div class="transfer-type">${type}</div>
-                                        <div class="transfer-date">${from ? from + ' → ' : ''}${to} (${date})</div>
+                                        <div class="transfer-date">${to} (${date})</div>
                                     </div>
                                 </div>
                                 <div class="transfer-value">${value}</div>
@@ -3130,40 +3133,45 @@
                         });
                         transferHtml += '</div>';
                     }
-                    // Build hero
-                    const cover = info.image_cover ? IMG_BASE_PLAYER_COVER + info.image_cover : '';
+
+                    // بناء الهيرو (صورة اللاعب الكبيرة)
                     const avatar = info.image ? IMG_BASE_PLAYER + info.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\' viewBox=\'0 0 60 60\'%3E%3Crect width=\'60\' height=\'60\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'35\' font-family=\'sans-serif\' font-size=\'20\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
+                    const cover = info.image_cover ? IMG_BASE_PLAYER_COVER + info.image_cover : '';
+                    const countryImg = info.country?.image ? info.country.image : '';
                     const team = info.team_name ? info.team_name : {};
-                    const country = info.country ? info.country : {};
-                    const age = info.birth_day ? Math.floor((Date.now() - new Date(info.birth_day).getTime()) / (365.25*24*60*60*1000)) : 'N/A';
 
                     body.innerHTML = `
-                        <div class="player-modal-hero">
-                            ${cover ? `<img class="player-cover" src="${IMG_BASE_PLAYER_COVER + info.image_cover}" onerror="this.style.display='none'" />` : `<div style="height:200px;"></div>`}
-                            ${country.image ? `<img class="country-flag" src="${country.image}" />` : ''}
-                            <div class="player-info-overlay">
-                                <img class="player-avatar" src="${avatar}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'60\' height=\'60\' viewBox=\'0 0 60 60\'%3E%3Crect width=\'60\' height=\'60\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'35\' font-family=\'sans-serif\' font-size=\'20\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E'" />
-                                <div class="player-info-text">
-                                    <h4>${info.title}</h4>
-                                    <p>${getPositionFullName(info.position)}</p>
-                                    ${team.title ? `<div class="team-badge"><img src="${IMG_BASE_TEAM + team.image}" /> ${team.title}</div>` : ''}
-                                </div>
+                    <div class="player-modal-hero">
+                        ${cover ? `<img class="player-cover" src="${cover}" onerror="this.style.display='none'" />` : `<div style="height:160px;"></div>`}
+                        ${countryImg ? `<img class="country-flag" src="${countryImg}" />` : ''}
+                        <div class="player-info-overlay">
+                            <img class="player-avatar" src="${avatar}" />
+                            <div class="player-info-text">
+                                <h4>${info.title}</h4>
+                                <p>${getPositionFullName(info.position)}</p>
+                                <p>${info.club_number ? '#' + info.club_number : ''}</p>
+                                ${team.title ? `<div class="team-badge"><img src="${IMG_BASE_TEAM + team.image}" /> ${team.title}</div>` : ''}
                             </div>
                         </div>
-                        <div class="player-stats-card">
-                            <div class="row g-2 text-center">
-                                <div class="col-4"><strong>${age}</strong><br /><span class="text-muted">Age</span></div>
-                                <div class="col-4"><strong>${info.height || 'N/A'}</strong><br /><span class="text-muted">Height</span></div>
-                                <div class="col-4"><strong>${info.weight || 'N/A'}</strong><br /><span class="text-muted">Weight</span></div>
-                                <div class="col-4"><strong>${info.foot || 'N/A'}</strong><br /><span class="text-muted">Foot</span></div>
-                                <div class="col-4"><strong>${info.club_number || ''}</strong><br /><span class="text-muted">Number</span></div>
-                                <div class="col-4"><strong>${info.country ? info.country.title : ''}</strong><br /><span class="text-muted">Country</span></div>
-                            </div>
+                    </div>
+
+                    <div class="player-stats-card mt-3">
+                        <div class="row g-2 text-center">
+                            <div class="col-4"><strong>${age}</strong><br /><span class="text-muted">Age</span></div>
+                            <div class="col-4"><strong>${info.height || 'N/A'}</strong><br /><span class="text-muted">Height</span></div>
+                            <div class="col-4"><strong>${info.weight || 'N/A'}</strong><br /><span class="text-muted">Weight</span></div>
+                            <div class="col-4"><strong>${info.foot || 'N/A'}</strong><br /><span class="text-muted">Foot</span></div>
+                            <div class="col-4"><strong>${info.country ? info.country.title : ''}</strong><br /><span class="text-muted">Country</span></div>
+                            <div class="col-4"><strong>${info.club_number || ''}</strong><br /><span class="text-muted">Number</span></div>
                         </div>
-                        <h6 class="mt-3">Statistics</h6>
-                        ${statsHtml || '<p class="text-muted">No statistics available</p>'}
-                        ${transferHtml}
+                    </div>
+
+                    <h6 class="mt-3">Statistics</h6>
+                    ${statsHtml || '<p class="text-muted">No statistics available</p>'}
+                    
+                    ${transferHtml}
                     `;
+                    
                     document.getElementById('playerModalTitle').textContent = info.title;
                     const modal = new bootstrap.Modal(document.getElementById('playerModal'));
                     modal.show();
@@ -3411,21 +3419,17 @@
         function formatMatchLocalDateTime(ts) {
             if (!ts) return 'N/A';
             const date = new Date(ts * 1000);
-            let hours = date.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
+            let hours = date.getHours(); // 24 ساعة
             const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins} ${ampm}`;
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins}`;
         }
 
         function formatMatchLocalTime(ts) {
             if (!ts) return 'N/A';
             const date = new Date(ts * 1000);
             let hours = date.getHours();
-            const ampm = hours >= 12 ? 'PM' : 'AM';
-            hours = hours % 12 || 12;
             const mins = String(date.getMinutes()).padStart(2, '0');
-            return `${hours}:${mins} ${ampm}`;
+            return `${hours}:${mins}`;
         }
 
         function formatMatchLocalDate(ts) {
@@ -3437,4 +3441,4 @@
         console.log('Football Center fully restored with app-like lineups and fixed AM/PM timing.');
     </script>
 </body>
-                        </html>
+                                                       </html>
