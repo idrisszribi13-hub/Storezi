@@ -9,7 +9,7 @@
     <script src="https://cdn.jsdelivr.net/npm/hls.js@1.5.17/dist/hls.min.js">
     </script>
     <style>
-        /* ===== GLOBAL ===== */
+        /* ===== نفس الـ CSS السابق مع إضافات بسيطة للـ Penalty و الإحصائيات ===== */
         :root {
             --primary: #0d6efd;
             --secondary: #6c757d;
@@ -74,8 +74,6 @@
             max-width: 1240px;
             padding: 0 14px;
         }
-
-        /* ===== FONT SIZE CONTROLS ===== */
         .font-controls {
             display: flex;
             align-items: center;
@@ -105,8 +103,6 @@
             color: rgba(255, 255, 255, 0.5);
             margin: 0 2px;
         }
-
-        /* ===== HEADER ===== */
         .app-header {
             background: var(--header-bg);
             padding: 8px 0;
@@ -316,8 +312,6 @@
         .favorite-btn-header.active {
             color: #ffc107;
         }
-
-        /* ===== DATE NAV ===== */
         .date-nav {
             display: flex;
             justify-content: center;
@@ -387,8 +381,6 @@
         [data-theme="dark"] .calendar-btn:hover img {
             filter: invert(1);
         }
-
-        /* ===== FILTER BAR ===== */
         .filter-bar {
             display: flex;
             gap: 6px;
@@ -417,8 +409,6 @@
             color: #fff;
             border-color: var(--primary);
         }
-
-        /* ===== LIVE SECTION ===== */
         .section-header {
             display: flex;
             align-items: center;
@@ -458,8 +448,6 @@
             margin: 0;
             font-size: calc(1.1rem * var(--font-scale));
         }
-
-        /* ===== MATCH CARDS ===== */
         .match-card {
             border: none;
             border-radius: var(--border-radius);
@@ -723,8 +711,6 @@
             color: var(--secondary);
             margin-top: 1px;
         }
-
-        /* ===== STANDINGS – COMPACT ===== */
         .standings-wrap {
             overflow-x: auto;
             -webkit-overflow-scrolling: touch;
@@ -848,8 +834,6 @@
             padding-left: 16px;
             margin-bottom: 0;
         }
-
-        /* ===== SCROLL PROGRESS ===== */
         .scroll-progress {
             position: fixed;
             right: 14px;
@@ -896,8 +880,6 @@
             pointer-events: none;
             line-height: 1;
         }
-
-        /* ===== CONNECTION STATUS ===== */
         .connection-status {
             position: fixed;
             top: 0;
@@ -943,8 +925,6 @@
         .connection-status .status-icon {
             font-size: calc(16px * var(--font-scale));
         }
-
-        /* ===== LOADER ===== */
         .loader {
             position: fixed;
             top: 0;
@@ -967,16 +947,12 @@
             height: 2.6rem;
             pointer-events: auto;
         }
-
-        /* ===== MODAL BACKDROP FIX ===== */
         .modal-backdrop {
             z-index: 1040 !important;
         }
         .modal {
             z-index: 1050 !important;
         }
-
-        /* ===== VIDEO PLAYER MODAL ===== */
         .video-player-modal .modal-content {
             background: #0a0a10;
             border-radius: var(--border-radius);
@@ -1012,8 +988,6 @@
             object-fit: contain;
             margin-right: 4px;
         }
-
-        /* ===== HIGHLIGHTS GRID ===== */
         .highlights-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
@@ -1096,8 +1070,6 @@
             height: 12px;
             object-fit: contain;
         }
-
-        /* ===== CALENDAR ===== */
         .cal-grid {
             display: grid;
             grid-template-columns: repeat(7, 1fr);
@@ -1123,8 +1095,6 @@
         .cal-day.empty {
             pointer-events: none;
         }
-
-        /* ===== MATCH DETAILS TABS ===== */
         .match-modal-tabs {
             border-bottom: 2px solid var(--border-color);
             gap: 2px;
@@ -1154,8 +1124,6 @@
         .match-modal-tab-content {
             padding: 8px 0;
         }
-
-        /* ===== EVENT ROW ===== */
         .event-row {
             display: flex;
             align-items: center;
@@ -1303,8 +1271,6 @@
             border-color: #f39c12;
             color: #f1c40f;
         }
-
-        /* ===== LINEUP PITCH ===== */
         .lineup-pitch {
             background: linear-gradient(180deg, #1a7a3a 0%, #2a9d5a 50%, #1a7a3a 100%);
             border-radius: 12px;
@@ -1500,8 +1466,6 @@
         .sub-item .sub-arrow {
             color: #ffc107;
         }
-
-        /* ===== DETAIL CARD ===== */
         .detail-card {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
@@ -1529,8 +1493,6 @@
         .detail-row .clickable-text:hover {
             text-decoration: underline;
         }
-
-        /* ===== MATCH HEADER ===== */
         .match-header {
             background: var(--card-bg);
             border-radius: 12px;
@@ -1629,6 +1591,12 @@
             color: var(--text-color);
             letter-spacing: -0.5px;
         }
+        .match-header .match-center-side .half-score {
+            font-size: calc(12px * var(--font-scale));
+            color: var(--secondary);
+            font-weight: 600;
+            margin-top: -2px;
+        }
         .match-header .match-center-side .goal-alert-modal {
             position: absolute;
             top: -10px;
@@ -1648,10 +1616,20 @@
             opacity: 0;
         }
         @keyframes goalFadeModal {
-            0% { opacity: 0; transform: translateX(-50%) scale(0.8); }
-            10% { opacity: 1; transform: translateX(-50%) scale(1); }
-            80% { opacity: 1; }
-            100% { opacity: 0; }
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) scale(0.8);
+            }
+            10% {
+                opacity: 1;
+                transform: translateX(-50%) scale(1);
+            }
+            80% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
         }
         .match-header .match-center-side .match-timer-container {
             display: flex;
@@ -1717,7 +1695,7 @@
             border-radius: 50%;
             transform: translateX(-50%);
             border: 1px solid #fff;
-            box-shadow: 0 0 3px rgba(0,0,0,0.25);
+            box-shadow: 0 0 3px rgba(0, 0, 0, 0.25);
             z-index: 2;
         }
         .match-header .penalty-score {
@@ -1757,8 +1735,6 @@
             font-weight: 800;
             color: #ffc107;
         }
-
-        /* ===== H2H ===== */
         .h2h-flex {
             display: flex;
             justify-content: space-between;
@@ -1808,8 +1784,6 @@
             color: var(--secondary);
             display: block;
         }
-
-        /* ===== STATS - BEAUTIFUL POSSESSION ===== */
         .stats-container {
             background: var(--card-bg);
             border-radius: 12px;
@@ -1820,32 +1794,38 @@
             text-align: center;
             margin-bottom: 12px;
         }
-        .possession-box .possession-circle {
-            width: 90px;
-            height: 90px;
-            border: 6px solid #6c5ce7;
-            border-left-color: #0984e3;
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 0 auto 6px;
-            font-size: calc(18px * var(--font-scale));
-            font-weight: 800;
-            color: var(--text-color);
-        }
-        .possession-box .pos-split {
+        .possession-box .possession-row {
             display: flex;
             justify-content: space-between;
+            align-items: center;
             font-weight: 700;
-            color: var(--text-color);
             font-size: calc(12px * var(--font-scale));
+            color: var(--text-color);
+            margin-bottom: 4px;
         }
-        .possession-box .pos-split span:first-child {
+        .possession-box .possession-row .home-pos {
             color: #0984e3;
         }
-        .possession-box .pos-split span:last-child {
+        .possession-box .possession-row .away-pos {
             color: #6c5ce7;
+        }
+        .possession-box .possession-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border-color);
+            border-radius: 5px;
+            overflow: hidden;
+            display: flex;
+        }
+        .possession-box .possession-bar .home-bar {
+            height: 100%;
+            background: #0984e3;
+            transition: width 0.3s;
+        }
+        .possession-box .possession-bar .away-bar {
+            height: 100%;
+            background: #6c5ce7;
+            transition: width 0.3s;
         }
         .stat-row {
             display: flex;
@@ -1898,8 +1878,6 @@
             background: #6c5ce7;
             border-radius: 0 2px 2px 0;
         }
-
-        /* ===== VIDEO HIGHLIGHTS BUTTONS ===== */
         .video-highlights {
             display: flex;
             flex-wrap: wrap;
@@ -1931,8 +1909,6 @@
             height: 11px;
             filter: brightness(0) invert(1);
         }
-
-        /* ===== LINEUP TABS ===== */
         .lineup-tabs {
             display: flex;
             justify-content: center;
@@ -1966,8 +1942,6 @@
             object-fit: contain;
             cursor: pointer;
         }
-
-        /* ===== LANG FLOAT ===== */
         .lang-float .lang-menu {
             display: none;
             position: fixed;
@@ -2050,8 +2024,6 @@
         .lang-float .lang-menu .theme-toggle-item .toggle-switch.active .toggle-dot {
             transform: translateX(16px);
         }
-
-        /* ===== BOTTOM NAV ===== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -2110,71 +2082,220 @@
             border-radius: 50%;
             border: 1px solid var(--bottom-nav-bg);
         }
-
-        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
-            .app-header .logo { font-size: calc(0.9rem * var(--font-scale)); }
-            .app-header .header-search { max-width: 140px; min-width: 70px; }
-            .app-header .header-search input { font-size: calc(0.7rem * var(--font-scale)); padding: 4px 8px 4px 24px; }
-            .app-header .header-search .search-icon { font-size: 10px; left: 7px; }
-            .app-header .header-actions .header-btn { width: 26px; height: 26px; font-size: calc(12px * var(--font-scale)); }
-            .app-header .header-actions .lang-selector { font-size: calc(0.55rem * var(--font-scale)); padding: 2px 6px; }
-            .match-card .match-row { padding: 8px 10px; }
-            .match-card .team-col img { width: 28px; height: 28px; }
-            .match-card .team-col .team-title { font-size: calc(9px * var(--font-scale)); }
-            .match-card .center-col, .match-card .upcoming-center { width: 74px; }
-            .match-card .score-big { font-size: calc(16px * var(--font-scale)); }
-            .match-card .time-text { font-size: calc(9px * var(--font-scale)); padding: 1px 6px; }
-            .scroll-progress { width: 34px; height: 34px; right: 10px; bottom: 74px; }
-            .scroll-progress .arrow-icon { font-size: calc(12px * var(--font-scale)); }
-            .date-nav { padding: 6px 10px; gap: 6px; }
-            .date-label { font-size: calc(13px * var(--font-scale)); min-width: 70px; }
-            .date-btn { width: 28px; height: 28px; font-size: calc(13px * var(--font-scale)); }
-            .calendar-btn { width: 28px; height: 28px; }
-            .calendar-btn img { width: 14px; height: 14px; }
-            .nav-tabs .nav-link { font-size: calc(10px * var(--font-scale)); padding: 6px 10px; }
-            .tab-content { padding: 10px; }
-            .container { padding: 0 8px; }
-            .bottom-nav .nav-item { font-size: calc(7px * var(--font-scale)); }
-            .bottom-nav .nav-item img { width: 18px; height: 18px; }
-            .highlights-grid { grid-template-columns: 1fr 1fr; }
-            .standings-table { font-size: calc(9px * var(--font-scale)); min-width: 340px; }
-            .standings-table .team-cell img { width: 16px; height: 16px; }
-            .standings-table .team-cell .team-name { font-size: calc(8px * var(--font-scale)); }
-            .match-header .match-team-side img { width: 34px; height: 34px; }
-            .match-header .match-center-side .match-score { font-size: calc(22px * var(--font-scale)); }
-            .match-header .match-center-side .timer-main { font-size: calc(12px * var(--font-scale)); }
-            .font-controls button { width: 22px; height: 22px; font-size: 11px; }
-            .font-controls .font-label { font-size: 8px; }
+            .app-header .logo {
+                font-size: calc(0.9rem * var(--font-scale));
+            }
+            .app-header .header-search {
+                max-width: 140px;
+                min-width: 70px;
+            }
+            .app-header .header-search input {
+                font-size: calc(0.7rem * var(--font-scale));
+                padding: 4px 8px 4px 24px;
+            }
+            .app-header .header-search .search-icon {
+                font-size: 10px;
+                left: 7px;
+            }
+            .app-header .header-actions .header-btn {
+                width: 26px;
+                height: 26px;
+                font-size: calc(12px * var(--font-scale));
+            }
+            .app-header .header-actions .lang-selector {
+                font-size: calc(0.55rem * var(--font-scale));
+                padding: 2px 6px;
+            }
+            .match-card .match-row {
+                padding: 8px 10px;
+            }
+            .match-card .team-col img {
+                width: 28px;
+                height: 28px;
+            }
+            .match-card .team-col .team-title {
+                font-size: calc(9px * var(--font-scale));
+            }
+            .match-card .center-col,
+            .match-card .upcoming-center {
+                width: 74px;
+            }
+            .match-card .score-big {
+                font-size: calc(16px * var(--font-scale));
+            }
+            .match-card .time-text {
+                font-size: calc(9px * var(--font-scale));
+                padding: 1px 6px;
+            }
+            .scroll-progress {
+                width: 34px;
+                height: 34px;
+                right: 10px;
+                bottom: 74px;
+            }
+            .scroll-progress .arrow-icon {
+                font-size: calc(12px * var(--font-scale));
+            }
+            .date-nav {
+                padding: 6px 10px;
+                gap: 6px;
+            }
+            .date-label {
+                font-size: calc(13px * var(--font-scale));
+                min-width: 70px;
+            }
+            .date-btn {
+                width: 28px;
+                height: 28px;
+                font-size: calc(13px * var(--font-scale));
+            }
+            .calendar-btn {
+                width: 28px;
+                height: 28px;
+            }
+            .calendar-btn img {
+                width: 14px;
+                height: 14px;
+            }
+            .nav-tabs .nav-link {
+                font-size: calc(10px * var(--font-scale));
+                padding: 6px 10px;
+            }
+            .tab-content {
+                padding: 10px;
+            }
+            .container {
+                padding: 0 8px;
+            }
+            .bottom-nav .nav-item {
+                font-size: calc(7px * var(--font-scale));
+            }
+            .bottom-nav .nav-item img {
+                width: 18px;
+                height: 18px;
+            }
+            .highlights-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            .standings-table {
+                font-size: calc(9px * var(--font-scale));
+                min-width: 340px;
+            }
+            .standings-table .team-cell img {
+                width: 16px;
+                height: 16px;
+            }
+            .standings-table .team-cell .team-name {
+                font-size: calc(8px * var(--font-scale));
+            }
+            .match-header .match-team-side img {
+                width: 34px;
+                height: 34px;
+            }
+            .match-header .match-center-side .match-score {
+                font-size: calc(22px * var(--font-scale));
+            }
+            .match-header .match-center-side .timer-main {
+                font-size: calc(12px * var(--font-scale));
+            }
+            .font-controls button {
+                width: 22px;
+                height: 22px;
+                font-size: 11px;
+            }
+            .font-controls .font-label {
+                font-size: 8px;
+            }
         }
         @media (max-width: 480px) {
-            .app-header .header-search { max-width: 80px; min-width: 50px; }
-            .app-header .header-search input { font-size: calc(0.6rem * var(--font-scale)); padding: 3px 5px 3px 20px; }
-            .app-header .header-search .search-icon { font-size: 8px; left: 5px; }
-            .app-header .logo { font-size: calc(0.75rem * var(--font-scale)); }
-            .app-header .logo .premium-badge { font-size: 5px; padding: 0px 4px; }
-            .app-header .header-actions .header-btn { width: 22px; height: 22px; font-size: calc(10px * var(--font-scale)); }
-            .app-header .header-actions .lang-selector { font-size: calc(0.45rem * var(--font-scale)); padding: 1px 4px; }
-            .match-card .team-col img { width: 22px; height: 22px; }
-            .match-card .team-col .team-title { font-size: calc(8px * var(--font-scale)); }
-            .match-card .center-col, .match-card .upcoming-center { width: 62px; }
-            .match-card .score-big { font-size: calc(14px * var(--font-scale)); }
-            .match-card .time-text { font-size: calc(8px * var(--font-scale)); padding: 0px 5px; }
-            .match-card .match-footer { font-size: calc(7px * var(--font-scale)); }
-            .highlights-grid { grid-template-columns: 1fr; }
-            .bottom-nav .nav-item { font-size: calc(6px * var(--font-scale)); }
-            .bottom-nav .nav-item img { width: 16px; height: 16px; }
-            .standings-table { font-size: calc(8px * var(--font-scale)); min-width: 280px; }
-            .standings-table .team-cell img { width: 14px; height: 14px; }
-            .standings-table .team-cell .team-name { font-size: calc(7px * var(--font-scale)); }
-            .standings-table th { font-size: calc(7px * var(--font-scale)); }
-            .match-header .match-team-side img { width: 28px; height: 28px; }
-            .match-header .match-center-side .match-score { font-size: calc(18px * var(--font-scale)); }
-            .match-header .match-center-side .timer-main { font-size: calc(10px * var(--font-scale)); }
-            .match-header .match-team-side span { font-size: calc(9px * var(--font-scale)); }
+            .app-header .header-search {
+                max-width: 80px;
+                min-width: 50px;
+            }
+            .app-header .header-search input {
+                font-size: calc(0.6rem * var(--font-scale));
+                padding: 3px 5px 3px 20px;
+            }
+            .app-header .header-search .search-icon {
+                font-size: 8px;
+                left: 5px;
+            }
+            .app-header .logo {
+                font-size: calc(0.75rem * var(--font-scale));
+            }
+            .app-header .logo .premium-badge {
+                font-size: 5px;
+                padding: 0px 4px;
+            }
+            .app-header .header-actions .header-btn {
+                width: 22px;
+                height: 22px;
+                font-size: calc(10px * var(--font-scale));
+            }
+            .app-header .header-actions .lang-selector {
+                font-size: calc(0.45rem * var(--font-scale));
+                padding: 1px 4px;
+            }
+            .match-card .team-col img {
+                width: 22px;
+                height: 22px;
+            }
+            .match-card .team-col .team-title {
+                font-size: calc(8px * var(--font-scale));
+            }
+            .match-card .center-col,
+            .match-card .upcoming-center {
+                width: 62px;
+            }
+            .match-card .score-big {
+                font-size: calc(14px * var(--font-scale));
+            }
+            .match-card .time-text {
+                font-size: calc(8px * var(--font-scale));
+                padding: 0px 5px;
+            }
+            .match-card .match-footer {
+                font-size: calc(7px * var(--font-scale));
+            }
+            .highlights-grid {
+                grid-template-columns: 1fr;
+            }
+            .bottom-nav .nav-item {
+                font-size: calc(6px * var(--font-scale));
+            }
+            .bottom-nav .nav-item img {
+                width: 16px;
+                height: 16px;
+            }
+            .standings-table {
+                font-size: calc(8px * var(--font-scale));
+                min-width: 280px;
+            }
+            .standings-table .team-cell img {
+                width: 14px;
+                height: 14px;
+            }
+            .standings-table .team-cell .team-name {
+                font-size: calc(7px * var(--font-scale));
+            }
+            .standings-table th {
+                font-size: calc(7px * var(--font-scale));
+            }
+            .match-header .match-team-side img {
+                width: 28px;
+                height: 28px;
+            }
+            .match-header .match-center-side .match-score {
+                font-size: calc(18px * var(--font-scale));
+            }
+            .match-header .match-center-side .timer-main {
+                font-size: calc(10px * var(--font-scale));
+            }
+            .match-header .match-team-side span {
+                font-size: calc(9px * var(--font-scale));
+            }
         }
-
-        /* ===== LINEUP PLAYER CARDS ===== */
         .lineup-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -2344,6 +2465,85 @@
             height: 24px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
+        }
+        .penalty-event-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: calc(10px * var(--font-scale));
+        }
+        .penalty-event-row:last-child {
+            border-bottom: none;
+        }
+        .penalty-event-row .penalty-result {
+            font-weight: 700;
+        }
+        .penalty-event-row .penalty-result.scored {
+            color: #28a745;
+        }
+        .penalty-event-row .penalty-result.missed {
+            color: #dc3545;
+        }
+        .penalty-event-row .penalty-player {
+            cursor: pointer;
+            font-weight: 600;
+        }
+        .penalty-event-row .penalty-player:hover {
+            color: var(--primary);
+        }
+        .penalty-event-row .penalty-team-logo {
+            width: 18px;
+            height: 18px;
+            object-fit: contain;
+            cursor: pointer;
+        }
+        .penalty-shootout-detail {
+            background: var(--light-bg);
+            border-radius: 8px;
+            padding: 8px 12px;
+            margin-top: 4px;
+            border: 1px solid var(--border-color);
+        }
+        .penalty-shootout-detail .penalty-title {
+            font-weight: 700;
+            font-size: calc(12px * var(--font-scale));
+            text-align: center;
+            margin-bottom: 4px;
+            color: var(--text-color);
+        }
+        /* إضافات جديدة */
+        .event-section-divider {
+            font-weight: 700;
+            padding: 6px 10px;
+            background: var(--light-bg);
+            border-radius: 6px;
+            margin: 8px 0 4px;
+            text-align: center;
+            font-size: calc(12px * var(--font-scale));
+            border: 1px solid var(--border-color);
+        }
+        .event-section-divider .score {
+            font-size: calc(14px * var(--font-scale));
+            color: var(--primary);
+        }
+        .possession-label {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: calc(11px * var(--font-scale));
+            padding: 0 4px;
+        }
+        .possession-label span:first-child {
+            color: #0984e3;
+        }
+        .possession-label span:last-child {
+            color: #6c5ce7;
+        }
+        .timer-main.live-update {
+            transition: none;
         }
     </style>
 </head>
@@ -2549,7 +2749,7 @@
         </div>
     </div>
 
-    <!-- ===== VIDEO PLAYER MODAL (live streams) ===== -->
+    <!-- ===== VIDEO PLAYER MODAL ===== -->
     <div class="modal fade video-player-modal" id="streamPlayerModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-xl modal-dialog-centered">
             <div class="modal-content">
@@ -2633,12 +2833,11 @@
     </script>
     <script>
         // ============================================================
-        //  CONFIGURATION – YSScores ONLY
+        //  CONFIGURATION
         // ============================================================
         const ICON_BASE = 'https://zi-store.online/icon/';
         const EVENT_ICON_BASE = 'https://zi-store.online/events/';
 
-        // Map event types to icon filenames
         const EVENT_ICON_MAP = {
             'goal': 'ic_goal.svg',
             'own_goal': 'ic_own_goal.svg',
@@ -2776,9 +2975,11 @@
 
         function normalizeTeamName(name) {
             if (!name) return '';
-            let n = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, ' ').trim();
+            let n = name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9\s]/g, '').replace(
+                /\s+/g, ' ').trim();
             n = n.replace(/\b(fc|cf|afc|sk|jk|ss|ac|as|sl|vfl|vs|1\.)\b/g, '').replace(/\s+/g, ' ').trim();
-            for (const key in teamAliases) { const aliases = teamAliases[key]; if (n === key || aliases.includes(n)) return key; }
+            for (const key in teamAliases) { const aliases = teamAliases[key]; if (n === key || aliases.includes(n))
+                    return key; }
             return n;
         }
 
@@ -3153,20 +3354,34 @@
         }
 
         // ============================================================
-        //  MATCH FUNCTIONS (YSScores)
+        //  MATCH FUNCTIONS (FIXED)
         // ============================================================
         function getLiveSeconds(match) {
-            if (match.match_timestamp && match.match_timestamp > 1000000000) {
-                const status = match.status || 1;
-                if (status === 1 || status === 3 || status === 8 || status === 9) {
+            // For live matches (status 1,3,8,9) use match.minutes (seconds from API)
+            const status = match.status !== undefined ? match.status : 1;
+            if (status === 1 || status === 3 || status === 8 || status === 9) {
+                if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) {
+                    return match.minutes;
+                }
+                // Fallback: compute from match_timestamp
+                if (match.match_timestamp && match.match_timestamp > 1000000000) {
                     const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
                     if (elapsed >= 0 && elapsed < 14400) return elapsed;
                 }
-                if (status === 0) return 0;
+                return 0;
             }
-            if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) {
-                return match.minutes;
+            // Finished (status 4)
+            if (status === 4) {
+                return match.minutes || 0;
             }
+            // Upcoming (status 0)
+            if (status === 0) return 0;
+            // Halftime (status 2) - just return minutes or 0
+            if (status === 2) {
+                return match.minutes || 0;
+            }
+            // Penalties (status 10)
+            if (status === 10) return match.minutes || 0;
             return 0;
         }
 
@@ -3192,6 +3407,7 @@
             if (status === 0) return { display: 'VS', stoppage: null, seconds: total };
             if (status === 4) return { display: 'FT', stoppage: null, seconds: total };
             if (status === 2) return { display: 'HT', stoppage: null, seconds: total };
+            if (status === 10) return { display: 'PEN', stoppage: null, seconds: total };
             let display = `${mins}:${padded}`;
             let stoppage = null;
             if (exTime && exTime > 0) {
@@ -3273,7 +3489,7 @@
         }
 
         // ============================================================
-        //  HEADER SEARCH (YSScores)
+        //  HEADER SEARCH
         // ============================================================
         const searchInput = document.getElementById('headerSearchInput');
         const searchDropdown = document.getElementById('searchResultsDropdown');
@@ -3351,7 +3567,7 @@
         }
 
         // ============================================================
-        //  CHAMPIONSHIPS (YSScores)
+        //  CHAMPIONSHIPS
         // ============================================================
         async function loadChampionships() {
             try {
@@ -3420,7 +3636,7 @@
         }
 
         // ============================================================
-        //  LOAD LIVE & TODAY MATCHES (YSScores) + Stream events
+        //  LOAD LIVE & TODAY MATCHES
         // ============================================================
         async function loadLiveMatches() {
             try {
@@ -3471,7 +3687,7 @@
         }
 
         // ============================================================
-        //  RENDER MATCH CARDS (with Play Stream button)
+        //  RENDER MATCH CARDS
         // ============================================================
         function renderLiveMatchCard(match) {
             const home = match.home_team,
@@ -3481,7 +3697,7 @@
                 `<img src="${IMG_BASE_CHAMP + match.championship.image}" style="width:12px;height:12px;vertical-align:middle;margin-right:3px;" />` :
                 '';
             const seconds = getLiveSeconds(match);
-            const status = match.status || 1;
+            const status = match.status !== undefined ? match.status : 1;
             const timer = formatLiveTimeRealtime(seconds, status, match.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
@@ -3655,7 +3871,7 @@
         }
 
         // ============================================================
-        //  HIGHLIGHTS (FIXED: fetch from match detail API)
+        //  HIGHLIGHTS
         // ============================================================
         async function loadHighlights() {
             const allMatches = [...liveMatches, ...todayMatches];
@@ -3749,19 +3965,23 @@
         }
 
         // ============================================================
-        //  MATCH DETAILS (FULL YSScores UI with lineups like the app)
+        //  MATCH DETAILS (FULLY FIXED)
         // ============================================================
+        // متغير لحفظ بيانات المباراة الحالية لتحديثها
+        let currentMatchInfo = null;
+        let matchLiveInterval = null;
+        let matchDataInterval = null;
+
         async function openMatchDetails(matchId) {
             showLoading();
             try {
-                const [infoRes, eventsRes, lineupRes, statsRes, h2hRes, homeLast5Res, awayLast5Res] = await Promise.all([
+                // جلب البيانات
+                const [infoRes, eventsRes, lineupRes, statsRes, h2hRes] = await Promise.all([
                     fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
                     fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`).catch(() => ({ data: { events: [] } })),
                     fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`).catch(() => ({ data: {} })),
                     fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`).catch(() => ({ data: { statics: {} } })),
-                    fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`).catch(() => ({ data: {} })),
-                    fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } })),
-                    fetchFromProxy(`${API_BASE}/matches/team_matches/${matchId}/L/60`).catch(() => ({ data: { end: { data: [] } } }))
+                    fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`).catch(() => ({ data: {} }))
                 ]);
                 const info = infoRes.data;
                 if (!info) { showError('Match info not available');
@@ -3770,8 +3990,6 @@
                 const lineups = lineupRes.data || {};
                 const stats = statsRes.data?.statics || {};
                 const h2h = h2hRes.data || {};
-                const homeLast5 = homeLast5Res.data?.end?.data?.slice(0, 5) || [];
-                const awayLast5 = awayLast5Res.data?.end?.data?.slice(0, 5) || [];
 
                 let standingsData = null;
                 if (info.championship && info.championship.url_id) {
@@ -3781,11 +3999,15 @@
                         if (sData.data && sData.data.league && sData.data.league.stage0) standingsData = sData.data;
                     } catch (e) {}
                 }
-                renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData);
+
+                // حفظ البيانات الحالية للتحديث
+                currentMatchInfo = info;
+                renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData);
                 document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
-                // Start live update for this match (every 1 second)
+
+                // بدء التحديث المباشر
                 startLiveMatchUpdates(matchId);
                 hideLoading();
             } catch (err) {
@@ -3795,56 +4017,107 @@
             }
         }
 
-        // ============================================================
-        //  LIVE MATCH UPDATE FOR MODAL (every 1 second)
-        // ============================================================
-        let matchLiveInterval = null;
-
         function startLiveMatchUpdates(matchId) {
+            // تنظيف أي مؤقتات سابقة
             if (matchLiveInterval) clearInterval(matchLiveInterval);
-            matchLiveInterval = setInterval(async () => {
+            if (matchDataInterval) clearInterval(matchDataInterval);
+
+            // تحديث الوقت كل ثانية (محلياً)
+            matchLiveInterval = setInterval(() => {
+                if (!currentMatchInfo) return;
+                const info = currentMatchInfo;
+                const seconds = getLiveSeconds(info);
+                const status = info.status !== undefined ? info.status : 1;
+                const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
+                const progress = getMatchProgress(seconds, status);
+
+                // تحديث عناصر DOM فقط
+                const timerMain = document.querySelector('#matchModalBody .timer-main');
+                if (timerMain) timerMain.textContent = timer.display;
+                const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
+                if (stoppageEl) {
+                    if (timer.stoppage) { stoppageEl.textContent = timer.stoppage;
+                        stoppageEl.style.display = 'inline-block'; } else { stoppageEl.style.display = 'none'; }
+                }
+                const periodEl = document.querySelector('#matchModalBody .match-period');
+                if (periodEl) periodEl.textContent = getMatchPeriod(status);
+                const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
+                if (fillEl) fillEl.style.width = `${progress}%`;
+                // تحديث شريط التقدم في حالة المباريات المنتهية أو غير المباشرة
+                if (status === 4) { if (fillEl) fillEl.style.width = '100%'; }
+                if (status === 0) { if (fillEl) fillEl.style.width = '0%'; }
+                // تحديث النتيجة إذا تغيرت
+                const scoreEl = document.querySelector('#matchModalBody .match-score');
+                if (scoreEl && info.home_scores !== undefined && info.away_scores !== undefined) {
+                    scoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
+                }
+                // تحديث نتيجة الشوط الأول
+                const halfEl = document.querySelector('#matchModalBody .half-score');
+                if (halfEl && info.fh_scores && info.fh_scores.length) {
+                    const h = info.fh_scores[0]?.home_scores || 0;
+                    const a = info.fh_scores[0]?.away_scores || 0;
+                    halfEl.textContent = `HT: ${h} - ${a}`;
+                }
+            }, 1000);
+
+            // جلب بيانات جديدة من API كل 5 ثوانٍ (لتحديث النتيجة والوقت)
+            matchDataInterval = setInterval(async () => {
                 try {
                     const url = `${API_BASE}/matches/match_info/${matchId}/L/60`;
                     const data = await fetchFromProxy(url);
-                    const info = data.data;
-                    if (!info) return;
-                    // Update score
-                    const scoreEl = document.querySelector('#matchModalBody .match-score');
-                    if (scoreEl) scoreEl.textContent = `${info.home_scores || 0} - ${info.away_scores || 0}`;
-                    // Update timer
-                    const seconds = getLiveSeconds(info);
-                    const status = info.status || 1;
-                    const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
-                    const timerMain = document.querySelector('#matchModalBody .timer-main');
-                    if (timerMain) timerMain.textContent = timer.display;
-                    const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
-                    if (stoppageEl) {
-                        if (timer.stoppage) { stoppageEl.textContent = timer.stoppage;
-                            stoppageEl.style.display = 'inline-block'; } else { stoppageEl.style.display = 'none'; }
+                    if (data && data.data) {
+                        currentMatchInfo = data.data;
+                        // نحدّث العناصر التي تحتاج إلى بيانات جديدة فوراً
+                        const info = currentMatchInfo;
+                        const seconds = getLiveSeconds(info);
+                        const status = info.status !== undefined ? info.status : 1;
+                        const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
+                        const progress = getMatchProgress(seconds, status);
+
+                        const timerMain = document.querySelector('#matchModalBody .timer-main');
+                        if (timerMain) timerMain.textContent = timer.display;
+                        const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
+                        if (stoppageEl) {
+                            if (timer.stoppage) { stoppageEl.textContent = timer.stoppage;
+                                stoppageEl.style.display = 'inline-block'; } else { stoppageEl.style.display =
+                                'none'; }
+                        }
+                        const periodEl = document.querySelector('#matchModalBody .match-period');
+                        if (periodEl) periodEl.textContent = getMatchPeriod(status);
+                        const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
+                        if (fillEl) fillEl.style.width = `${progress}%`;
+                        if (status === 4) { if (fillEl) fillEl.style.width = '100%'; }
+                        if (status === 0) { if (fillEl) fillEl.style.width = '0%'; }
+
+                        const scoreEl = document.querySelector('#matchModalBody .match-score');
+                        if (scoreEl) scoreEl.textContent = `${info.home_scores || 0} - ${info.away_scores || 0}`;
+                        const halfEl = document.querySelector('#matchModalBody .half-score');
+                        if (halfEl && info.fh_scores && info.fh_scores.length) {
+                            const h = info.fh_scores[0]?.home_scores || 0;
+                            const a = info.fh_scores[0]?.away_scores || 0;
+                            halfEl.textContent = `HT: ${h} - ${a}`;
+                        }
                     }
-                    // Update period
-                    const periodEl = document.querySelector('#matchModalBody .match-period');
-                    if (periodEl) periodEl.textContent = getMatchPeriod(status);
-                    // Update progress bar
-                    const progress = getMatchProgress(seconds, status);
-                    const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
-                    if (fillEl) fillEl.style.width = `${progress}%`;
                 } catch (e) { /* silent */ }
-            }, 1000);
-            // Cleanup when modal closes
+            }, 5000);
+
+            // تنظيف عند إغلاق المودال
             document.getElementById('matchModal').addEventListener('hidden.bs.modal', function() {
                 if (matchLiveInterval) { clearInterval(matchLiveInterval);
                     matchLiveInterval = null; }
+                if (matchDataInterval) { clearInterval(matchDataInterval);
+                    matchDataInterval = null; }
+                currentMatchInfo = null;
             }, { once: true });
         }
 
         // ============================================================
-        //  FULL MATCH DETAILS RENDER (with proper lineups like the app)
+        //  FULL MATCH DETAILS RENDER (FIXED)
         // ============================================================
-        function renderMatchDetailsFull(info, events, lineups, stats, h2h, homeLast5, awayLast5, standingsData) {
+        function renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData) {
             const body = document.getElementById('matchModalBody');
             const seconds = getLiveSeconds(info);
-            const status = info.status || 1;
+            const status = info.status !== undefined ? info.status : 1;
             const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
@@ -3859,6 +4132,14 @@
                     if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.away_team.row_id) awayRedCard =
                     true;
                 });
+            }
+
+            // Half-time scores
+            let halfScoreHtml = '';
+            if (info.fh_scores && info.fh_scores.length) {
+                const h = info.fh_scores[0]?.home_scores || 0;
+                const a = info.fh_scores[0]?.away_scores || 0;
+                halfScoreHtml = `<div class="half-score">HT: ${h} - ${a}</div>`;
             }
 
             let penaltyHtml = '',
@@ -3944,7 +4225,8 @@
                     </div>
                     <div class="match-center-side">
                         ${goalAlertHtml}
-                        <div class="match-score">${info.home_scores} - ${info.away_scores}</div>
+                        <div class="match-score">${info.home_scores || 0} - ${info.away_scores || 0}</div>
+                        ${halfScoreHtml}
                         ${penaltyHtml}
                         ${penaltySummary}
                         <div class="match-timer-container">
@@ -3967,7 +4249,7 @@
                 </div>
             </div>`;
 
-            // Standings preview (highlighted teams)
+            // Standings preview
             let standingsPreview = '';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
@@ -3998,8 +4280,8 @@
                 }
             }
 
-            // ===== EVENTS with proper icons =====
-            let eventsHtml = '<div class="event-box" style="display:flex;flex-direction:column-reverse;">';
+            // ===== EVENTS مع تنظيم حسب الأشواط =====
+            let eventsHtml = '<div class="event-box">';
             if (events && events.length) {
                 const special = events.filter(ev => ev.type === 100);
                 const normal = events.filter(ev => ev.type !== 100);
@@ -4027,7 +4309,110 @@
                     return g ? g + dividerHtml : '';
                 }
 
+                function renderPenaltyShootoutDetail(info) {
+                    if (!info.match_penalties) return '';
+                    let html = '<div class="penalty-shootout-detail"><div class="penalty-title">⚽ Penalty Shootout</div>';
+                    const hId = info.home_team.row_id,
+                        aId = info.away_team.row_id;
+                    const hPens = info.match_penalties[hId] || [];
+                    const aPens = info.match_penalties[aId] || [];
+                    const maxLen = Math.max(hPens.length, aPens.length);
+
+                    for (let i = 0; i < maxLen; i++) {
+                        const h = hPens[i] || null;
+                        const a = aPens[i] || null;
+                        const hResult = h ? (h.score === 1 ? '✅' : '❌') : '—';
+                        const aResult = a ? (a.score === 1 ? '✅' : '❌') : '—';
+                        const hName = h ? h.player_name?.title || 'Unknown' : '';
+                        const aName = a ? a.player_name?.title || 'Unknown' : '';
+                        const hIdP = h ? h.player_id : null;
+                        const aIdP = a ? a.player_id : null;
+                        html += `
+                        <div class="penalty-event-row">
+                            <span style="font-weight:700;color:var(--secondary);">${i+1}.</span>
+                            <span class="penalty-team-logo"><img src="${IMG_BASE_TEAM + info.home_team.image}" style="width:18px;height:18px;object-fit:contain;" /></span>
+                            <span class="penalty-player" onclick="${hIdP ? `openPlayerModal(${hIdP})` : ''}">${hName}</span>
+                            <span class="penalty-result ${h && h.score === 1 ? 'scored' : 'missed'}">${hResult}</span>
+                            <span style="color:var(--secondary);">vs</span>
+                            <span class="penalty-result ${a && a.score === 1 ? 'scored' : 'missed'}">${aResult}</span>
+                            <span class="penalty-player" onclick="${aIdP ? `openPlayerModal(${aIdP})` : ''}">${aName}</span>
+                            <span class="penalty-team-logo"><img src="${IMG_BASE_TEAM + info.away_team.image}" style="width:18px;height:18px;object-fit:contain;" /></span>
+                        </div>`;
+                    }
+                    html += '</div>';
+                    return html;
+                }
+
                 let all = '';
+
+                // البدء بالشوط الأول ثم HT ثم الشوط الثاني ثم ET ثم PEN
+                // نعكس الترتيب بحيث يكون الأول في الأعلى (كيك أوف) ثم الأحداث بالترتيب
+                // لكن نريد ترتيب تنازلي لعرض الأحداث من الأعلى إلى الأسفل حسب الوقت
+                // لذلك سنقوم ببناء القائمة بالترتيب: Kick-Off → 1st Half → HT → 2nd Half → FT → ET1 → ET2 → PEN
+                // وسنعكس الترتيب النهائي عند الإضافة
+
+                let orderedHtml = '';
+
+                if (kickOff) orderedHtml +=
+                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Kick-Off</div>`;
+
+                // First Half
+                if (firstHalf.length) {
+                    orderedHtml += renderEventGroup(firstHalf, '');
+                }
+
+                // Half Time
+                if (halfTime) {
+                    let hH = 0,
+                        aH = 0;
+                    if (info.fh_scores && info.fh_scores.length && info.fh_scores[0]) {
+                        hH = parseInt(info.fh_scores[0].home_scores) || 0;
+                        aH = parseInt(info.fh_scores[0].away_scores) || 0;
+                    }
+                    orderedHtml +=
+                        `<div class="halftime-divider"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hH} - ${aH}</span><br />Half Time</div>`;
+                }
+
+                // Second Half
+                if (secondHalf.length) {
+                    orderedHtml += renderEventGroup(secondHalf, '');
+                }
+
+                // Full Time
+                if (fullTime) orderedHtml +=
+                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Full-Time</div>`;
+
+                // Extra Time 1st Half
+                if (etStart1 || etHalf) {
+                    let hE = 0,
+                        aE = 0;
+                    if (info.fe_scores && info.fe_scores.length && info.fe_scores[0]) {
+                        hE = parseInt(info.fe_scores[0].home_scores) || 0;
+                        aE = parseInt(info.fe_scores[0].away_scores) || 0;
+                    }
+                    orderedHtml +=
+                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />First Half ET</div>`;
+                    if (extraTime1.length) {
+                        orderedHtml += renderEventGroup(extraTime1, '');
+                    }
+                }
+
+                // Extra Time 2nd Half
+                if (etStart2 || etFull) {
+                    let hE = 0,
+                        aE = 0;
+                    if (info.se_scores && info.se_scores.length && info.se_scores[0]) {
+                        hE = parseInt(info.se_scores[0].home_scores) || 0;
+                        aE = parseInt(info.se_scores[0].away_scores) || 0;
+                    }
+                    orderedHtml +=
+                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />Second Half ET</div>`;
+                    if (extraTime2.length) {
+                        orderedHtml += renderEventGroup(extraTime2, '');
+                    }
+                }
+
+                // Penalties
                 if (penStart) {
                     let hP = 0,
                         aP = 0;
@@ -4037,56 +4422,22 @@
                         aP = info.match_penalties[info.away_team.row_id] ? info.match_penalties[info.away_team.row_id]
                             .filter(p => p.score === 1).length : 0;
                     }
-                    all +=
+                    orderedHtml +=
                         `<div class="fulltime-divider penalty"><img src="${ICONS.penaltyKick}" style="width:16px;height:16px;" /> Penalty Shootout (${hP} - ${aP})</div>`;
-                    all += renderEventGroup(penaltyEvents, '');
-                }
-                if (etStart2 || etFull) {
-                    let hE = 0,
-                        aE = 0;
-                    if (info.se_scores && info.se_scores.length && info.se_scores[0]) {
-                        hE = parseInt(info.se_scores[0].home_scores) || 0;
-                        aE = parseInt(info.se_scores[0].away_scores) || 0;
+                    orderedHtml += renderPenaltyShootoutDetail(info);
+                    if (penaltyEvents.length) {
+                        orderedHtml += renderEventGroup(penaltyEvents, '');
                     }
-                    all +=
-                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />Second Half ET</div>`;
-                    all += renderEventGroup(extraTime2, '');
                 }
-                if (etStart1 || etHalf) {
-                    let hE = 0,
-                        aE = 0;
-                    if (info.fe_scores && info.fe_scores.length && info.fe_scores[0]) {
-                        hE = parseInt(info.fe_scores[0].home_scores) || 0;
-                        aE = parseInt(info.fe_scores[0].away_scores) || 0;
-                    }
-                    all +=
-                        `<div class="halftime-divider" style="background:#fff8e1;border-color:#ffc107;"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hE} - ${aE}</span><br />First Half ET</div>`;
-                    all += renderEventGroup(extraTime1, '');
-                }
-                if (fullTime) all +=
-                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Full-Time</div>`;
-                all += renderEventGroup(secondHalf, '');
-                if (halfTime) {
-                    let hH = 0,
-                        aH = 0;
-                    if (info.fh_scores && info.fh_scores.length && info.fh_scores[0]) {
-                        hH = parseInt(info.fh_scores[0].home_scores) || 0;
-                        aH = parseInt(info.fh_scores[0].away_scores) || 0;
-                    }
-                    all +=
-                        `<div class="halftime-divider"><img src="${ICONS.clock}" style="width:16px;height:16px;" /> <span class="ht-score">${hH} - ${aH}</span><br />Half Time</div>`;
-                }
-                all += renderEventGroup(firstHalf, '');
-                if (kickOff) all +=
-                    `<div class="fulltime-divider"><img src="${ICONS.whistle}" style="width:16px;height:16px;" /> Kick-Off</div>`;
 
-                eventsHtml += all;
+                // نعرض كل شيء
+                eventsHtml += orderedHtml;
             } else {
                 eventsHtml += '<p class="text-center text-muted">No events recorded</p>';
             }
             eventsHtml += '</div>';
 
-            // ===== LINEUPS (like the app with cards) =====
+            // ===== LINEUPS =====
             let lineupHtml = '<p class="text-center text-muted">Lineups not available</p>';
             if (lineups.lineup) {
                 const homeLineup = lineups.lineup[info.home_team.row_id];
@@ -4101,7 +4452,6 @@
                 const awayFormation = lineups['0']?.away_formation || '4-3-3';
 
                 if (homeLineup && awayLineup) {
-                    // Build lineup grids
                     const buildLineupGrid = (players, team) => {
                         let html = '<div class="lineup-grid">';
                         players.forEach(p => {
@@ -4112,16 +4462,14 @@
                             const posFull = getPositionFullName(position);
                             const playerId = p.player.row_id;
                             const number = p.player.player_number || '';
-
-                            // Check for yellow/red cards
                             let cardIcons = '';
                             if (p.yellow) cardIcons += `<img src="${ICONS.yellowCard}" title="Yellow Card" />`;
                             if (p.red) cardIcons += `<img src="${ICONS.redCard}" title="Red Card" />`;
                             if (p.goal) cardIcons += `<img src="${ICONS.goal}" title="Goal" />`;
                             if (p.assist) cardIcons += `<img src="${ICONS.assist}" title="Assist" />`;
                             if (p.own_goal) cardIcons += `<img src="${ICONS.ownGoal}" title="Own Goal" />`;
-                            if (p.captain) cardIcons += `<span style="font-weight:900;color:gold;font-size:10px;">C</span>`;
-
+                            if (p.captain) cardIcons +=
+                                `<span style="font-weight:900;color:gold;font-size:10px;">C</span>`;
                             html += `
                             <div class="lineup-player-card" onclick="openPlayerModal(${playerId})">
                                 <img src="${playerImg}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E'" />
@@ -4139,7 +4487,8 @@
 
                     const buildSubstitutions = (subs, team) => {
                         if (!subs || !subs.length) return '';
-                        let html = '<div style="margin-top:8px;"><strong style="font-size:calc(12px*var(--font-scale));">Substitutions</strong><div style="margin-top:4px;">';
+                        let html =
+                            '<div style="margin-top:8px;"><strong style="font-size:calc(12px*var(--font-scale));">Substitutions</strong><div style="margin-top:4px;">';
                         subs.forEach(sub => {
                             const player = sub.player;
                             const replaced = sub.player_lineup ? sub.player_lineup.title : '';
@@ -4162,7 +4511,8 @@
 
                     const buildAbsences = (injured, team) => {
                         if (!injured || !injured.length) return '';
-                        let html = '<div class="absences-section"><strong style="font-size:calc(12px*var(--font-scale));">Missing Players</strong>';
+                        let html =
+                            '<div class="absences-section"><strong style="font-size:calc(12px*var(--font-scale));">Missing Players</strong>';
                         injured.forEach(inj => {
                             const player = inj.player;
                             const type = inj.type_name || 'Injury';
@@ -4180,10 +4530,10 @@
                     };
 
                     const buildBench = (subs, team) => {
-                        // Bench players are those in substitutions that didn't play (no substitute_time)
                         const bench = subs.filter(s => !s.substitute_time);
                         if (!bench.length) return '';
-                        let html = '<div class="bench-section"><strong style="font-size:calc(12px*var(--font-scale));">Bench</strong><div style="margin-top:4px;">';
+                        let html =
+                            '<div class="bench-section"><strong style="font-size:calc(12px*var(--font-scale));">Bench</strong><div style="margin-top:4px;">';
                         bench.forEach(sub => {
                             const player = sub.player;
                             const img = player.image ? IMG_BASE_PLAYER + player.image :
@@ -4199,10 +4549,6 @@
                         return html;
                     };
 
-                    const homePlayers = homeLineup.lineup || [];
-                    const awayPlayers = awayLineup.lineup || [];
-
-                    // Build coach section
                     const buildCoach = (coach, team) => {
                         if (!coach) return '';
                         const img = coach.image ? IMG_BASE_COACH + coach.image :
@@ -4217,7 +4563,9 @@
                         </div>`;
                     };
 
-                    // Build the lineup HTML
+                    const homePlayers = homeLineup.lineup || [];
+                    const awayPlayers = awayLineup.lineup || [];
+
                     const homeHtml = `
                         <div style="margin-bottom:16px;">
                             <h6 style="font-weight:700;font-size:calc(14px*var(--font-scale));display:flex;align-items:center;gap:8px;">
@@ -4256,7 +4604,7 @@
                 }
             }
 
-            // ===== STATISTICS =====
+            // ===== STATISTICS (مع نسبة الاستحواذ لكل فريق) =====
             let statsHtml = '<p class="text-center text-muted">No statistics available</p>';
             if (stats && Object.keys(stats).length) {
                 const homeStats = stats[info.home_team.row_id] || {};
@@ -4269,10 +4617,13 @@
 
                 let sHtml = `<div class="stats-container">
                     <div class="possession-box">
-                        <div class="possession-circle">${homePct}%</div>
-                        <div class="pos-split">
-                            <span>${info.home_team.title}</span>
-                            <span>${info.away_team.title}</span>
+                        <div class="possession-label">
+                            <span>${info.home_team.title} ${homePct}%</span>
+                            <span>${info.away_team.title} ${awayPct}%</span>
+                        </div>
+                        <div class="possession-bar">
+                            <div class="home-bar" style="width:${homePct}%;"></div>
+                            <div class="away-bar" style="width:${awayPct}%;"></div>
                         </div>
                     </div>`;
                 const fields = ['total_shots', 'shots_on_goal', 'fouls', 'corner_kicks', 'yellow_cards', 'red_cards'];
@@ -4319,7 +4670,7 @@
                 }
             }
 
-            // ===== STANDINGS FULL with two-team highlight =====
+            // ===== STANDINGS FULL =====
             let fullStandingsHtml = '<p class="text-center text-muted">No standings data</p>';
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
@@ -4358,7 +4709,7 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER WITH ICONS =====
+        // ===== SINGLE EVENT RENDER =====
         function renderSingleEventWithIcon(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
@@ -4375,7 +4726,6 @@
             if (ev.event_video) videoBtn =
                 `<a href="${ev.event_video}" target="_blank" class="ms-1"><img src="${ICONS.video}" class="event-icon" style="cursor:pointer;" /></a>`;
 
-            // Determine icon based on event type
             if (ev.type === 1 || ev.type === 13) { iconUrl = ICONS.goal;
                 typeText = ev.status_name || 'Goal'; } else if (ev.type === 2 || ev.type === 3) { iconUrl = ICONS
                     .yellowCard;
@@ -4576,7 +4926,7 @@
         }
 
         // ============================================================
-        //  MORE CONTENT (Standings, Scorers, Assists, News, Bracket)
+        //  MORE CONTENT
         // ============================================================
         function loadMoreContent() {
             if (!currentChampionship) return;
@@ -4776,7 +5126,7 @@
         }
 
         // ============================================================
-        //  MODALS (fully functional with real data)
+        //  MODALS
         // ============================================================
         async function openTeamModal(id) {
             try {
@@ -4785,7 +5135,6 @@
                 if (data && data.data) {
                     const info = data.data;
                     const body = document.getElementById('teamModalBody');
-                    // Get team matches
                     let matchesHtml = '';
                     try {
                         const matchesUrl = `${API_BASE}/matches/team_matches/${id}/L/60`;
@@ -4873,7 +5222,6 @@
                             </div>
                         `;
                     }
-                    // Transfers
                     let transferHtml = '';
                     if (info.transfers && info.transfers.length > 0) {
                         transferHtml = '<h6 class="mt-3">Transfers</h6><div style="font-size:calc(11px*var(--font-scale));">';
@@ -5001,7 +5349,7 @@
         }
 
         // ============================================================
-        //  TRANSFERS PAGE (iframe)
+        //  TRANSFERS PAGE
         // ============================================================
         async function loadTransfersPage() {
             const container = document.getElementById('transfersContainer');
@@ -5152,13 +5500,34 @@
             window.applyCalendarFilter = applyCalendarFilter;
         })();
 
-        function formatMatchLocalDateTime(ts) { if (!ts) return 'N/A'; return new Date(ts * 1000).toLocaleString(); }
+        function formatMatchLocalDateTime(ts) {
+            if (!ts) return 'N/A';
+            const date = new Date(ts * 1000);
+            let hours = date.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const mins = String(date.getMinutes()).padStart(2, '0');
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')} ${hours}:${mins} ${ampm}`;
+        }
 
-        function formatMatchLocalTime(ts) { if (!ts) return 'N/A'; return new Date(ts * 1000).toLocaleTimeString(); }
+        function formatMatchLocalTime(ts) {
+            if (!ts) return 'N/A';
+            const date = new Date(ts * 1000);
+            let hours = date.getHours();
+            const ampm = hours >= 12 ? 'PM' : 'AM';
+            hours = hours % 12 || 12;
+            const mins = String(date.getMinutes()).padStart(2, '0');
+            return `${hours}:${mins} ${ampm}`;
+        }
 
-        function formatMatchLocalDate(ts) { if (!ts) return 'N/A'; return new Date(ts * 1000).toLocaleDateString(); }
+        function formatMatchLocalDate(ts) {
+            if (!ts) return 'N/A';
+            const date = new Date(ts * 1000);
+            return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
+        }
 
-        console.log('Football Center fully restored with app-like lineups and full details.');
+        console.log('Football Center fully restored with all fixes applied.');
+        console.log('Fixes: correct time update every second, half-time scores, ET, penalties, possession stats, lineup, and organized events.');
     </script>
 </body>
-    </html>
+</html>
