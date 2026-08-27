@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Football Dashboard</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
+        h2 { border-bottom: 2px solid #00c853; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* شبكة الفرق */
+        .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 40px; }
+        .team-card { background: #1e1e1e; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #333; }
+        .team-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; }
+        .team-card span { display: block; font-size: 14px; font-weight: bold; }
+
+        /* جدول المباريات */
+        .match-table { width: 100%; border-collapse: collapse; }
+        .match-row { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; margin-bottom: 10px; padding: 15px; border-radius: 8px; border: 1px solid #333; }
+        .team-info { display: flex; align-items: center; gap: 10px; width: 40%; }
+        .team-info img { width: 30px; height: 30px; }
+        .team-name { font-weight: bold; }
+        
+        /* منتصف الجدول - الوقت */
+        .match-time { width: 20%; text-align: center; font-size: 24px; font-weight: bold; color: #00c853; }
+        .match-score { width: 20%; text-align: center; font-size: 24px; font-weight: bold; }
+        
+        /* التبويبات */
+        .tabs { margin-bottom: 20px; }
+        .tab { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
+        .tab.active { background: #00c853; }
+    </style>
+</head>
+<body>
+
+    <h2>⚽ الفرق (Grid)</h2>
+    <div id="teamsGrid" class="teams-grid">جاري تحميل الفرق...</div>
+
+    <h2>📅 مباريات اليوم (Table)</h2>
+    <div id="matchesTable" class="match-table">جاري تحميل المباريات...</div>
+
+    <script>
+        const API_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
+        const BASE_URL = 'https://v3.football.api-sports.io';
+        const options = {
+            method: 'GET',
+            headers: { 'x-apisports-key': API_KEY }
+        };
+
+        // 1. جلب الفرق (الشبكة)
+        async function fetchTeams() {
+            try {
+                const res = await fetch(`${BASE_URL}/teams?season=2026&league=1933`, options);
+                const data = await res.json();
+                
+                const teamsGrid = document.getElementById('teamsGrid');
+                if (data.errors && data.errors.requests) {
+                    teamsGrid.innerHTML = 'تم تجاوز حد الطلبات، حاول لاحقاً.';
+                    return;
+                }
+
+                teamsGrid.innerHTML = data.response.map(team => `
+                    <div class="team-card">
+                        <img src="${team.team.logo}" alt="${team.team.name}" />
+                        <span>${team.team.name}</span>
+                    </div>
+                `).join('');
+            } catch (error) {
+                console.error("خطأ في جلب الفرق:", error);
+            }
+        }
+
+        // 2. جلب المباريات (الجدول + خاصية الوقت الإضافي)
+        async function fetchMatches() {
+            try {
+                // استخدم live=all للمباريات الجارية أو date=2026-08-27 لمباريات اليوم
+                const res = await fetch(`${BASE_URL}/fixtures?date=2026-08-27`, options);
+                const data = await res.json();
+
+                const matchesTable = document.getElementById('matchesTable');
+                
+                matchesTable.innerHTML = data.response.map(match => {
+                    // **منطق خاصية الوقت الإضافي (Extra Time) **
+                    const minute = match.fixture.status.elapsed;
+                    const statusShort = match.fixture.status.short;
+                    const statusLong = match.fixture.status.long;
+                    
+                    let timeDisplay = '';
+                    
+                    // إذا كانت المباراة لم تبدأ أو مؤجلة
+                    if (statusLong === 'Not Started') {
+                        timeDisplay = match.fixture.date.substring(11, 16); // عرض الوقت فقط
+                    } 
+                    // إذا انتهت أو لم تبدأ
+                    else if (statusLong === 'Match Finished') {
+                        timeDisplay = 'FT';
+                    }
+                    // إذا كانت استراحة
+                    else if (statusShort === 'HT') {
+                        timeDisplay = 'HT';
+                    }
+                    // إذا كانت مباشرة (First Half, Second Half, Extra Time)
+                    else {
+                        // عرض الدقيقة + علامة دقيقة (مثل: 45')
+                        timeDisplay = `${minute}'`;
+                        
+                        // **الجزء الخاص بالوقت المضاف من الحكم (45+ / 90+)**
+                        // نتحقق إذا كان الوقت قرب نهاية الشوط أو بهدف متأخر
+                        if (minute === 45 || minute === 90) {
+                            // نقوم بعرض رمز + لتنبيه المستخدم بوجود وقت بدل ضائع (Extra)
+                            // (في الـ API لا يوجد حقل +، لكننا نضيف هذا المنطق ليتطابق مع التطبيق)
+                            timeDisplay = `${minute}+'`;
+                        } 
+                        // في حال كان الشوط الإضافي (بالدقيقة 105 أو 120)
+                        else if (minute >= 105 && minute <= 120) {
+                            timeDisplay = `${minute}' ET`;
+                        }
+                    }
+
+                    // عرض النتيجة (فقط إذا بدأت وانتهت)
+                    const showScore = (statusShort === '1H' || statusShort === '2H' || statusLong === 'Match Finished');
+                    const scoreHTML = showScore 
+                        ? `${match.goals.home} - ${match.goals.away}` 
+                        : `<span style="color:#777">VS</span>`;
+
+                    return `
+                        <div class="match-row">
+                            <div class="team-info">
+                                <img src="${match.teams.home.logo}" />
+                                <span class="team-name">${match.teams.home.name}</span>
+                            </div>
+                            <div class="match-time">${timeDisplay}</div>
+                            <div class="match-score">${scoreHTML}</div>
+                            <div class="team-info" style="justify-content: flex-end; text-align: right;">
+                                <span class="team-name">${match.teams.away.name}</span>
+                                <img src="${match.teams.away.logo}" />
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (error) {
+                console.error("خطأ في جلب المباريات:", error);
+            }
+        }
+
+        // تشغيل الدوال
+        fetchTeams();
+        fetchMatches();
+    </script>
+</body>
+</html>
