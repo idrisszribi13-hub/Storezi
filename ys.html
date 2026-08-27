@@ -4,10 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live Score – API Sports</title>
-    <!-- Bootstrap CSS (اختياري) -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        /* ====== أساسيات التصميم (مستخرجة من الكود السابق) ====== */
         :root {
             --primary: #0d6efd;
             --secondary: #6c757d;
@@ -124,7 +122,6 @@
             display: inline-block;
             margin-top: 1px;
             text-transform: uppercase;
-            letter-spacing: 0.2px;
         }
         .time-text {
             font-size: 11px;
@@ -136,15 +133,6 @@
             border-radius: 12px;
             display: inline-block;
             margin-top: 2px;
-        }
-        .time-text .stoppage-badge {
-            background: #dc3545;
-            color: #fff;
-            font-size: 8px;
-            font-weight: 700;
-            padding: 0px 5px;
-            border-radius: 8px;
-            margin-left: 2px;
         }
         .timeline-container {
             width: 100%;
@@ -169,18 +157,6 @@
             left: 50%;
             border-radius: 2px;
         }
-        .goal-marker {
-            position: absolute;
-            top: -3px;
-            width: 8px;
-            height: 8px;
-            background: #f1c40f;
-            border-radius: 50%;
-            transform: translateX(-50%);
-            border: 1px solid #fff;
-            box-shadow: 0 0 3px rgba(0, 0, 0, 0.25);
-            z-index: 2;
-        }
         .match-footer {
             padding: 4px 14px 8px;
             text-align: center;
@@ -193,18 +169,9 @@
             gap: 4px;
             flex-wrap: wrap;
         }
-        .match-footer img {
-            width: 12px;
-            height: 12px;
-            object-fit: contain;
-        }
         .match-footer .champ-title {
             font-weight: 600;
             color: var(--text-color);
-        }
-        .match-footer .separator {
-            margin: 0 4px;
-            color: var(--secondary);
         }
         .loading, .no-matches {
             text-align: center;
@@ -221,6 +188,76 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* ====== Modal CSS ====== */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal-content-box {
+            background: var(--card-bg);
+            width: 95%;
+            max-width: 600px;
+            border-radius: 16px;
+            max-height: 90vh;
+            overflow-y: auto;
+            padding: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            position: relative;
+        }
+        .modal-close {
+            position: absolute;
+            top: 10px; right: 15px;
+            background: var(--danger);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 30px; height: 30px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .detail-section-title {
+            font-size: 16px;
+            font-weight: 700;
+            margin-top: 20px;
+            margin-bottom: 10px;
+            border-bottom: 2px solid var(--border-color);
+            padding-bottom: 5px;
+        }
+        .event-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 6px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .event-row .time { min-width: 40px; font-weight: 700; color: var(--primary); }
+        .event-row .icon { width: 20px; text-align: center; }
+        .event-row .desc { flex: 1; }
+        .stat-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: 13px;
+        }
+        .stat-item .label { color: var(--secondary); }
+        .player-item {
+            padding: 4px 0;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .player-item .num { width: 20px; font-weight: bold; text-align: center; }
+        .player-item .name { flex: 1; }
     </style>
 </head>
 <body>
@@ -231,24 +268,26 @@
             </div>
             <h3>Live Matches</h3>
         </div>
-        <div id="liveMatchesContainer" class="row g-2">
-            <div class="col-12">
-                <div class="loading"><div class="spinner"></div> Loading live matches...</div>
-            </div>
+        <div id="liveMatchesContainer" class="row g-2"></div>
+    </div>
+
+    <!-- Modal for Match Details -->
+    <div class="modal-overlay" id="matchDetailModal">
+        <div class="modal-content-box">
+            <button class="modal-close" onclick="closeModal()">✕</button>
+            <h4 id="modalTitle" style="margin-bottom:10px;">Match Details</h4>
+            <div id="matchDetailContent"></div>
         </div>
     </div>
 
     <script>
-        // ====== إعدادات API ======
-        const API_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b'; // مفتاح API-Sports (يمكن وضعه من المستخدم)
+        const API_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
         const API_BASE = 'https://v3.football.api-sports.io';
-        const IMG_BASE_TEAM = 'https://media.api-sports.io/teams/'; // روابط الشعارات
-
-        // ====== حالة التطبيق ======
+        const IMG_BASE_TEAM = 'https://media.api-sports.io/teams/';
         let liveMatches = [];
         let updateInterval = null;
+        const timers = {};
 
-        // ====== دالة مساعدة لجلب البيانات ======
         async function fetchFromAPI(endpoint) {
             try {
                 const response = await fetch(`${API_BASE}${endpoint}`, {
@@ -260,9 +299,7 @@
                 });
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 const data = await response.json();
-                if (data.errors && Object.keys(data.errors).length > 0) {
-                    throw new Error(JSON.stringify(data.errors));
-                }
+                if (data.errors && Object.keys(data.errors).length > 0) throw new Error(JSON.stringify(data.errors));
                 return data.response;
             } catch (error) {
                 console.error('API Error:', error);
@@ -270,29 +307,26 @@
             }
         }
 
-        // ====== دالة لتحويل الوقت إلى صيغة نصية ======
         function formatLiveTime(seconds) {
             const mins = Math.floor(seconds / 60);
             const secs = seconds % 60;
             return `${mins}:${String(secs).padStart(2, '0')}`;
         }
 
-        // ====== دالة لتحويل الحالة ======
         function getStatusInfo(statusShort) {
             switch (statusShort) {
                 case '1H': return { label: '1st Half', live: true };
                 case '2H': return { label: '2nd Half', live: true };
-                case 'HT': return { label: 'Half Time', live: false };
-                case 'FT': return { label: 'Full Time', live: false };
-                case 'ET': return { label: 'Extra Time', live: true };
-                case 'BT': return { label: 'Break Time', live: false };
-                case 'PEN': return { label: 'Penalties', live: true };
+                case 'HT': return { label: 'HT', live: false };
+                case 'FT': return { label: 'FT', live: false };
+                case 'ET': return { label: 'ET', live: true };
+                case 'BT': return { label: 'BT', live: false };
+                case 'PEN': return { label: 'PEN', live: true };
                 case 'NS': return { label: 'Upcoming', live: false };
                 default: return { label: 'LIVE', live: true };
             }
         }
 
-        // ====== دالة لبناء بطاقة مباراة ======
         function renderMatchCard(fixture) {
             const home = fixture.teams.home;
             const away = fixture.teams.away;
@@ -305,97 +339,222 @@
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
             const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
 
-            // شريط التقدم
             let progress = 0;
             if (status.live) {
-                if (fixture.fixture.status.short === '1H' || fixture.fixture.status.short === '2H') {
-                    progress = Math.min((elapsed / 90) * 100, 100);
-                } else if (fixture.fixture.status.short === 'ET') {
-                    progress = Math.min(100, ((elapsed - 90) / 30) * 100);
-                } else if (fixture.fixture.status.short === 'PEN') {
-                    progress = 100;
-                }
-            } else if (status.label === 'Full Time') {
-                progress = 100;
-            } else if (status.label === 'Half Time') {
-                progress = 50;
-            }
+                if (status.label === '1st Half' || status.label === '2nd Half') progress = Math.min((elapsed / 90) * 100, 100);
+                else if (status.label === 'ET') progress = Math.min(100, ((elapsed - 90) / 30) * 100);
+                else progress = 100;
+            } else if (status.label === 'FT') progress = 100;
+            else if (status.label === 'HT') progress = 50;
 
-            // نستخدم البطاقات المشابهة للتصميم المطلوب
+            // استخدام دالة لتوليد الوقت الحالي (تبدأ من الدقيقة الحالية)
+            const initialSeconds = elapsed * 60;
+
             return `
                 <div class="col-12 mb-2">
-                    <div class="match-card" data-fixture-id="${fixture.fixture.id}">
+                    <div class="match-card" data-fixture-id="${fixture.fixture.id}" data-status="${fixture.fixture.status.short}" data-elapsed="${elapsed}">
                         <div class="match-row">
                             <div class="team-col">
-                                <img src="${home.logo ? IMG_BASE_TEAM + home.id + '.png' : 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2734%27 height=%2734%27 viewBox=%270 0 34 34%27%3E%3Crect width=%2734%27 height=%2734%27 fill=%27%23ddd%27/%3E%3Ctext x=%275%27 y=%2720%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%23999%27%3E?%3C/text%3E%3C/svg%3E'}" 
-                                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2734%27 height=%2734%27 viewBox=%270 0 34 34%27%3E%3Crect width=%2734%27 height=%2734%27 fill=%27%23ddd%27/%3E%3Ctext x=%275%27 y=%2720%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%23999%27%3E?%3C/text%3E%3C/svg%3E'" 
-                                    alt="${home.name}" />
+                                <img src="${home.logo ? IMG_BASE_TEAM + home.id + '.png' : 'data:image/svg+xml...'}" onerror="this.src='data:image/svg+xml...'" />
                                 <div class="team-title">${home.name}</div>
                             </div>
                             <div class="center-col">
                                 <div class="score-big">${goalsHome} - ${goalsAway}</div>
                                 ${status.live ? `<div class="live-badge">${status.label}</div>` : ''}
-                                ${status.live ? `<div class="time-text">${formatLiveTime(elapsed * 60)}</div>` : '<div class="time-text">' + status.label + '</div>'}
+                                <div class="time-text" data-time-id="${fixture.fixture.id}" data-seconds="${initialSeconds}">${formatLiveTime(initialSeconds)}</div>
                                 <div class="timeline-container">
                                     <div class="timeline-fill" style="width:${progress}%"></div>
-                                    ${status.label === 'Half Time' ? '<div class="ht-marker"></div>' : ''}
+                                    ${status.label === 'HT' ? '<div class="ht-marker"></div>' : ''}
                                 </div>
                             </div>
                             <div class="team-col">
-                                <img src="${away.logo ? IMG_BASE_TEAM + away.id + '.png' : 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2734%27 height=%2734%27 viewBox=%270 0 34 34%27%3E%3Crect width=%2734%27 height=%2734%27 fill=%27%23ddd%27/%3E%3Ctext x=%275%27 y=%2720%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%23999%27%3E?%3C/text%3E%3C/svg%3E'}" 
-                                    onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2734%27 height=%2734%27 viewBox=%270 0 34 34%27%3E%3Crect width=%2734%27 height=%2734%27 fill=%27%23ddd%27/%3E%3Ctext x=%275%27 y=%2720%27 font-family=%27sans-serif%27 font-size=%2712%27 fill=%27%23999%27%3E?%3C/text%3E%3C/svg%3E'" 
-                                    alt="${away.name}" />
+                                <img src="${away.logo ? IMG_BASE_TEAM + away.id + '.png' : 'data:image/svg+xml...'}" onerror="this.src='data:image/svg+xml...'" />
                                 <div class="team-title">${away.name}</div>
                             </div>
                         </div>
                         <div class="match-footer">
-                            <span class="champ-title">${league.name}</span>
-                            <span class="separator">|</span>
-                            <span>${dateStr} ${timeStr}</span>
+                            <span class="champ-title">${league.name}</span> | <span>${dateStr} ${timeStr}</span>
                         </div>
                     </div>
                 </div>`;
         }
 
-        // ====== دالة لجلب المباريات المباشرة ======
+        // دالة تشغيل العداد الحقيقي
+        function startTimerForMatch(fixtureId, statusShort) {
+            if (timers[fixtureId]) clearInterval(timers[fixtureId]);
+
+            const timeElement = document.querySelector(`[data-time-id="${fixtureId}"]`);
+            if (!timeElement) return;
+
+            // إذا كانت المباراة متوقفة (HT, FT, NS)، لا داعي لتشغيل عداد
+            if (!['1H', '2H', 'ET', 'PEN'].includes(statusShort)) {
+                return;
+            }
+
+            let seconds = parseInt(timeElement.dataset.seconds) || 0;
+
+            timers[fixtureId] = setInterval(() => {
+                seconds++;
+                timeElement.textContent = formatLiveTime(seconds);
+            }, 1000);
+        }
+
         async function fetchLiveMatches() {
             const container = document.getElementById('liveMatchesContainer');
             container.innerHTML = '<div class="col-12"><div class="loading"><div class="spinner"></div> Loading live matches...</div></div>';
 
             const response = await fetchFromAPI('/fixtures?live=all');
             if (!response) {
-                container.innerHTML = '<div class="col-12"><div class="no-matches">⚠️ Failed to load data. Check API key or connection.</div></div>';
+                container.innerHTML = '<div class="col-12"><div class="no-matches">⚠️ Failed to load data.</div></div>';
                 return;
             }
 
-            liveMatches = response; // المباريات المباشرة
+            liveMatches = response;
 
             if (liveMatches.length === 0) {
                 container.innerHTML = '<div class="col-12"><div class="no-matches">No live matches right now.</div></div>';
                 return;
             }
 
-            // بناء البطاقات
             container.innerHTML = liveMatches.map(match => renderMatchCard(match)).join('');
 
-            // إضافة تفاعلات النقر (اختياري لفتح تفاصيل)
+            // تشغيل العدادات للمباريات المباشرة
+            liveMatches.forEach(match => {
+                startTimerForMatch(match.fixture.id, match.fixture.status.short);
+            });
+
+            // إضافة تفاعلات النقر
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function() {
                     const fixtureId = this.dataset.fixtureId;
-                    alert('Match details feature not implemented (fixture ID: ' + fixtureId + ')');
+                    openMatchDetails(fixtureId);
                 });
             });
         }
 
-        // ====== دالة التحديث المستمر ======
+        // ====== دالة فتح التفاصيل ======
+        async function openMatchDetails(fixtureId) {
+            const modal = document.getElementById('matchDetailModal');
+            const content = document.getElementById('matchDetailContent');
+            const title = document.getElementById('modalTitle');
+
+            modal.classList.add('active');
+            content.innerHTML = '<div class="loading"><div class="spinner"></div> Loading details...</div>';
+
+            // جلب كل البيانات بالتوازي لسرعة العرض
+            const [fixtures, events, stats, lineups] = await Promise.all([
+                fetchFromAPI(`/fixtures?id=${fixtureId}`),
+                fetchFromAPI(`/fixtures/events?fixture=${fixtureId}`),
+                fetchFromAPI(`/fixtures/statistics?fixture=${fixtureId}`),
+                fetchFromAPI(`/fixtures/lineups?fixture=${fixtureId}`)
+            ]);
+
+            const match = fixtures && fixtures[0];
+            if (!match) {
+                content.innerHTML = '<div class="no-matches">Match data not found.</div>';
+                return;
+            }
+
+            title.textContent = `${match.teams.home.name} vs ${match.teams.away.name}`;
+            
+            let html = '';
+
+            // 1. الأحداث (Events)
+            html += '<div class="detail-section-title">⚽ Events</div>';
+            if (events && events.length > 0) {
+                // ترتيب الأحداث حسب الوقت
+                const sortedEvents = events.sort((a, b) => a.time.elapsed - b.time.elapsed);
+                html += sortedEvents.map(e => {
+                    let icon = '⚽';
+                    if (e.type === 'Card') icon = e.detail.includes('Yellow') ? '🟨' : '🟥';
+                    else if (e.type === 'subst') icon = '🔄';
+                    else if (e.type === 'Var') icon = '📺';
+                    else if (e.type === 'Penalty') icon = '⚽ (PEN)';
+
+                    const player = e.player?.name || 'Unknown';
+                    const assist = e.assist?.name ? ` (Assist: ${e.assist.name})` : '';
+                    const teamName = e.team?.name || '';
+                    
+                    return `<div class="event-row">
+                        <div class="time">${e.time.elapsed}'</div>
+                        <div class="icon">${icon}</div>
+                        <div class="desc">${player} ${assist} <small style="color:var(--secondary)">(${teamName})</small></div>
+                    </div>`;
+                }).join('');
+            } else {
+                html += '<div class="no-matches" style="padding:10px;">No events yet.</div>';
+            }
+
+            // 2. الإحصائيات (Statistics)
+            html += '<div class="detail-section-title">📊 Statistics</div>';
+            if (stats && stats.length > 0) {
+                const homeStats = stats.find(s => s.team.id === match.teams.home.id);
+                const awayStats = stats.find(s => s.team.id === match.teams.away.id);
+                
+                if (homeStats && awayStats) {
+                    const allKeys = {};
+                    homeStats.statistics.forEach(s => { allKeys[s.type] = { home: s.value, away: null }; });
+                    awayStats.statistics.forEach(s => {
+                        if (allKeys[s.type]) allKeys[s.type].away = s.value;
+                    });
+
+                    const targetStats = ['Ball Possession', 'Total Shots', 'Shots on Goal', 'Fouls', 'Corner Kicks', 'Offsides'];
+                    
+                    html += targetStats.map(key => {
+                        const data = allKeys[key];
+                        if (!data) return '';
+                        return `<div class="stat-item">
+                            <span class="label">${key}</span>
+                            <span><strong>${data.home}</strong> - <strong>${data.away}</strong></span>
+                        </div>`;
+                    }).join('');
+                } else {
+                    html += '<div class="no-matches" style="padding:10px;">No stats yet.</div>';
+                }
+            } else {
+                html += '<div class="no-matches" style="padding:10px;">No stats yet.</div>';
+            }
+
+            // 3. التشكيلة (Lineups)
+            html += '<div class="detail-section-title">👥 Lineups</div>';
+            if (lineups && lineups.length > 0) {
+                lineups.forEach(teamLineup => {
+                    html += `<p style="font-weight:bold; margin-bottom:5px;">${teamLineup.team.name} (${teamLineup.formation})</p>`;
+                    const starting = teamLineup.startXI || [];
+                    if (starting.length > 0) {
+                        html += `<div style="margin-bottom:8px;">${starting.map(p => `
+                            <div class="player-item">
+                                <span class="num">${p.player.number || ''}</span>
+                                <span class="name">${p.player.name}</span>
+                            </div>`).join('')}</div>`;
+                    }
+                    
+                    const subs = teamLineup.substitutes || [];
+                    if (subs.length > 0) {
+                        html += `<small style="color:var(--secondary)">Substitutes:</small><div style="margin-bottom:10px;">${subs.map(p => `
+                            <div class="player-item">
+                                <span class="num">${p.player.number || ''}</span>
+                                <span class="name">${p.player.name}</span>
+                            </div>`).join('')}</div>`;
+                    }
+                });
+            } else {
+                html += '<div class="no-matches" style="padding:10px;">No lineups yet.</div>';
+            }
+
+            content.innerHTML = html;
+        }
+
+        function closeModal() {
+            document.getElementById('matchDetailModal').classList.remove('active');
+        }
+
         function startLiveUpdates() {
             if (updateInterval) clearInterval(updateInterval);
-            // تحديث أولي ثم كل 30 ثانية
             fetchLiveMatches();
             updateInterval = setInterval(fetchLiveMatches, 30000);
         }
 
-        // ====== تهيئة التطبيق ======
         startLiveUpdates();
     </script>
 </body>
