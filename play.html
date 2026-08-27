@@ -705,11 +705,17 @@
             font-weight: 700;
             font-size: calc(11px * var(--font-scale));
             color: var(--text-color);
+            display: none;
         }
-        .match-card .upcoming-vs {
-            font-size: calc(9px * var(--font-scale));
-            color: var(--secondary);
-            margin-top: 1px;
+        .match-card .badge-postponed {
+            background: #ff6b35;
+            color: #fff;
+            font-size: 7px;
+            font-weight: 700;
+            padding: 1px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
         }
         .standings-wrap {
             overflow-x: auto;
@@ -1589,167 +1595,265 @@
             color: var(--secondary);
             display: block;
         }
+
+        /* ===== STATISTICS - LIKE APP ===== */
         .stats-container {
             background: var(--card-bg);
             border-radius: 12px;
-            padding: 12px 14px;
+            padding: 14px 16px;
             border: 1px solid var(--border-color);
         }
-        .possession-box {
+        .stats-container .possession-section {
             text-align: center;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
         }
-        .possession-box .possession-label {
+        .stats-container .possession-section .possession-labels {
             display: flex;
             justify-content: space-between;
             font-weight: 700;
-            font-size: calc(12px * var(--font-scale));
+            font-size: calc(13px * var(--font-scale));
             color: var(--text-color);
             margin-bottom: 4px;
         }
-        .possession-box .possession-label .home-pos {
+        .stats-container .possession-section .possession-labels .home-pos {
             color: #0984e3;
         }
-        .possession-box .possession-label .away-pos {
+        .stats-container .possession-section .possession-labels .away-pos {
             color: #6c5ce7;
         }
-        .possession-box .possession-bar {
+        .stats-container .possession-section .possession-bar-wrap {
             width: 100%;
-            height: 10px;
+            height: 8px;
             background: var(--border-color);
-            border-radius: 5px;
+            border-radius: 4px;
             overflow: hidden;
             display: flex;
         }
-        .possession-box .possession-bar .home-bar {
+        .stats-container .possession-section .possession-bar-wrap .home-bar {
             height: 100%;
             background: #0984e3;
             transition: width 0.3s;
         }
-        .possession-box .possession-bar .away-bar {
+        .stats-container .possession-section .possession-bar-wrap .away-bar {
             height: 100%;
             background: #6c5ce7;
             transition: width 0.3s;
         }
-        .stat-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 3px;
-            padding: 0 3px;
-        }
-        .stat-row .home-val {
-            width: 36px;
-            color: #0984e3;
-            font-weight: 700;
-            text-align: left;
-            font-size: calc(10px * var(--font-scale));
-        }
-        .stat-row .away-val {
-            width: 36px;
-            color: #6c5ce7;
-            font-weight: 700;
-            text-align: right;
-            font-size: calc(10px * var(--font-scale));
-        }
-        .stat-row .stat-label {
-            flex: 1;
-            text-align: center;
-            color: var(--text-color);
-            font-weight: 600;
-            font-size: calc(9px * var(--font-scale));
-        }
-        .stat-line {
-            height: 3px;
-            width: 100%;
-            background: var(--border-color);
-            border-radius: 2px;
-            overflow: hidden;
-            margin-bottom: 6px;
-            position: relative;
-        }
-        .stat-line-home {
-            height: 100%;
-            position: absolute;
-            left: 0;
-            background: #0984e3;
-            border-radius: 2px 0 0 2px;
-        }
-        .stat-line-away {
-            height: 100%;
-            position: absolute;
-            right: 0;
-            background: #6c5ce7;
-            border-radius: 0 2px 2px 0;
-        }
-        .stat-extra-grid {
+        .stats-container .stats-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 4px 12px;
-            margin-top: 6px;
+            gap: 2px 8px;
         }
-        .stat-extra-grid .stat-extra-item {
+        .stats-container .stats-grid .stat-item {
             display: flex;
             justify-content: space-between;
-            font-size: calc(10px * var(--font-scale));
-            padding: 2px 0;
+            align-items: center;
+            padding: 3px 0;
             border-bottom: 1px solid var(--border-color);
-            color: var(--text-color);
+            font-size: calc(11px * var(--font-scale));
         }
-        .stat-extra-item .stat-extra-label {
+        .stats-container .stats-grid .stat-item .stat-label {
             color: var(--secondary);
             font-weight: 500;
+            font-size: calc(10px * var(--font-scale));
         }
-        .stat-extra-item .stat-extra-values {
+        .stats-container .stats-grid .stat-item .stat-values {
             display: flex;
-            gap: 8px;
+            gap: 6px;
             font-weight: 600;
         }
-        .stat-extra-item .stat-extra-values .home-stat {
+        .stats-container .stats-grid .stat-item .stat-values .home-val {
             color: #0984e3;
         }
-        .stat-extra-item .stat-extra-values .away-stat {
+        .stats-container .stats-grid .stat-item .stat-values .away-val {
             color: #6c5ce7;
         }
-        .video-highlights {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 4px;
-            margin: 4px 0;
-            justify-content: center;
-        }
-        .video-highlights .video-link-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 3px;
-            padding: 2px 10px;
-            background: #dc3545;
-            color: #fff;
+
+        /* ===== LINEUP PITCH ===== */
+        .pitch-container {
+            background-image: url('https://zi-store.online/events/formation_pitch.webp');
+            background-size: cover;
+            background-position: center;
+            background-color: #2a9d5a;
             border-radius: 16px;
-            font-size: calc(9px * var(--font-scale));
-            font-weight: 600;
-            text-decoration: none;
-            transition: background 0.15s;
-            border: none;
+            padding: 12px 8px;
+            position: relative;
+            min-height: 380px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            overflow: hidden;
+        }
+        .pitch-container .pitch-team-name {
+            text-align: center;
+            font-weight: 700;
+            font-size: calc(13px * var(--font-scale));
+            color: #fff;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
+        }
+        .pitch-container .pitch-team-name img {
+            width: 22px;
+            height: 22px;
+            object-fit: contain;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.15);
+            padding: 2px;
+        }
+        .pitch-container .pitch-team-name .formation {
+            font-size: calc(10px * var(--font-scale));
+            opacity: 0.7;
+            font-weight: 400;
+        }
+        .pitch-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(5, 1fr);
+            gap: 6px 3px;
+            height: 100%;
+            min-height: 300px;
+            position: relative;
+        }
+        .pitch-grid .pitch-player {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 6px;
+            padding: 2px 1px;
+            min-height: 44px;
+            transition: all 0.2s;
             cursor: pointer;
         }
-        .video-highlights .video-link-btn:hover {
-            background: #b02a37;
+        .pitch-grid .pitch-player:hover {
+            background: rgba(255, 255, 255, 0.10);
+        }
+        .pitch-grid .pitch-player .player-avatar {
+            position: relative;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            background: #fff;
+            overflow: hidden;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .pitch-grid .pitch-player .player-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .pitch-grid .pitch-player .player-number {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: #000;
             color: #fff;
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            font-size: 7px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255, 255, 255, 0.4);
+            z-index: 2;
         }
-        .video-highlights .video-link-btn img {
-            width: 11px;
-            height: 11px;
-            filter: brightness(0) invert(1);
+        .pitch-grid .pitch-player .player-name {
+            font-size: 6.5px;
+            color: #fff;
+            text-align: center;
+            margin-top: 1px;
+            font-weight: 600;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
+            max-width: 44px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
-        .lineup-tabs {
+        .pitch-grid .pitch-player .player-rating {
+            position: absolute;
+            bottom: -3px;
+            background: #f39c12;
+            color: #000;
+            font-size: 6px;
+            font-weight: 700;
+            padding: 0px 3px;
+            border-radius: 2px;
+            z-index: 3;
+        }
+        .pitch-grid .pitch-player .player-icons {
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            display: flex;
+            gap: 1px;
+            z-index: 4;
+            flex-wrap: wrap;
+            max-width: 28px;
+        }
+        .pitch-grid .pitch-player .player-icons img {
+            width: 10px;
+            height: 10px;
+            border: none;
+            border-radius: 0;
+        }
+        .pitch-grid .pitch-player .player-icons .captain-badge {
+            width: 9px;
+            height: 9px;
+            background: gold;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5px;
+            font-weight: 900;
+            color: #000;
+            border: 1px solid #fff;
+        }
+        .pitch-grid .row-gk {
+            grid-row: 5;
+            display: flex;
+            justify-content: center;
+        }
+        .pitch-grid .row-def {
+            grid-row: 4;
+            display: flex;
+            justify-content: space-around;
+        }
+        .pitch-grid .row-mid {
+            grid-row: 3;
+            display: flex;
+            justify-content: space-around;
+        }
+        .pitch-grid .row-fwd {
+            grid-row: 2;
+            display: flex;
+            justify-content: space-around;
+        }
+        .pitch-grid .pitch-player.empty {
+            background: transparent;
+            cursor: default;
+        }
+        .pitch-grid .pitch-player.empty:hover {
+            background: transparent;
+        }
+        .pitch-lineup-tabs {
             display: flex;
             justify-content: center;
             gap: 6px;
             margin-bottom: 10px;
             flex-wrap: wrap;
         }
-        .lineup-tab {
+        .pitch-lineup-tabs .pitch-tab {
             border: none;
             background: var(--light-bg);
             color: var(--text-color);
@@ -1764,17 +1868,115 @@
             font-size: calc(11px * var(--font-scale));
             border: 1px solid var(--border-color);
         }
-        .lineup-tab.active {
+        .pitch-lineup-tabs .pitch-tab.active {
             background: var(--primary);
             color: #fff;
             border-color: var(--primary);
         }
-        .lineup-tab img {
+        .pitch-lineup-tabs .pitch-tab img {
             width: 16px;
             height: 16px;
             object-fit: contain;
+        }
+        /* Coach, Subs, Injuries outside pitch */
+        .pitch-extras {
+            margin-top: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .pitch-extras .coach-section {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
             cursor: pointer;
         }
+        .pitch-extras .coach-section .coach-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            object-fit: cover;
+        }
+        .pitch-extras .coach-section .coach-name {
+            font-weight: 600;
+            font-size: calc(12px * var(--font-scale));
+            color: var(--text-color);
+        }
+        .pitch-extras .subs-section {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+        .pitch-extras .subs-section .subs-title {
+            font-weight: 700;
+            font-size: calc(11px * var(--font-scale));
+            color: var(--secondary);
+            margin-bottom: 4px;
+        }
+        .pitch-extras .subs-section .sub-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+            border-bottom: 1px solid var(--border-color);
+            font-size: calc(10px * var(--font-scale));
+        }
+        .pitch-extras .subs-section .sub-item:last-child {
+            border-bottom: none;
+        }
+        .pitch-extras .subs-section .sub-item img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .pitch-extras .subs-section .sub-item .sub-arrow {
+            color: var(--primary);
+            font-weight: 700;
+        }
+        .pitch-extras .injuries-section {
+            background: rgba(220, 53, 69, 0.08);
+            border: 1px solid rgba(220, 53, 69, 0.2);
+            border-radius: 8px;
+            padding: 8px 12px;
+        }
+        .pitch-extras .injuries-section .injuries-title {
+            font-weight: 700;
+            font-size: calc(11px * var(--font-scale));
+            color: #dc3545;
+            margin-bottom: 4px;
+        }
+        .pitch-extras .injuries-section .injury-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 2px 0;
+            font-size: calc(10px * var(--font-scale));
+            border-bottom: 1px solid rgba(220, 53, 69, 0.08);
+        }
+        .pitch-extras .injuries-section .injury-item:last-child {
+            border-bottom: none;
+        }
+        .pitch-extras .injuries-section .injury-item img {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            border: 1px solid var(--border-color);
+            cursor: pointer;
+        }
+        .pitch-extras .injuries-section .injury-item .injury-type {
+            color: #dc3545;
+            font-weight: 600;
+            font-size: calc(9px * var(--font-scale));
+        }
+
         .lang-float .lang-menu {
             display: none;
             position: fixed;
@@ -2040,6 +2242,35 @@
             .font-controls .font-label {
                 font-size: 8px;
             }
+            .stats-container .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            .pitch-grid .pitch-player .player-avatar {
+                width: 26px;
+                height: 26px;
+            }
+            .pitch-grid .pitch-player .player-number {
+                width: 12px;
+                height: 12px;
+                font-size: 6px;
+                top: -3px;
+                right: -3px;
+            }
+            .pitch-grid .pitch-player .player-name {
+                font-size: 5.5px;
+                max-width: 34px;
+            }
+            .pitch-grid .pitch-player .player-rating {
+                font-size: 5px;
+            }
+            .pitch-container {
+                min-height: 300px;
+                padding: 8px 4px;
+            }
+            .pitch-grid {
+                min-height: 240px;
+                gap: 4px 2px;
+            }
         }
         @media (max-width: 480px) {
             .app-header .header-search {
@@ -2128,594 +2359,39 @@
             .match-header .match-team-side span {
                 font-size: calc(9px * var(--font-scale));
             }
-        }
-        .lineup-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-            gap: 8px;
-            margin-top: 8px;
-        }
-        .lineup-player-card {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 6px 10px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            transition: background 0.15s;
-            cursor: pointer;
-        }
-        .lineup-player-card:hover {
-            background: var(--light-bg);
-        }
-        .lineup-player-card img {
-            width: 28px;
-            height: 28px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-        }
-        .lineup-player-card .player-info {
-            flex: 1;
-            min-width: 0;
-        }
-        .lineup-player-card .player-info .name {
-            font-weight: 600;
-            font-size: calc(11px * var(--font-scale));
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .lineup-player-card .player-info .position {
-            font-size: calc(9px * var(--font-scale));
-            color: var(--secondary);
-        }
-        .lineup-player-card .player-rating {
-            font-weight: 700;
-            font-size: calc(13px * var(--font-scale));
-            color: var(--primary);
-            background: var(--light-bg);
-            padding: 2px 8px;
-            border-radius: 12px;
-            min-width: 28px;
-            text-align: center;
-        }
-        .lineup-player-card .player-number {
-            font-size: calc(10px * var(--font-scale));
-            font-weight: 700;
-            color: var(--secondary);
-            min-width: 20px;
-            text-align: center;
-        }
-        .lineup-player-card .card-icons {
-            display: flex;
-            gap: 2px;
-            align-items: center;
-        }
-        .lineup-player-card .card-icons img {
-            width: 14px;
-            height: 14px;
-            border: none;
-            border-radius: 0;
-        }
-        .substitution-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 3px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: calc(11px * var(--font-scale));
-        }
-        .substitution-row:last-child {
-            border-bottom: none;
-        }
-        .substitution-row .sub-time {
-            font-weight: 700;
-            color: var(--secondary);
-            min-width: 40px;
-        }
-        .substitution-row .sub-arrow {
-            color: var(--primary);
-            font-weight: 700;
-        }
-        .substitution-row .sub-player {
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .substitution-row .sub-player:hover {
-            color: var(--primary);
-        }
-        .coach-section {
-            margin-top: 12px;
-            padding: 10px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--card-bg);
-        }
-        .coach-section .coach-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            cursor: pointer;
-        }
-        .coach-section .coach-info img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-        }
-        .coach-section .coach-info span {
-            font-weight: 600;
-            font-size: calc(13px * var(--font-scale));
-        }
-        .absences-section {
-            margin-top: 8px;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--card-bg);
-        }
-        .absences-section .absence-item {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 3px 0;
-            font-size: calc(11px * var(--font-scale));
-        }
-        .absences-section .absence-item img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-            cursor: pointer;
-        }
-        .absences-section .absence-item .absence-type {
-            color: var(--danger);
-            font-weight: 600;
-            font-size: calc(10px * var(--font-scale));
-        }
-        .bench-section {
-            margin-top: 8px;
-            padding: 8px 12px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            background: var(--card-bg);
-        }
-        .bench-section .bench-player {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 3px 0;
-            font-size: calc(11px * var(--font-scale));
-            cursor: pointer;
-        }
-        .bench-section .bench-player:hover {
-            background: var(--light-bg);
-        }
-        .bench-section .bench-player img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid var(--border-color);
-        }
-        .penalty-event-row {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            padding: 2px 0;
-            border-bottom: 1px solid var(--border-color);
-            font-size: calc(10px * var(--font-scale));
-        }
-        .penalty-event-row:last-child {
-            border-bottom: none;
-        }
-        .penalty-event-row .penalty-result {
-            font-weight: 700;
-        }
-        .penalty-event-row .penalty-result.scored {
-            color: #28a745;
-        }
-        .penalty-event-row .penalty-result.missed {
-            color: #dc3545;
-        }
-        .penalty-event-row .penalty-player {
-            cursor: pointer;
-            font-weight: 600;
-        }
-        .penalty-event-row .penalty-player:hover {
-            color: var(--primary);
-        }
-        .penalty-event-row .penalty-team-logo {
-            width: 18px;
-            height: 18px;
-            object-fit: contain;
-            cursor: pointer;
-        }
-        .penalty-shootout-detail {
-            background: var(--light-bg);
-            border-radius: 8px;
-            padding: 8px 12px;
-            margin-top: 4px;
-            border: 1px solid var(--border-color);
-        }
-        .penalty-shootout-detail .penalty-title {
-            font-weight: 700;
-            font-size: calc(12px * var(--font-scale));
-            text-align: center;
-            margin-bottom: 4px;
-            color: var(--text-color);
-        }
-        .event-section-divider {
-            font-weight: 700;
-            padding: 6px 10px;
-            background: var(--light-bg);
-            border-radius: 6px;
-            margin: 8px 0 4px;
-            text-align: center;
-            font-size: calc(12px * var(--font-scale));
-            border: 1px solid var(--border-color);
-        }
-        .event-section-divider .score {
-            font-size: calc(14px * var(--font-scale));
-            color: var(--primary);
-        }
-        .possession-label {
-            display: flex;
-            justify-content: space-between;
-            font-weight: 600;
-            font-size: calc(11px * var(--font-scale));
-            padding: 0 4px;
-        }
-        .possession-label span:first-child {
-            color: #0984e3;
-        }
-        .possession-label span:last-child {
-            color: #6c5ce7;
-        }
-        .timer-main.live-update {
-            transition: none;
-        }
-        /* ===== PITCH LINEUP ===== */
-        .pitch-container {
-            background-image: url('https://zi-store.online/events/formation_pitch.webp');
-            background-size: cover;
-            background-position: center;
-            background-color: #2a9d5a;
-            border-radius: 16px;
-            padding: 12px 8px;
-            position: relative;
-            min-height: 400px;
-            border: 2px solid rgba(255, 255, 255, 0.1);
-            overflow: hidden;
-        }
-        .pitch-container .pitch-team-name {
-            text-align: center;
-            font-weight: 700;
-            font-size: calc(14px * var(--font-scale));
-            color: #fff;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 8px;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.4);
-        }
-        .pitch-container .pitch-team-name img {
-            width: 24px;
-            height: 24px;
-            object-fit: contain;
-            border-radius: 4px;
-            background: rgba(255, 255, 255, 0.15);
-            padding: 2px;
-        }
-        .pitch-container .pitch-team-name .formation {
-            font-size: calc(10px * var(--font-scale));
-            opacity: 0.7;
-            font-weight: 400;
-        }
-        .pitch-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 8px 4px;
-            height: 100%;
-            min-height: 320px;
-            position: relative;
-        }
-        .pitch-grid .pitch-player {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            padding: 3px 2px;
-            min-height: 50px;
-            transition: all 0.2s;
-            cursor: pointer;
-        }
-        .pitch-grid .pitch-player:hover {
-            background: rgba(255, 255, 255, 0.12);
-        }
-        .pitch-grid .pitch-player .player-avatar {
-            position: relative;
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            border: 2px solid #fff;
-            background: #fff;
-            overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .pitch-grid .pitch-player .player-avatar img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .pitch-grid .pitch-player .player-number {
-            position: absolute;
-            top: -4px;
-            right: -4px;
-            background: #000;
-            color: #fff;
-            width: 16px;
-            height: 16px;
-            border-radius: 50%;
-            font-size: 7px;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.4);
-            z-index: 2;
-        }
-        .pitch-grid .pitch-player .player-name {
-            font-size: 7px;
-            color: #fff;
-            text-align: center;
-            margin-top: 2px;
-            font-weight: 600;
-            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
-            max-width: 52px;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .pitch-grid .pitch-player .player-rating {
-            position: absolute;
-            bottom: -2px;
-            background: #f39c12;
-            color: #000;
-            font-size: 7px;
-            font-weight: 700;
-            padding: 0px 4px;
-            border-radius: 3px;
-            z-index: 3;
-        }
-        .pitch-grid .pitch-player .player-icons {
-            position: absolute;
-            top: -4px;
-            left: -4px;
-            display: flex;
-            gap: 1px;
-            z-index: 4;
-            flex-wrap: wrap;
-            max-width: 30px;
-        }
-        .pitch-grid .pitch-player .player-icons img {
-            width: 12px;
-            height: 12px;
-            border: none;
-            border-radius: 0;
-        }
-        .pitch-grid .pitch-player .player-icons .captain-badge {
-            width: 10px;
-            height: 10px;
-            background: gold;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 6px;
-            font-weight: 900;
-            color: #000;
-            border: 1px solid #fff;
-        }
-        .pitch-grid .row-gk {
-            grid-row: 5;
-            display: flex;
-            justify-content: center;
-        }
-        .pitch-grid .row-def {
-            grid-row: 4;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .row-mid {
-            grid-row: 3;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .row-fwd {
-            grid-row: 2;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .pitch-player.empty {
-            background: transparent;
-            cursor: default;
-        }
-        .pitch-grid .pitch-player.empty:hover {
-            background: transparent;
-        }
-        .pitch-lineup-tabs {
-            display: flex;
-            justify-content: center;
-            gap: 6px;
-            margin-bottom: 10px;
-            flex-wrap: wrap;
-        }
-        .pitch-lineup-tabs .pitch-tab {
-            border: none;
-            background: var(--light-bg);
-            color: var(--text-color);
-            padding: 4px 14px;
-            border-radius: 24px;
-            font-weight: 700;
-            cursor: pointer;
-            transition: all 0.15s;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-            font-size: calc(11px * var(--font-scale));
-            border: 1px solid var(--border-color);
-        }
-        .pitch-lineup-tabs .pitch-tab.active {
-            background: var(--primary);
-            color: #fff;
-            border-color: var(--primary);
-        }
-        .pitch-lineup-tabs .pitch-tab img {
-            width: 16px;
-            height: 16px;
-            object-fit: contain;
-        }
-        .pitch-container .pitch-substitutions {
-            margin-top: 8px;
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 6px 10px;
-            backdrop-filter: blur(4px);
-        }
-        .pitch-container .pitch-substitutions .sub-title {
-            color: #fff;
-            font-weight: 700;
-            font-size: calc(10px * var(--font-scale));
-            text-align: center;
-            margin-bottom: 4px;
-        }
-        .pitch-container .pitch-substitutions .sub-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #fff;
-            font-size: calc(9px * var(--font-scale));
-            padding: 2px 0;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-        }
-        .pitch-container .pitch-substitutions .sub-item:last-child {
-            border-bottom: none;
-        }
-        .pitch-container .pitch-substitutions .sub-item img {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-        }
-        .pitch-container .pitch-substitutions .sub-item .sub-arrow {
-            color: #ffc107;
-            margin-left: auto;
-        }
-        .pitch-container .pitch-absences {
-            margin-top: 6px;
-            background: rgba(220, 53, 69, 0.2);
-            border-radius: 8px;
-            padding: 4px 10px;
-            border: 1px solid rgba(220, 53, 69, 0.3);
-        }
-        .pitch-container .pitch-absences .absence-title {
-            color: #ff6b6b;
-            font-weight: 700;
-            font-size: calc(9px * var(--font-scale));
-            text-align: center;
-        }
-        .pitch-container .pitch-absences .absence-item {
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            color: #fff;
-            font-size: calc(9px * var(--font-scale));
-            padding: 1px 0;
-        }
-        .pitch-container .pitch-absences .absence-item img {
-            width: 18px;
-            height: 18px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            cursor: pointer;
-        }
-        .pitch-container .pitch-absences .absence-item .absence-type {
-            color: #ff6b6b;
-            font-weight: 600;
-            font-size: calc(8px * var(--font-scale));
-        }
-        .pitch-container .pitch-coach {
-            margin-top: 6px;
-            text-align: center;
-            color: #fff;
-            font-size: calc(10px * var(--font-scale));
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            padding: 3px 8px;
-            background: rgba(255, 255, 255, 0.08);
-            border-radius: 6px;
-        }
-        .pitch-container .pitch-coach:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
-        .pitch-container .pitch-coach img {
-            width: 24px;
-            height: 24px;
-            border-radius: 50%;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        @media (max-width: 576px) {
+            .stats-container .stats-grid {
+                grid-template-columns: 1fr;
+            }
             .pitch-grid .pitch-player .player-avatar {
-                width: 28px;
-                height: 28px;
+                width: 22px;
+                height: 22px;
             }
             .pitch-grid .pitch-player .player-number {
-                width: 14px;
-                height: 14px;
-                font-size: 6px;
-                top: -3px;
-                right: -3px;
+                width: 10px;
+                height: 10px;
+                font-size: 5px;
+                top: -2px;
+                right: -2px;
             }
             .pitch-grid .pitch-player .player-name {
-                font-size: 6px;
-                max-width: 40px;
+                font-size: 5px;
+                max-width: 28px;
             }
             .pitch-grid .pitch-player .player-rating {
-                font-size: 6px;
+                font-size: 5px;
+                padding: 0px 2px;
             }
             .pitch-container {
-                min-height: 320px;
-                padding: 8px 4px;
+                min-height: 260px;
+                padding: 6px 3px;
             }
             .pitch-grid {
-                min-height: 260px;
-                gap: 4px 2px;
+                min-height: 200px;
+                gap: 3px 1px;
             }
-        }
-        /* إصلاح شريط التقدم للمباريات القادمة */
-        .match-card .upcoming-center .countdown-timer {
-            font-size: calc(11px * var(--font-scale));
-            font-weight: 700;
-            color: var(--text-color);
-            background: var(--light-bg);
-            padding: 2px 8px;
-            border-radius: 8px;
-            display: inline-block;
+            .pitch-grid .pitch-player {
+                min-height: 36px;
+            }
         }
     </style>
 </head>
@@ -3100,6 +2776,25 @@
             10: 'Penalties',
             11: 'Penalties FT'
         };
+
+        const STATUS_MAP = {
+            0: 'Upcoming',
+            1: '1st Half',
+            2: 'HT',
+            3: '2nd Half',
+            4: 'FT',
+            5: 'ET HT',
+            6: 'ET',
+            7: 'ET FT',
+            8: '1st ET',
+            9: '2nd ET',
+            10: 'PEN',
+            14: 'Postponed'
+        };
+
+        function getMatchPeriod(status) {
+            return STATUS_MAP[status] || 'Live';
+        }
 
         function getEventTypeLabel(type, status) {
             if (type === 100) {
@@ -3566,21 +3261,12 @@
             if (status === 0) return 0;
             if (status === 2) return match.minutes || 0;
             if (status === 10) return match.minutes || 0;
+            if (status === 14) return 0;
             return 0;
         }
 
         function getMatchPeriod(status) {
-            if (status === 0) return 'Upcoming';
-            if (status === 4) return 'FT';
-            if (status === 2) return 'HT';
-            if (status === 5) return 'ET HT';
-            if (status === 7) return 'ET FT';
-            if (status === 8) return '1st ET';
-            if (status === 9) return '2nd ET';
-            if (status === 10) return 'PEN';
-            if (status === 1) return '1st Half';
-            if (status === 3) return '2nd Half';
-            return 'Live';
+            return STATUS_MAP[status] || 'Live';
         }
 
         function formatLiveTimeRealtime(seconds, status, exTime) {
@@ -3592,6 +3278,7 @@
             if (status === 4) return { display: 'FT', stoppage: null, seconds: total };
             if (status === 2) return { display: 'HT', stoppage: null, seconds: total };
             if (status === 10) return { display: 'PEN', stoppage: null, seconds: total };
+            if (status === 14) return { display: 'Postponed', stoppage: null, seconds: total };
             let display = `${mins}:${padded}`;
             let stoppage = null;
             if (exTime && exTime > 0) {
@@ -3607,6 +3294,7 @@
             if (status === 4) return 100;
             if (status === 2) return 50;
             if (status === 10) return 100;
+            if (status === 14) return 0;
             if (status === 8 || status === 9) {
                 const et = seconds / 60;
                 return Math.min(100, Math.max(0, ((et - 90) / 30) * 100));
@@ -3890,10 +3578,16 @@
             const awayLogo = IMG_BASE_TEAM + away.image;
             const isFav = isFavorite(match.match_id);
 
+            const isPostponed = status === 14;
+            let statusBadge = `<div class="live-badge">${period}</div>`;
+            if (isPostponed) {
+                statusBadge = `<div class="badge badge-postponed">Postponed</div>`;
+            }
+
             const stream = findStreamEvent(match);
             const compLogoUrl = match.championship?.image ? IMG_BASE_CHAMP + match.championship.image : '';
             let playBtn = '';
-            if (stream) {
+            if (stream && !isPostponed && status !== 0) {
                 playBtn =
                     `<button class="play-stream-btn" onclick='event.stopPropagation();openStreamPlayer("${stream.sources[0].streamUrl}", ${JSON.stringify({ title: comp, compName: comp, compLogoUrl, homeName: home.title, awayName: away.title, homeScore: match.home_scores || 0, awayScore: match.away_scores || 0, homeLogoUrl: homeLogo, awayLogoUrl: awayLogo })})'><img src="${ICONS.play}" /> Play</button>`;
             }
@@ -3906,8 +3600,20 @@
                     .score === 1).length : 0;
                 penaltyHtml = `<div class="penalty-score">PK: ${homePens} - ${awayPens}</div>`;
             }
-            let timerHtml =
-                `<div class="time-text">${timer.display}${timer.stoppage ? `<span class="stoppage-badge">${timer.stoppage}</span>` : ''}</div>`;
+
+            const showScore = (status !== 0 && status !== 14);
+            const scoreDisplay = showScore ? `${match.home_scores || 0} - ${match.away_scores || 0}` : '';
+
+            let timerHtml = '';
+            if (!isPostponed && status !== 0) {
+                timerHtml =
+                    `<div class="time-text">${timer.display}${timer.stoppage ? `<span class="stoppage-badge">${timer.stoppage}</span>` : ''}</div>`;
+            } else if (isPostponed) {
+                timerHtml = `<div class="time-text" style="background:#ff6b35;color:#fff;">Postponed</div>`;
+            } else {
+                timerHtml = `<div class="time-text">VS</div>`;
+            }
+
             return `
             <div class="col-12 mb-2">
                 <div class="match-card" data-match-id="${match.match_id}">
@@ -3917,12 +3623,12 @@
                             <div class="team-title" onclick="event.stopPropagation();openTeamModal(${home.row_id})">${home.title}</div>
                         </div>
                         <div class="center-col">
-                            <div class="score-big">${match.home_scores || 0} - ${match.away_scores || 0}</div>
+                            <div class="score-big">${scoreDisplay || 'VS'}</div>
                             ${penaltyHtml}
-                            <div class="live-badge">${period}</div>
+                            ${statusBadge}
                             ${timerHtml}
                             <div class="timeline-container">
-                                <div class="timeline-fill" style="width:${progress}%"></div>
+                                <div class="timeline-fill" style="width:${isPostponed || status === 0 ? 0 : progress}%"></div>
                                 ${status === 2 ? '<div class="ht-marker"></div>' : ''}
                                 ${markers}
                             </div>
@@ -3954,8 +3660,12 @@
             const isFav = isFavorite(match.match_id);
             const matchTime = match.match_timestamp ? formatMatchLocalTime(match.match_timestamp) : match.match_time;
             const matchDate = match.match_timestamp ? formatMatchLocalDate(match.match_timestamp) : match.match_date;
+            const status = match.status !== undefined ? match.status : 1;
+            const isPostponed = status === 14;
+            const isFinished = status === 4;
+
             let middle = '';
-            if (isUpcoming) {
+            if (isUpcoming && !isPostponed) {
                 const ts = match.match_timestamp * 1000;
                 const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
                 const h = Math.floor(diff / 3600),
@@ -3964,7 +3674,6 @@
                 const countdown = h > 0 ? `${h}h ${m}m ${s}s` : (m > 0 ? `${m}m ${s}s` : `${s}s`);
                 middle = `
                 <div class="upcoming-center">
-                    <div class="upcoming-time" style="display:none;">${matchTime}</div>
                     <div class="countdown-timer" data-timestamp="${ts}">${countdown}</div>
                     <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});" style="font-size:calc(14px*var(--font-scale));margin-top:2px;">${isFav ? '★' : '☆'}</button>
                 </div>`;
@@ -3973,7 +3682,13 @@
                     if (el) { const ts2 = parseInt(el.dataset.timestamp);
                         startCountdown(el, ts2); }
                 }, 100);
-            } else {
+            } else if (isPostponed) {
+                middle = `
+                <div class="upcoming-center">
+                    <div class="badge badge-postponed" style="font-size:10px;padding:3px 10px;">Postponed</div>
+                    <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});" style="font-size:calc(14px*var(--font-scale));margin-top:2px;">${isFav ? '★' : '☆'}</button>
+                </div>`;
+            } else if (isFinished) {
                 let penaltyHtml = '';
                 if (match.match_penalties) {
                     const homePens = match.match_penalties[home.row_id] ? match.match_penalties[home.row_id].filter(p => p
@@ -3987,6 +3702,25 @@
                     <div style="font-size:calc(17px*var(--font-scale));font-weight:800;color:var(--text-color);">${match.home_scores || 0} - ${match.away_scores || 0}</div>
                     ${penaltyHtml}
                     <div class="badge bg-secondary" style="font-size:8px;">FT</div>
+                    <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});" style="font-size:calc(14px*var(--font-scale));margin-top:2px;">${isFav ? '★' : '☆'}</button>
+                </div>`;
+            } else {
+                // Live match (status 1, 2, 3, 8, 9, 10)
+                const seconds = getLiveSeconds(match);
+                const timer = formatLiveTimeRealtime(seconds, status, match.ex_time);
+                const progress = getMatchProgress(seconds, status);
+                const period = getMatchPeriod(status);
+                const markers = getGoalMarkers(match);
+                middle = `
+                <div class="upcoming-center">
+                    <div style="font-size:calc(17px*var(--font-scale));font-weight:800;color:var(--text-color);">${match.home_scores || 0} - ${match.away_scores || 0}</div>
+                    <div class="live-badge">${period}</div>
+                    <div class="time-text">${timer.display}${timer.stoppage ? `<span class="stoppage-badge">${timer.stoppage}</span>` : ''}</div>
+                    <div class="timeline-container">
+                        <div class="timeline-fill" style="width:${progress}%"></div>
+                        ${status === 2 ? '<div class="ht-marker"></div>' : ''}
+                        ${markers}
+                    </div>
                     <button class="favorite-star ${isFav ? 'active' : ''}" data-match-id="${match.match_id}" onclick="event.stopPropagation();toggleFavorite(${match.match_id});" style="font-size:calc(14px*var(--font-scale));margin-top:2px;">${isFav ? '★' : '☆'}</button>
                 </div>`;
             }
@@ -4041,7 +3775,7 @@
             all.forEach(m => {
                 const isLive = liveMatches.some(lm => lm.match_id == m.match_id);
                 if (isLive) container.innerHTML += renderLiveMatchCard(m);
-                else container.innerHTML += renderUpcomingFinishedCard(m, m.status === 0);
+                else container.innerHTML += renderUpcomingFinishedCard(m, m.status === 0 || m.status === undefined);
             });
             container.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
@@ -4187,7 +3921,10 @@
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
 
-                startLiveMatchUpdates(matchId);
+                // Only start live updates if match is not postponed and not upcoming
+                if (info.status !== 14 && info.status !== 0) {
+                    startLiveMatchUpdates(matchId);
+                }
                 hideLoading();
             } catch (err) {
                 console.error('Match details error:', err);
@@ -4219,13 +3956,15 @@
                 if (periodEl) periodEl.textContent = getMatchPeriod(status);
                 const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
                 if (fillEl) {
-                    if (status === 0) fillEl.style.width = '0%';
+                    if (status === 0 || status === 14) fillEl.style.width = '0%';
                     else if (status === 4) fillEl.style.width = '100%';
                     else fillEl.style.width = `${progress}%`;
                 }
                 const scoreEl = document.querySelector('#matchModalBody .match-score');
                 if (scoreEl && info.home_scores !== undefined && info.away_scores !== undefined) {
-                    scoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
+                    if (status !== 0 && status !== 14) {
+                        scoreEl.textContent = `${info.home_scores} - ${info.away_scores}`;
+                    }
                 }
                 const halfEl = document.querySelector('#matchModalBody .half-score');
                 if (halfEl && info.fh_scores && info.fh_scores.length) {
@@ -4259,12 +3998,16 @@
                         if (periodEl) periodEl.textContent = getMatchPeriod(status);
                         const fillEl = document.querySelector('#matchModalBody .timeline-fill-modal');
                         if (fillEl) {
-                            if (status === 0) fillEl.style.width = '0%';
+                            if (status === 0 || status === 14) fillEl.style.width = '0%';
                             else if (status === 4) fillEl.style.width = '100%';
                             else fillEl.style.width = `${progress}%`;
                         }
                         const scoreEl = document.querySelector('#matchModalBody .match-score');
-                        if (scoreEl) scoreEl.textContent = `${info.home_scores || 0} - ${info.away_scores || 0}`;
+                        if (scoreEl) {
+                            if (status !== 0 && status !== 14) {
+                                scoreEl.textContent = `${info.home_scores || 0} - ${info.away_scores || 0}`;
+                            }
+                        }
                         const halfEl = document.querySelector('#matchModalBody .half-score');
                         if (halfEl && info.fh_scores && info.fh_scores.length) {
                             const h = info.fh_scores[0]?.home_scores || 0;
@@ -4294,6 +4037,9 @@
             const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
             const period = getMatchPeriod(status);
             const progress = getMatchProgress(seconds, status);
+            const isPostponed = status === 14;
+            const isUpcoming = status === 0;
+            const isFinished = status === 4;
 
             // Red cards
             let homeRedCard = false,
@@ -4309,7 +4055,7 @@
 
             // Half-time scores
             let halfScoreHtml = '';
-            if (info.fh_scores && info.fh_scores.length) {
+            if (info.fh_scores && info.fh_scores.length && !isUpcoming && !isPostponed) {
                 const h = info.fh_scores[0]?.home_scores || 0;
                 const a = info.fh_scores[0]?.away_scores || 0;
                 halfScoreHtml = `<div class="half-score">HT: ${h} - ${a}</div>`;
@@ -4348,7 +4094,7 @@
                 ' ' + info.match_time);
 
             let countdownHtml = '';
-            if (status === 0 && info.match_timestamp) {
+            if (isUpcoming && info.match_timestamp) {
                 const ts = info.match_timestamp * 1000;
                 const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
                 const h = Math.floor(diff / 3600),
@@ -4363,9 +4109,11 @@
                 }, 100);
             }
 
-            // Goal alert
+            const showScore = !isUpcoming && !isPostponed;
+            const scoreDisplay = showScore ? `${info.home_scores || 0} - ${info.away_scores || 0}` : 'VS';
+
             let goalAlertHtml = '';
-            if (info.score_time) {
+            if (info.score_time && !isUpcoming && !isPostponed) {
                 try {
                     const times = JSON.parse(info.score_time);
                     const lastGoal = times[times.length - 1];
@@ -4383,6 +4131,10 @@
                 } catch (e) {}
             }
 
+            let periodDisplay = period;
+            if (isPostponed) periodDisplay = 'Postponed';
+            if (isUpcoming) periodDisplay = 'Upcoming';
+
             let headerHtml = `
             <div class="match-header">
                 <div class="champ-badge">
@@ -4398,17 +4150,17 @@
                     </div>
                     <div class="match-center-side">
                         ${goalAlertHtml}
-                        <div class="match-score">${info.home_scores || 0} - ${info.away_scores || 0}</div>
+                        <div class="match-score">${scoreDisplay}</div>
                         ${halfScoreHtml}
                         ${penaltyHtml}
                         ${penaltySummary}
                         <div class="match-timer-container">
-                            ${countdownHtml || `<span class="timer-main">${timer.display}</span>`}
-                            ${timer.stoppage ? `<span class="timer-stoppage">${timer.stoppage}</span>` : ''}
+                            ${countdownHtml || `<span class="timer-main">${isPostponed ? 'Postponed' : timer.display}</span>`}
+                            ${timer.stoppage && !isPostponed && !isUpcoming ? `<span class="timer-stoppage">${timer.stoppage}</span>` : ''}
                         </div>
-                        <div class="match-period">${period}</div>
+                        <div class="match-period">${periodDisplay}</div>
                         <div class="timeline-container">
-                            <div class="timeline-fill timeline-fill-modal" style="width:${status === 0 ? 0 : status === 4 ? 100 : progress}%"></div>
+                            <div class="timeline-fill timeline-fill-modal" style="width:${isPostponed || isUpcoming ? 0 : isFinished ? 100 : progress}%"></div>
                             ${status === 2 ? '<div class="ht-marker-modal"></div>' : ''}
                             ${getGoalMarkersModal(info)}
                         </div>
@@ -4453,7 +4205,7 @@
                 }
             }
 
-            // ===== EVENTS مع تنظيم حسب الأشواط وعرض الوقت في المنتصف =====
+            // ===== EVENTS =====
             let eventsHtml = '<div class="event-box">';
             if (events && events.length) {
                 const special = events.filter(ev => ev.type === 100);
@@ -4609,9 +4361,7 @@
                 const awayFormation = lineups['0']?.away_formation || '4-3-3';
 
                 if (homeLineup && awayLineup) {
-                    // Build pitch view for a team
                     function buildPitchView(players, team, formation, subs, injured, coach) {
-                        // Group players by position
                         const gk = players.filter(p => p.position === 'G' || p.position === 'GK');
                         const def = players.filter(p => p.position === 'D' || p.position === 'LB' || p.position === 'RB' ||
                             p.position === 'CB');
@@ -4620,14 +4370,12 @@
                         const fwd = players.filter(p => p.position === 'F' || p.position === 'LW' || p.position === 'RW' ||
                             p.position === 'CF' || p.position === 'SS');
 
-                        // Sort by formation_position
                         const sortByPos = (a, b) => (a.formation_position || 0) - (b.formation_position || 0);
                         gk.sort(sortByPos);
                         def.sort(sortByPos);
                         mid.sort(sortByPos);
                         fwd.sort(sortByPos);
 
-                        // Build player card HTML
                         function playerCard(p) {
                             const img = p.player.image ? IMG_BASE_PLAYER + p.player.image :
                                 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
@@ -4637,17 +4385,17 @@
                             const playerId = p.player.row_id;
                             let iconsHtml = '';
                             if (p.yellow) iconsHtml +=
-                                `<img src="${ICONS.yellowCard}" style="width:12px;height:12px;" title="Yellow Card" />`;
+                                `<img src="${ICONS.yellowCard}" style="width:10px;height:10px;" title="Yellow Card" />`;
                             if (p.red) iconsHtml +=
-                                `<img src="${ICONS.redCard}" style="width:12px;height:12px;" title="Red Card" />`;
+                                `<img src="${ICONS.redCard}" style="width:10px;height:10px;" title="Red Card" />`;
                             if (p.goal) iconsHtml +=
-                                `<img src="${ICONS.goal}" style="width:12px;height:12px;" title="Goal" />`;
+                                `<img src="${ICONS.goal}" style="width:10px;height:10px;" title="Goal" />`;
                             if (p.assist) iconsHtml +=
-                                `<img src="${ICONS.assist}" style="width:12px;height:12px;" title="Assist" />`;
+                                `<img src="${ICONS.assist}" style="width:10px;height:10px;" title="Assist" />`;
                             if (p.own_goal) iconsHtml +=
-                                `<img src="${ICONS.ownGoal}" style="width:12px;height:12px;" title="Own Goal" />`;
+                                `<img src="${ICONS.ownGoal}" style="width:10px;height:10px;" title="Own Goal" />`;
                             if (p.captain) iconsHtml +=
-                                `<span class="captain-badge" style="width:10px;height:10px;background:gold;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#000;border:1px solid #fff;">C</span>`;
+                                `<span class="captain-badge" style="width:8px;height:8px;background:gold;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#000;border:1px solid #fff;">C</span>`;
                             return `
                             <div class="pitch-player" onclick="openPlayerModal(${playerId})">
                                 <div class="player-avatar">
@@ -4668,7 +4416,6 @@
                                 players.forEach(p => { html += playerCard(p); });
                                 html += `</div>`;
                             } else {
-                                const cols = players.length || 1;
                                 players.forEach(p => {
                                     html += `<div style="flex:1;display:flex;justify-content:center;">${playerCard(p)}</div>`;
                                 });
@@ -4691,9 +4438,23 @@
                             </div>
                         `;
 
+                        // Extras (coach, subs, injuries) outside pitch
+                        let extrasHtml = '<div class="pitch-extras">';
+
+                        // Coach
+                        if (coach) {
+                            const img = coach.image ? IMG_BASE_COACH + coach.image :
+                                'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Crect width=\'32\' height=\'32\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
+                            extrasHtml += `
+                            <div class="coach-section" onclick="openCoachModal(${coach.id})">
+                                <img src="${img}" class="coach-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Crect width=\'32\' height=\'32\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E'" />
+                                <span class="coach-name">${coach.title}</span>
+                            </div>`;
+                        }
+
                         // Substitutions
                         if (subs && subs.length) {
-                            pitchHtml += `<div class="pitch-substitutions"><div class="sub-title">Substitutions</div>`;
+                            extrasHtml += `<div class="subs-section"><div class="subs-title">Substitutions</div>`;
                             subs.forEach(sub => {
                                 const player = sub.player;
                                 const replaced = sub.player_lineup ? sub.player_lineup.title : '';
@@ -4701,7 +4462,7 @@
                                 const img = player.image ? IMG_BASE_PLAYER + player.image :
                                     'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' viewBox=\'0 0 18 18\'%3E%3Crect width=\'18\' height=\'18\' fill=\'%23ddd\'/%3E%3Ctext x=\'3\' y=\'12\' font-family=\'sans-serif\' font-size=\'10\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                                 const playerId = player.row_id;
-                                pitchHtml += `
+                                extrasHtml += `
                                 <div class="sub-item">
                                     <span>${time}</span>
                                     <img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" />
@@ -4709,39 +4470,30 @@
                                     ${replaced ? `<span class="sub-arrow">→ ${replaced}</span>` : ''}
                                 </div>`;
                             });
-                            pitchHtml += `</div>`;
+                            extrasHtml += `</div>`;
                         }
 
                         // Injuries
                         if (injured && injured.length) {
-                            pitchHtml += `<div class="pitch-absences"><div class="absence-title">⚠️ Missing Players</div>`;
+                            extrasHtml += `<div class="injuries-section"><div class="injuries-title">⚠️ Missing Players</div>`;
                             injured.forEach(inj => {
                                 const player = inj.player;
                                 const type = inj.type_name || 'Injury';
                                 const img = player.image ? IMG_BASE_PLAYER + player.image :
                                     'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' viewBox=\'0 0 18 18\'%3E%3Crect width=\'18\' height=\'18\' fill=\'%23ddd\'/%3E%3Ctext x=\'3\' y=\'12\' font-family=\'sans-serif\' font-size=\'10\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
                                 const playerId = player.row_id;
-                                pitchHtml += `
-                                <div class="absence-item">
+                                extrasHtml += `
+                                <div class="injury-item">
                                     <img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" />
                                     <span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span>
-                                    <span class="absence-type">- ${type}</span>
+                                    <span class="injury-type">- ${type}</span>
                                 </div>`;
                             });
-                            pitchHtml += `</div>`;
+                            extrasHtml += `</div>`;
                         }
 
-                        // Coach
-                        if (coach) {
-                            const img = coach.image ? IMG_BASE_COACH + coach.image :
-                                'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Crect width=\'24\' height=\'24\' fill=\'%23ddd\'/%3E%3Ctext x=\'4\' y=\'16\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                            pitchHtml += `
-                            <div class="pitch-coach" onclick="openCoachModal(${coach.id})">
-                                <img src="${img}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Crect width=\'24\' height=\'24\' fill=\'%23ddd\'/%3E%3Ctext x=\'4\' y=\'16\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E'" />
-                                <span>${coach.title}</span>
-                            </div>`;
-                        }
-
+                        extrasHtml += '</div>';
+                        pitchHtml += extrasHtml;
                         pitchHtml += `</div>`;
                         return pitchHtml;
                     }
@@ -4780,9 +4532,9 @@
                 }
             }
 
-            // ===== STATISTICS (full stats) =====
+            // ===== STATISTICS (like app - clean & organized) =====
             let statsHtml = '<p class="text-center text-muted">No statistics available</p>';
-            if (stats && Object.keys(stats).length) {
+            if (stats && Object.keys(stats).length && !isUpcoming && !isPostponed) {
                 const homeStats = stats[info.home_team.row_id] || {};
                 const awayStats = stats[info.away_team.row_id] || {};
                 const homePoss = parseInt(homeStats.ball_possession) || 50;
@@ -4792,55 +4544,61 @@
                 const awayPct = totalPoss > 0 ? Math.round((awayPoss / totalPoss) * 100) : 50;
 
                 let sHtml = `<div class="stats-container">
-                    <div class="possession-box">
-                        <div class="possession-label">
-                            <span>${info.home_team.title} ${homePct}%</span>
-                            <span>${info.away_team.title} ${awayPct}%</span>
+                    <div class="possession-section">
+                        <div class="possession-labels">
+                            <span class="home-pos">${info.home_team.title} ${homePct}%</span>
+                            <span class="away-pos">${info.away_team.title} ${awayPct}%</span>
                         </div>
-                        <div class="possession-bar">
+                        <div class="possession-bar-wrap">
                             <div class="home-bar" style="width:${homePct}%;"></div>
                             <div class="away-bar" style="width:${awayPct}%;"></div>
                         </div>
-                    </div>`;
+                    </div>
+                    <div class="stats-grid">`;
 
-                // Main stats
-                const mainFields = ['total_shots', 'shots_on_goal', 'fouls', 'corner_kicks', 'yellow_cards', 'red_cards'];
-                mainFields.forEach(key => {
-                    const hVal = homeStats[key] || 0,
-                        aVal = awayStats[key] || 0;
-                    const max = Math.max(hVal, aVal) || 1;
-                    const hPct = Math.round((hVal / max) * 100),
-                        aPct = Math.round((aVal / max) * 100);
-                    const label = key.replace(/_/g, ' ');
-                    sHtml += `<div class="stat-row"><div class="home-val">${hVal}</div><div class="stat-label">${label}</div><div class="away-val">${aVal}</div></div>
-                        <div class="stat-line"><div class="stat-line-home" style="width:${hPct}%"></div><div class="stat-line-away" style="width:${aPct}%"></div></div>`;
-                });
-
-                // Extra stats
-                const extraFields = ['shots_off_goal', 'blocked_shots', 'shots_insidebox', 'shots_outsidebox',
-                    'goalkeeper_saves', 'total_passes', 'passes_percentage', 'throwin', 'cross_ball', 'goalkick',
-                    'freekick', 'offsides'
+                const statFields = [
+                    { key: 'total_shots', label: 'Total Shots' },
+                    { key: 'shots_on_goal', label: 'Shots On Goal' },
+                    { key: 'fouls', label: 'Fouls' },
+                    { key: 'corner_kicks', label: 'Corner Kicks' },
+                    { key: 'yellow_cards', label: 'Yellow Cards' },
+                    { key: 'red_cards', label: 'Red Cards' },
+                    { key: 'shots_off_goal', label: 'Shots Off Goal' },
+                    { key: 'blocked_shots', label: 'Blocked Shots' },
+                    { key: 'shots_insidebox', label: 'Shots Inside Box' },
+                    { key: 'shots_outsidebox', label: 'Shots Outside Box' },
+                    { key: 'goalkeeper_saves', label: 'Goalkeeper Saves' },
+                    { key: 'total_passes', label: 'Total Passes' },
+                    { key: 'passes_percentage', label: 'Passes %' },
+                    { key: 'throwin', label: 'Throw-in' },
+                    { key: 'cross_ball', label: 'Cross Ball' },
+                    { key: 'goalkick', label: 'Goal Kick' },
+                    { key: 'freekick', label: 'Free Kick' },
+                    { key: 'offsides', label: 'Offsides' }
                 ];
-                sHtml += `<div class="stat-extra-grid">`;
-                extraFields.forEach(key => {
-                    const hVal = homeStats[key] !== undefined ? homeStats[key] : '-';
-                    const aVal = awayStats[key] !== undefined ? awayStats[key] : '-';
+
+                statFields.forEach(field => {
+                    const hVal = homeStats[field.key] !== undefined ? homeStats[field.key] : '-';
+                    const aVal = awayStats[field.key] !== undefined ? awayStats[field.key] : '-';
                     if (hVal === '-' && aVal === '-') return;
-                    const label = key.replace(/_/g, ' ');
                     sHtml += `
-                        <div class="stat-extra-item">
-                            <span class="stat-extra-label">${label}</span>
-                            <span class="stat-extra-values">
-                                <span class="home-stat">${hVal}</span>
-                                <span>-</span>
-                                <span class="away-stat">${aVal}</span>
+                        <div class="stat-item">
+                            <span class="stat-label">${field.label}</span>
+                            <span class="stat-values">
+                                <span class="home-val">${hVal}</span>
+                                <span style="color:var(--secondary);">-</span>
+                                <span class="away-val">${aVal}</span>
                             </span>
                         </div>`;
                 });
-                sHtml += `</div>`;
 
-                sHtml += '</div>';
+                sHtml += `</div></div>`;
                 statsHtml = sHtml;
+            } else if (isPostponed) {
+                statsHtml =
+                '<p class="text-center text-muted">Match postponed - no statistics available</p>';
+            } else if (isUpcoming) {
+                statsHtml = '<p class="text-center text-muted">Match not started yet</p>';
             }
 
             // ===== H2H =====
@@ -4912,7 +4670,7 @@
             });
         }
 
-        // ===== SINGLE EVENT RENDER (الوقت في المنتصف، شعار الفريق على الجانب) =====
+        // ===== SINGLE EVENT RENDER =====
         function renderSingleEventWithIcon(ev, info) {
             const isHome = ev.team_id == info.home_team.row_id;
             const isAway = ev.team_id == info.away_team.row_id;
@@ -5027,6 +4785,14 @@
                 `<div class="detail-card"><div class="detail-row"><strong>⏰ Date & Time</strong><span>${dt}</span></div></div>`;
             if (info.return) html +=
                 `<div class="detail-card"><div class="detail-row"><strong>Aggregate</strong><span>${info.return}</span></div></div>`;
+            if (info.status === 14) {
+                html +=
+                    `<div class="detail-card"><div class="detail-row"><strong>Status</strong><span style="color:#ff6b35;font-weight:700;">Postponed</span></div></div>`;
+                if (info.comment) {
+                    html +=
+                        `<div class="detail-card"><div class="detail-row"><strong>Reason</strong><span>${info.comment}</span></div></div>`;
+                }
+            }
             if (standingsData && standingsData.league && standingsData.league.stage0) {
                 const teams = standingsData.league.stage0;
                 const homeT = teams.find(t => t.team_id == info.home_team.row_id);
@@ -5690,7 +5456,6 @@
             window.selectCalDate = selectCalDate;
             window.applyCalendarFilter = applyCalendarFilter;
 
-            // Fix for pitch tab switching
             window.switchPitchTab = function(btn, showId, hideId) {
                 document.querySelectorAll('.pitch-tab').forEach(t => t.classList.remove('active'));
                 btn.classList.add('active');
@@ -5728,13 +5493,12 @@
         }
 
         console.log('Football Center fully restored with all fixes:');
-        console.log('- Penalty shootout displayed correctly');
-        console.log('- Half-time scores shown properly (not always 0-0)');
-        console.log('- Events: time in center, team logo on side, proper labels');
-        console.log('- Statistics: possession bars, all fields shown');
-        console.log('- Lineups: pitch background image from zi-store, proper positions');
-        console.log('- Upcoming matches: countdown timer instead of VS');
-        console.log('- Fixed double HT/FT display');
+        console.log('- Statistics: clean grid layout with possession bar, all stats fields');
+        console.log('- Lineups: players on pitch with background, coach/subs/injuries below');
+        console.log('- Status bar: upcoming shows countdown, live shows time, FT shows score');
+        console.log('- Score only shows when match is live or finished');
+        console.log('- Fixed duplicate HT/FT display');
+        console.log('- Penalty shootout with scored/missed indicators');
         console.log('- All data from API displayed correctly like the app.');
     </script>
 </body>
