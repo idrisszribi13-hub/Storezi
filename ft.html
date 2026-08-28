@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html dir="rtl" lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موقع كرة القدم | UI كامل</title>
+    <style>
+        :root {
+            --Main-Color: #39dbbf;
+            --Secondary-Color: #06b1c3;
+            --Body-BG: #e4eeff;
+            --Secondary-BG: #ffffff;
+            --Main-Font-Color: #444;
+            --Border: 1px solid #d1e7ff;
+            --Shadow: 0 2px 10px 0 rgba(0,0,0,0.15);
+        }
+        body.Night {
+            --Body-BG: #07080e;
+            --Secondary-BG: #171923;
+            --Main-Font-Color: #BFC3D4;
+            --Border: 1px solid #252c37;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--Body-BG); color: var(--Main-Font-Color); direction: rtl; overflow-x: hidden; transition: 0.3s; }
+        
+        .container { max-width: 1200px; margin: auto; padding: 12px; }
+        
+        /* الهيدر */
+        .SiteHeader { background: var(--Secondary-BG); box-shadow: var(--Shadow); padding: 15px; position: sticky; top: 0; z-index: 50; }
+        .header-wrapper { display: flex; justify-content: space-between; align-items: center; }
+        #logo { font-size: 24px; font-weight: bold; color: var(--Main-Color); }
+        .menu-ul { display: flex; list-style: none; gap: 20px; }
+        .header-items-wrap { display: flex; align-items: center; gap: 10px; }
+        .search-form input { padding: 8px; border-radius: 20px; border: var(--Border); background: var(--Body-BG); color: var(--Main-Font-Color); }
+        .dark-mode, .settings-toggle { cursor: pointer; font-size: 20px; padding: 5px 10px; background: var(--Body-BG); border-radius: 8px; }
+        .dark-mode:hover, .settings-toggle:hover { background: var(--Main-Color); color: #000; }
+
+        /* نافذة الإعدادات */
+        .drop-item-wrap { display: none; position: absolute; top: 60px; left: 20px; background: var(--Secondary-BG); padding: 20px; border-radius: 12px; box-shadow: var(--Shadow); z-index: 100; width: 280px; }
+        .drop-item-wrap.active { display: block; }
+        .dd-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: var(--Border); padding-bottom: 10px; }
+        select, .st-opt label { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: var(--Body-BG); border: var(--Border); border-radius: 8px; cursor: pointer; }
+        .st-opt label:hover { background: rgba(57,219,191,0.2); }
+
+        /* شريط الفلترة والتاريخ */
+        .filter-toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--Secondary-BG); padding: 12px; border-radius: 12px; margin-bottom: 15px; box-shadow: var(--Shadow); flex-wrap: wrap; gap: 10px; }
+        .filter-tabs button { background: var(--Body-BG); border: var(--Border); padding: 8px 15px; border-radius: 20px; cursor: pointer; color: var(--Main-Font-Color); }
+        .tab-btn.active { background: var(--Main-Color); color: #000; font-weight: bold; border: none; }
+        .date-picker { cursor: pointer; position: relative; background: var(--Body-BG); padding: 8px 15px; border-radius: 8px; border: var(--Border); }
+        .calendar { display: none; position: absolute; background: var(--Secondary-BG); padding: 10px; border-radius: 8px; box-shadow: var(--Shadow); top: 35px; left: 0; width: 280px; border: var(--Border); z-index: 10; }
+        .calendar.active { display: block; }
+        .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; }
+        .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; padding-top: 10px; }
+        .cal-day { padding: 8px; cursor: pointer; border-radius: 5px; }
+        .cal-day:hover { background: var(--Main-Color); color: #000; }
+        .cal-day.selected { background: var(--Main-Color); color: #000; font-weight: bold; }
+
+        /* بطاقات المباريات */
+        .TitleBox { background: var(--Secondary-BG); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-bottom: var(--Border); font-size: 20px; font-weight: bold; color: var(--Main-Color); }
+        .match-card { background: var(--Secondary-BG); border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: var(--Shadow); display: flex; justify-content: space-between; align-items: center; }
+        .team-info { display: flex; flex-direction: column; align-items: center; width: 30%; }
+        .team-logo { width: 50px; height: 50px; border-radius: 50%; background: #eee; margin-bottom: 5px; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; }
+        .match-score { text-align: center; width: 30%; font-size: 24px; font-weight: bold; }
+        .live-status { color: red; font-size: 12px; animation: blink 1s infinite; margin-bottom: 5px; }
+        @keyframes blink { 50% { opacity: 0.5; } }
+        .no-matches { text-align: center; padding: 20px; color: grey; }
+
+        /* الشريط السفلي */
+        .action-bar { position: fixed; bottom: 0; width: 100%; background: var(--Secondary-BG); display: none; justify-content: space-around; padding: 10px; border-top: var(--Border); z-index: 60; }
+        .action-bar ul { display: flex; list-style: none; width: 100%; justify-content: space-around; }
+        .action-bar li { cursor: pointer; font-size: 14px; text-align: center; }
+        .action-bar li.active { color: var(--Main-Color); font-weight: bold; }
+        
+        @media (max-width: 768px) { 
+            .action-bar { display: flex; } 
+            .menu-ul { display: none; } 
+            .filter-toolbar { flex-direction: column; align-items: stretch; }
+            .filter-tabs { display: flex; overflow-x: auto; white-space: nowrap; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- الهيدر -->
+    <header class="SiteHeader">
+        <div class="container header-wrapper">
+            <div id="logo">Yalla Shoot</div>
+            <ul class="menu-ul">
+                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">الرئيسية</a></li>
+                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">المباريات</a></li>
+                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">الأخبار</a></li>
+            </ul>
+            <div class="header-items-wrap">
+                <div class="search-form">
+                    <input type="text" placeholder="بحث...">
+                </div>
+                <div class="settings-toggle" onclick="toggleSettings()">⚙️</div>
+                <div class="dark-mode" onclick="toggleDarkMode()" id="dark-btn">🌙</div>
+            </div>
+        </div>
+    </header>
+
+    <!-- نافذة الإعدادات (Timezone) -->
+    <div id="settings-panel" class="drop-item-wrap">
+        <div class="dd-header">
+            <h6>الإعدادات</h6>
+            <span style="cursor:pointer" onclick="toggleSettings()">✖</span>
+        </div>
+        <label style="font-weight:bold">منطقتك الزمنية</label>
+        <select id="timezone-select" onchange="changeTimezone()">
+            <option value="Asia/Riyadh">السعودية (GMT+3)</option>
+            <option value="Africa/Cairo">مصر (GMT+2)</option>
+            <option value="UTC">التوقيت العالمي (UTC)</option>
+        </select>
+        <label style="font-weight:bold">صيغة الوقت</label>
+        <div class="st-opt"><label>⏱️ 12 ساعة</label></div>
+        <div class="st-opt"><label>⏱️ 24 ساعة (مفعل)</label></div>
+    </div>
+
+    <!-- شريط الفلترة والتاريخ -->
+    <div class="container">
+        <div class="filter-toolbar">
+            <div class="filter-tabs">
+                <button class="tab-btn active" onclick="filterBy('league', 7)">الدوري الإنجليزي</button>
+                <button class="tab-btn" onclick="filterBy('league', 11)">الدوري الإسباني</button>
+                <button class="tab-btn" onclick="filterBy('league', 649)">الدوري السعودي</button>
+            </div>
+            <div class="date-picker" onclick="toggleCalendar()">
+                📅 <span id="selected-date">2026-08-28</span> ▾
+                <div id="calendar-dropdown" class="calendar">
+                    <div class="cal-header">أغسطس 2026</div>
+                    <div class="cal-days" id="cal-days"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- حاوية المباريات -->
+        <section class="MW-Box">
+            <header class="TitleBox">
+                مباريات اليوم
+            </header>
+            <div id="matches-container">
+                <!-- ستتم تعبئتها بالجافاسكريبت -->
+            </div>
+        </section>
+    </div>
+
+    <!-- الشريط السفلي -->
+    <div class="action-bar">
+        <ul>
+            <li class="active"><span style="font-size:20px;">📺</span><br>المباريات</li>
+            <li><span style="font-size:20px;">🔥</span><br>الأخبار</li>
+            <li><span style="font-size:20px;">🏆</span><br>البطولات</li>
+            <li onclick="toggleSettings()"><span style="font-size:20px;">⚙️</span><br>الإعدادات</li>
+        </ul>
+    </div>
+
+    <script>
+        // ==== بيانات وهمية (سيتم استبدالها بـ API الخاص بك لاحقاً) ====
+        const matchesData = [
+            { id: 1, league: 7, home: "نيوم", away: "الرياض", homeScore: 0, awayScore: 0, time: "45:10", live: true },
+            { id: 2, league: 7, home: "أبها", away: "الفيحاء", homeScore: 0, awayScore: 1, time: "35:10", live: true },
+            { id: 3, league: 649, home: "شباب الأهلي", away: "الوصل", homeScore: 0, awayScore: 0, time: "05:07", live: true },
+            { id: 4, league: 649, home: "السد", away: "قطر", homeScore: 2, awayScore: 1, time: "انتهت", live: false },
+            { id: 5, league: 11, home: "برشلونة", away: "ريال مدريد", homeScore: 0, awayScore: 0, time: "لم تبدأ", live: false }
+        ];
+
+        let currentLeague = 7;
+        let currentDay = 28;
+
+        // ==== وظيفة الفلترة ====
+        function filterBy(type, id) {
+            currentLeague = id;
+            // تفعيل الزر النشط
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '<p style="text-align:center">جاري التحميل...</p>';
+            
+            // محاكاة الاتصال بالـ API
+            setTimeout(() => {
+                let filtered = matchesData.filter(m => m.league === id);
+                container.innerHTML = '';
+                
+                if(filtered.length === 0) {
+                    container.innerHTML = '<p class="no-matches">لا توجد مباريات لهذه البطولة في هذا اليوم</p>';
+                    return;
+                }
+
+                filtered.forEach(match => {
+                    const liveDot = match.live ? '<div class="live-status">● مباشر</div>' : '';
+                    container.innerHTML += `
+                        <div class="match-card">
+                            <div class="team-info">
+                                <div class="team-logo">${match.home[0]}</div>
+                                <span>${match.home}</span>
+                            </div>
+                            <div class="match-score">
+                                ${liveDot}
+                                <div>${match.homeScore} - ${match.awayScore}</div>
+                                <div style="font-size: 14px; color: grey;">${match.time}</div>
+                            </div>
+                            <div class="team-info">
+                                <div class="team-logo">${match.away[0]}</div>
+                                <span>${match.away}</span>
+                            </div>
+                        </div>
+                    `;
+                });
+            }, 500);
+        }
+
+        // ==== الإعدادات والوقت ====
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('active');
+        }
+
+        function changeTimezone() {
+            const tz = document.getElementById('timezone-select').value;
+            localStorage.setItem('user-tz', tz);
+            alert(`تم تغيير المنطقة الزمنية إلى ${tz}. سيتم تطبيق هذا على أوقات المباريات الحقيقية عند ربط الـ API.`);
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('Night');
+            localStorage.setItem('night-mode', document.body.classList.contains('Night'));
+            document.getElementById('dark-btn').innerText = document.body.classList.contains('Night') ? '☀️' : '🌙';
+        }
+
+        // ==== التقويم ====
+        function toggleCalendar() {
+            document.getElementById('calendar-dropdown').classList.toggle('active');
+            renderCalendar();
+        }
+
+        function renderCalendar() {
+            const cal = document.getElementById('cal-days');
+            cal.innerHTML = '';
+            for(let i=1; i<=31; i++) {
+                const selectedClass = i === currentDay ? 'selected' : '';
+                cal.innerHTML += `<div class="cal-day ${selectedClass}" onclick="selectDate(${i})">${i}</div>`;
+            }
+        }
+
+        function selectDate(day) {
+            currentDay = day;
+            document.getElementById('selected-date').textContent = `2026-08-${day}`;
+            document.getElementById('calendar-dropdown').classList.remove('active');
+            // هنا سترسل طلب للـ API لجلب مباريات هذا اليوم الجديد
+            filterBy('league', currentLeague); 
+        }
+
+        // ==== تهيئة عند التحميل ====
+        window.onload = function() {
+            // تحميل الوضع الليلي المحفوظ
+            if(localStorage.getItem('night-mode') === 'true') {
+                document.body.classList.add('Night');
+                document.getElementById('dark-btn').innerText = '☀️';
+            }
+            // تحميل المنطقة الزمنية المحفوظة
+            const tz = localStorage.getItem('user-tz');
+            if(tz) document.getElementById('timezone-select').value = tz;
+            
+            // عرض البطولة الأولى
+            filterBy('league', 7);
+        }
+    </script>
+</body>
+</html>
