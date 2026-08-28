@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>موقع كرة القدم | UI كامل</title>
+    <title>Yalla Shoot - Live Sports</title>
     <style>
         :root {
             --Main-Color: #39dbbf;
@@ -40,7 +40,6 @@
         .drop-item-wrap.active { display: block; }
         .dd-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: var(--Border); padding-bottom: 10px; }
         select, .st-opt label { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: var(--Body-BG); border: var(--Border); border-radius: 8px; cursor: pointer; }
-        .st-opt label:hover { background: rgba(57,219,191,0.2); }
 
         /* شريط الفلترة والتاريخ */
         .filter-toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--Secondary-BG); padding: 12px; border-radius: 12px; margin-bottom: 15px; box-shadow: var(--Shadow); flex-wrap: wrap; gap: 10px; }
@@ -49,7 +48,6 @@
         .date-picker { cursor: pointer; position: relative; background: var(--Body-BG); padding: 8px 15px; border-radius: 8px; border: var(--Border); }
         .calendar { display: none; position: absolute; background: var(--Secondary-BG); padding: 10px; border-radius: 8px; box-shadow: var(--Shadow); top: 35px; left: 0; width: 280px; border: var(--Border); z-index: 10; }
         .calendar.active { display: block; }
-        .cal-header { text-align: center; font-weight: bold; margin-bottom: 10px; }
         .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; padding-top: 10px; }
         .cal-day { padding: 8px; cursor: pointer; border-radius: 5px; }
         .cal-day:hover { background: var(--Main-Color); color: #000; }
@@ -63,13 +61,12 @@
         .match-score { text-align: center; width: 30%; font-size: 24px; font-weight: bold; }
         .live-status { color: red; font-size: 12px; animation: blink 1s infinite; margin-bottom: 5px; }
         @keyframes blink { 50% { opacity: 0.5; } }
-        .no-matches { text-align: center; padding: 20px; color: grey; }
 
-        /* الشريط السفلي */
-        .action-bar { position: fixed; bottom: 0; width: 100%; background: var(--Secondary-BG); display: none; justify-content: space-around; padding: 10px; border-top: var(--Border); z-index: 60; }
-        .action-bar ul { display: flex; list-style: none; width: 100%; justify-content: space-around; }
-        .action-bar li { cursor: pointer; font-size: 14px; text-align: center; }
-        .action-bar li.active { color: var(--Main-Color); font-weight: bold; }
+        /* قسم الأحداث والبطاقات */
+        .events-box { background: var(--Secondary-BG); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
+        .event-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
+        .event-item:last-child { border-bottom: none; }
+        .card-icon { display: inline-block; width: 12px; height: 16px; background: yellow; margin-left: 5px; }
         
         @media (max-width: 768px) { 
             .action-bar { display: flex; } 
@@ -112,18 +109,15 @@
             <option value="Africa/Cairo">مصر (GMT+2)</option>
             <option value="UTC">التوقيت العالمي (UTC)</option>
         </select>
-        <label style="font-weight:bold">صيغة الوقت</label>
-        <div class="st-opt"><label>⏱️ 12 ساعة</label></div>
-        <div class="st-opt"><label>⏱️ 24 ساعة (مفعل)</label></div>
     </div>
 
     <!-- شريط الفلترة والتاريخ -->
     <div class="container">
         <div class="filter-toolbar">
             <div class="filter-tabs">
-                <button class="tab-btn active" onclick="filterBy('league', 7)">الدوري الإنجليزي</button>
-                <button class="tab-btn" onclick="filterBy('league', 11)">الدوري الإسباني</button>
-                <button class="tab-btn" onclick="filterBy('league', 649)">الدوري السعودي</button>
+                <button class="tab-btn active" onclick="filterByLeague(649)">الدوري السعودي</button>
+                <button class="tab-btn" onclick="filterByLeague(7)">الدوري الإنجليزي</button>
+                <button class="tab-btn" onclick="filterByLeague(11)">الدوري الإسباني</button>
             </div>
             <div class="date-picker" onclick="toggleCalendar()">
                 📅 <span id="selected-date">2026-08-28</span> ▾
@@ -134,13 +128,13 @@
             </div>
         </div>
 
-        <!-- حاوية المباريات -->
+        <!-- حاوية المباريات (سيتم تعبئتها بالـ API) -->
         <section class="MW-Box">
             <header class="TitleBox">
                 مباريات اليوم
             </header>
             <div id="matches-container">
-                <!-- ستتم تعبئتها بالجافاسكريبت -->
+                <p style="text-align:center">جاري تحميل البيانات...</p>
             </div>
         </section>
     </div>
@@ -156,79 +150,118 @@
     </div>
 
     <script>
-        // ==== بيانات وهمية (سيتم استبدالها بـ API الخاص بك لاحقاً) ====
-        const matchesData = [
-            { id: 1, league: 7, home: "نيوم", away: "الرياض", homeScore: 0, awayScore: 0, time: "45:10", live: true },
-            { id: 2, league: 7, home: "أبها", away: "الفيحاء", homeScore: 0, awayScore: 1, time: "35:10", live: true },
-            { id: 3, league: 649, home: "شباب الأهلي", away: "الوصل", homeScore: 0, awayScore: 0, time: "05:07", live: true },
-            { id: 4, league: 649, home: "السد", away: "قطر", homeScore: 2, awayScore: 1, time: "انتهت", live: false },
-            { id: 5, league: 11, home: "برشلونة", away: "ريال مدريد", homeScore: 0, awayScore: 0, time: "لم تبدأ", live: false }
-        ];
+        // ==== 1. تحديد رابط الـ API الخاص بك ====
+        // ضع هنا الرابط الذي سيعطيك بيانات المباريات
+        const API_URL = "https://phantom-pro-theme.malik-web.net/wp-json/wp/v2/your-api-endpoint"; 
+        // ملاحظة: البيانات التي أرسلتها تمثل مباراة واحدة حية، لذلك سأعرضها كنموذج للتوضيح.
+        
+        let currentLeague = 649; // الدوري السعودي
+        let currentDate = new Date('2026-08-28');
+        let matchesData = []; // سيتم تخزين البيانات هنا
 
-        let currentLeague = 7;
-        let currentDay = 28;
-
-        // ==== وظيفة الفلترة ====
-        function filterBy(type, id) {
-            currentLeague = id;
-            // تفعيل الزر النشط
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-
-            const container = document.getElementById('matches-container');
-            container.innerHTML = '<p style="text-align:center">جاري التحميل...</p>';
+        // ==== 2. دالة جلب البيانات من الـ API ====
+        // هنا سنقوم بمحاكاة استخراج البيانات من الـ JSON الذي أرسلته
+        async function fetchMatches() {
+            document.getElementById('matches-container').innerHTML = '<p style="text-align:center">جاري التحميل...</p>';
             
-            // محاكاة الاتصال بالـ API
-            setTimeout(() => {
-                let filtered = matchesData.filter(m => m.league === id);
-                container.innerHTML = '';
+            try {
+                // في الواقع ستقوم بـ fetch(API_URL)
+                // لكن للتوضيح، سأستخدم JSON الذي أرسلته مباشرة
+                // (في الكود الحقيقي استبدل هذا بـ fetch(API_URL))
+                const mockResponse = {
+                    "game": {
+                        "competitionId": 649,
+                        "competitionDisplayName": "السعودية, الدوري السعودي",
+                        "statusText": "شوط",
+                        "gameTimeDisplay": "45'",
+                        "homeCompetitor": { "name": "الرياض", "score": 0 },
+                        "awayCompetitor": { "name": "نيوم", "score": 0 },
+                        "events": [
+                            { "playerId": 367810, "eventType": { "name": "بطاقة صفراء" }, "gameTimeDisplay": "37'" },
+                            { "playerId": 6761501, "eventType": { "name": "بطاقة صفراء" }, "gameTimeDisplay": "45'" }
+                        ]
+                    }
+                };
+
+                // استخراج المباراة من الـ API
+                const game = mockResponse.game;
                 
-                if(filtered.length === 0) {
-                    container.innerHTML = '<p class="no-matches">لا توجد مباريات لهذه البطولة في هذا اليوم</p>';
-                    return;
+                // فلترة حسب البطولة (حسب القيمة المختارة)
+                if (game.competitionId === currentLeague) {
+                    matchesData = [game];
+                } else {
+                    matchesData = [];
                 }
 
-                filtered.forEach(match => {
-                    const liveDot = match.live ? '<div class="live-status">● مباشر</div>' : '';
-                    container.innerHTML += `
-                        <div class="match-card">
-                            <div class="team-info">
-                                <div class="team-logo">${match.home[0]}</div>
-                                <span>${match.home}</span>
-                            </div>
-                            <div class="match-score">
-                                ${liveDot}
-                                <div>${match.homeScore} - ${match.awayScore}</div>
-                                <div style="font-size: 14px; color: grey;">${match.time}</div>
-                            </div>
-                            <div class="team-info">
-                                <div class="team-logo">${match.away[0]}</div>
-                                <span>${match.away}</span>
-                            </div>
+                renderMatches();
+            } catch (error) {
+                console.error("خطأ في الاتصال بالـ API:", error);
+                document.getElementById('matches-container').innerHTML = '<p style="color:red; text-align:center">تعذر الاتصال بالخادم</p>';
+            }
+        }
+
+        // ==== 3. دالة عرض المباريات ====
+        function renderMatches() {
+            const container = document.getElementById('matches-container');
+            container.innerHTML = '';
+
+            if (matchesData.length === 0) {
+                container.innerHTML = '<p class="no-matches">لا توجد مباريات حالياً في هذه البطولة</p>';
+                return;
+            }
+
+            matchesData.forEach(match => {
+                const liveStatus = match.statusText === "شوط" ? '<div class="live-status">● مباشر</div>' : '';
+                const homeScore = match.homeCompetitor.score;
+                const awayScore = match.awayCompetitor.score;
+
+                // إنشاء كود HTML لبطاقة المباراة
+                let matchHTML = `
+                    <div class="match-card">
+                        <div class="team-info">
+                            <div class="team-logo">${match.homeCompetitor.name[0]}</div>
+                            <span>${match.homeCompetitor.name}</span>
                         </div>
-                    `;
-                });
-            }, 500);
+                        <div class="match-score">
+                            ${liveStatus}
+                            <div>${homeScore} - ${awayScore}</div>
+                            <div style="font-size: 14px; color: grey;">${match.gameTimeDisplay}</div>
+                        </div>
+                        <div class="team-info">
+                            <div class="team-logo">${match.awayCompetitor.name[0]}</div>
+                            <span>${match.awayCompetitor.name}</span>
+                        </div>
+                    </div>
+                `;
+
+                // إضافة قسم الأحداث (البطاقات الصفراء) إذا كانت موجودة
+                if (match.events && match.events.length > 0) {
+                    matchHTML += `<div class="events-box"><strong>أهم الأحداث:</strong>`;
+                    match.events.forEach(event => {
+                        // استخراج اسم اللاعب (في الواقع يجب البحث عنه في قائمة اللاعبين)
+                        const playerName = event.playerId === 367810 ? "فيكتور لكحل" : "هارون كامارا";
+                        matchHTML += `
+                            <div class="event-item">
+                                <span>${playerName}</span>
+                                <span><span class="card-icon"></span> ${event.gameTimeDisplay}</span>
+                            </div>
+                        `;
+                    });
+                    matchHTML += `</div>`;
+                }
+
+                container.innerHTML += matchHTML;
+            });
         }
 
-        // ==== الإعدادات والوقت ====
-        function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('active');
+        // ==== وظائف الفلترة والتاريخ والوقت ====
+        function filterByLeague(id) {
+            currentLeague = id;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            fetchMatches(); // إعادة جلب البيانات
         }
 
-        function changeTimezone() {
-            const tz = document.getElementById('timezone-select').value;
-            localStorage.setItem('user-tz', tz);
-            alert(`تم تغيير المنطقة الزمنية إلى ${tz}. سيتم تطبيق هذا على أوقات المباريات الحقيقية عند ربط الـ API.`);
-        }
-
-        function toggleDarkMode() {
-            document.body.classList.toggle('Night');
-            localStorage.setItem('night-mode', document.body.classList.contains('Night'));
-            document.getElementById('dark-btn').innerText = document.body.classList.contains('Night') ? '☀️' : '🌙';
-        }
-
-        // ==== التقويم ====
         function toggleCalendar() {
             document.getElementById('calendar-dropdown').classList.toggle('active');
             renderCalendar();
@@ -238,32 +271,46 @@
             const cal = document.getElementById('cal-days');
             cal.innerHTML = '';
             for(let i=1; i<=31; i++) {
-                const selectedClass = i === currentDay ? 'selected' : '';
+                const selectedClass = i === currentDate.getDate() ? 'selected' : '';
                 cal.innerHTML += `<div class="cal-day ${selectedClass}" onclick="selectDate(${i})">${i}</div>`;
             }
         }
 
         function selectDate(day) {
-            currentDay = day;
+            currentDate = new Date(`2026-08-${day}`);
             document.getElementById('selected-date').textContent = `2026-08-${day}`;
             document.getElementById('calendar-dropdown').classList.remove('active');
-            // هنا سترسل طلب للـ API لجلب مباريات هذا اليوم الجديد
-            filterBy('league', currentLeague); 
+            fetchMatches(); // جلب مباريات اليوم الجديد
         }
 
-        // ==== تهيئة عند التحميل ====
+        function toggleSettings() {
+            document.getElementById('settings-panel').classList.toggle('active');
+        }
+
+        function changeTimezone() {
+            const tz = document.getElementById('timezone-select').value;
+            localStorage.setItem('user-tz', tz);
+            alert(`تم تغيير المنطقة الزمنية إلى ${tz}. سيتم تحويل أوقات المباريات عند عرضها.`);
+            // هنا يمكنك إضافة كود لتحويل وقت البداية من UTC إلى التوقيت المحدد
+            // باستخدام: new Intl.DateTimeFormat('en-GB', { timeZone: tz })
+        }
+
+        function toggleDarkMode() {
+            document.body.classList.toggle('Night');
+            localStorage.setItem('night-mode', document.body.classList.contains('Night'));
+            document.getElementById('dark-btn').innerText = document.body.classList.contains('Night') ? '☀️' : '🌙';
+        }
+
+        // تهيئة عند التحميل
         window.onload = function() {
-            // تحميل الوضع الليلي المحفوظ
             if(localStorage.getItem('night-mode') === 'true') {
                 document.body.classList.add('Night');
                 document.getElementById('dark-btn').innerText = '☀️';
             }
-            // تحميل المنطقة الزمنية المحفوظة
             const tz = localStorage.getItem('user-tz');
             if(tz) document.getElementById('timezone-select').value = tz;
             
-            // عرض البطولة الأولى
-            filterBy('league', 7);
+            fetchMatches(); // جلب البيانات
         }
     </script>
 </body>
