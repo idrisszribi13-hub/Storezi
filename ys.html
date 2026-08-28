@@ -1725,40 +1725,43 @@
         .stats-container .stats-grid .stat-item .stat-values .away-val {
             color: #6c5ce7;
         }
+        /* ===== LINEUP PITCH - CONTAINED WITHIN MODAL ===== */
         .pitch-container {
             background-image: url('https://zi-store.online/events/formation_pitch.webp');
             background-size: cover;
             background-position: center;
             background-color: #1a7a3a;
-            border-radius: 16px;
-            padding: 14px 10px;
+            border-radius: 12px;
+            padding: 10px 8px;
             position: relative;
-            min-height: 420px;
+            min-height: 280px;
+            max-height: 380px;
             border: 2px solid rgba(255, 255, 255, 0.08);
             overflow: hidden;
+            margin-bottom: 8px;
         }
         .pitch-container .pitch-team-name {
             text-align: center;
             font-weight: 700;
-            font-size: calc(15px * var(--font-scale));
+            font-size: calc(13px * var(--font-scale));
             color: #fff;
-            margin-bottom: 8px;
+            margin-bottom: 4px;
             display: flex;
             justify-content: center;
             align-items: center;
-            gap: 10px;
+            gap: 8px;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
         }
         .pitch-container .pitch-team-name img {
-            width: 26px;
-            height: 26px;
+            width: 22px;
+            height: 22px;
             object-fit: contain;
             border-radius: 4px;
             background: rgba(255, 255, 255, 0.15);
             padding: 2px;
         }
         .pitch-container .pitch-team-name .formation {
-            font-size: calc(11px * var(--font-scale));
+            font-size: calc(10px * var(--font-scale));
             opacity: 0.7;
             font-weight: 400;
         }
@@ -1766,9 +1769,9 @@
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             grid-template-rows: repeat(5, 1fr);
-            gap: 8px 4px;
+            gap: 6px 3px;
             height: 100%;
-            min-height: 340px;
+            min-height: 220px;
             position: relative;
         }
         .pitch-grid .pitch-player {
@@ -1778,9 +1781,9 @@
             justify-content: center;
             position: relative;
             background: rgba(255, 255, 255, 0.04);
-            border-radius: 8px;
-            padding: 3px 2px;
-            min-height: 52px;
+            border-radius: 6px;
+            padding: 2px 1px;
+            min-height: 40px;
             transition: all 0.2s;
             cursor: pointer;
         }
@@ -1789,13 +1792,13 @@
         }
         .pitch-grid .pitch-player .player-avatar {
             position: relative;
-            width: 36px;
-            height: 36px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             border: 2px solid #fff;
             background: #fff;
             overflow: hidden;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
             display: flex;
             align-items: center;
             justify-content: center;
@@ -1807,14 +1810,14 @@
         }
         .pitch-grid .pitch-player .player-number {
             position: absolute;
-            top: -4px;
-            right: -4px;
+            top: -3px;
+            right: -3px;
             background: #000;
             color: #fff;
-            width: 16px;
-            height: 16px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 700;
             display: flex;
             align-items: center;
@@ -1823,25 +1826,25 @@
             z-index: 2;
         }
         .pitch-grid .pitch-player .player-name {
-            font-size: 8px;
+            font-size: 7px;
             color: #fff;
             text-align: center;
-            margin-top: 2px;
+            margin-top: 1px;
             font-weight: 600;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-            max-width: 52px;
+            max-width: 44px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
         .pitch-grid .pitch-player .player-rating {
             position: absolute;
-            bottom: -4px;
+            bottom: -3px;
             background: #f39c12;
             color: #000;
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 700;
-            padding: 0px 5px;
+            padding: 0px 4px;
             border-radius: 3px;
             z-index: 3;
         }
@@ -1853,23 +1856,23 @@
             gap: 1px;
             z-index: 4;
             flex-wrap: wrap;
-            max-width: 32px;
+            max-width: 28px;
         }
         .pitch-grid .pitch-player .player-icons img {
-            width: 12px;
-            height: 12px;
+            width: 10px;
+            height: 10px;
             border: none;
             border-radius: 0;
         }
         .pitch-grid .pitch-player .player-icons .captain-badge {
-            width: 10px;
-            height: 10px;
+            width: 9px;
+            height: 9px;
             background: gold;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 6px;
+            font-size: 5px;
             font-weight: 900;
             color: #000;
             border: 1px solid #fff;
@@ -1905,7 +1908,7 @@
             display: flex;
             justify-content: center;
             gap: 8px;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
             flex-wrap: wrap;
         }
         .pitch-lineup-tabs .pitch-tab {
@@ -1933,51 +1936,52 @@
             height: 18px;
             object-fit: contain;
         }
+        /* Extras - Coach, Subs, Injuries - OUTSIDE the pitch */
         .pitch-extras {
-            margin-top: 12px;
+            margin-top: 8px;
             display: flex;
             flex-direction: column;
-            gap: 8px;
+            gap: 6px;
         }
         .pitch-extras .coach-section {
             display: flex;
             align-items: center;
-            gap: 12px;
-            padding: 10px 14px;
+            gap: 10px;
+            padding: 8px 12px;
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
             cursor: pointer;
         }
         .pitch-extras .coach-section .coach-avatar {
-            width: 36px;
-            height: 36px;
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
             object-fit: cover;
         }
         .pitch-extras .coach-section .coach-name {
             font-weight: 600;
-            font-size: calc(14px * var(--font-scale));
+            font-size: calc(13px * var(--font-scale));
             color: var(--text-color);
         }
         .pitch-extras .subs-section {
             background: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 8px 12px;
         }
         .pitch-extras .subs-section .subs-title {
             font-weight: 700;
             font-size: calc(12px * var(--font-scale));
             color: var(--secondary);
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .pitch-extras .subs-section .sub-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 3px 0;
+            gap: 6px;
+            padding: 2px 0;
             border-bottom: 1px solid var(--border-color);
             font-size: calc(11px * var(--font-scale));
         }
@@ -1985,8 +1989,8 @@
             border-bottom: none;
         }
         .pitch-extras .subs-section .sub-item img {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
             cursor: pointer;
@@ -1999,19 +2003,19 @@
             background: rgba(220, 53, 69, 0.08);
             border: 1px solid rgba(220, 53, 69, 0.2);
             border-radius: 8px;
-            padding: 10px 14px;
+            padding: 8px 12px;
         }
         .pitch-extras .injuries-section .injuries-title {
             font-weight: 700;
             font-size: calc(12px * var(--font-scale));
             color: #dc3545;
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
         .pitch-extras .injuries-section .injury-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 3px 0;
+            gap: 6px;
+            padding: 2px 0;
             font-size: calc(11px * var(--font-scale));
             border-bottom: 1px solid rgba(220, 53, 69, 0.08);
         }
@@ -2019,8 +2023,8 @@
             border-bottom: none;
         }
         .pitch-extras .injuries-section .injury-item img {
-            width: 20px;
-            height: 20px;
+            width: 18px;
+            height: 18px;
             border-radius: 50%;
             border: 1px solid var(--border-color);
             cursor: pointer;
@@ -2030,6 +2034,7 @@
             font-weight: 600;
             font-size: calc(10px * var(--font-scale));
         }
+        /* ===== PENALTY ===== */
         .penalty-event-row {
             display: flex;
             align-items: center;
@@ -2249,6 +2254,7 @@
             border-radius: 50%;
             border: 1px solid var(--bottom-nav-bg);
         }
+        /* ===== RESPONSIVE ===== */
         @media (max-width: 768px) {
             .app-header .logo {
                 font-size: calc(1rem * var(--font-scale));
@@ -2378,30 +2384,34 @@
                 grid-template-columns: 1fr;
             }
             .pitch-grid .pitch-player .player-avatar {
-                width: 30px;
-                height: 30px;
+                width: 26px;
+                height: 26px;
             }
             .pitch-grid .pitch-player .player-number {
-                width: 14px;
-                height: 14px;
-                font-size: 7px;
+                width: 12px;
+                height: 12px;
+                font-size: 6px;
                 top: -3px;
                 right: -3px;
             }
             .pitch-grid .pitch-player .player-name {
-                font-size: 7px;
-                max-width: 40px;
+                font-size: 6px;
+                max-width: 36px;
             }
             .pitch-grid .pitch-player .player-rating {
-                font-size: 7px;
+                font-size: 6px;
             }
             .pitch-container {
-                min-height: 340px;
-                padding: 10px 6px;
+                min-height: 240px;
+                max-height: 320px;
+                padding: 8px 4px;
             }
             .pitch-grid {
-                min-height: 280px;
-                gap: 6px 3px;
+                min-height: 180px;
+                gap: 4px 2px;
+            }
+            .pitch-grid .pitch-player {
+                min-height: 32px;
             }
         }
         @media (max-width: 480px) {
@@ -2495,34 +2505,35 @@
                 grid-template-columns: 1fr;
             }
             .pitch-grid .pitch-player .player-avatar {
-                width: 26px;
-                height: 26px;
+                width: 22px;
+                height: 22px;
             }
             .pitch-grid .pitch-player .player-number {
-                width: 12px;
-                height: 12px;
-                font-size: 6px;
+                width: 10px;
+                height: 10px;
+                font-size: 5px;
                 top: -2px;
                 right: -2px;
             }
             .pitch-grid .pitch-player .player-name {
-                font-size: 6px;
-                max-width: 32px;
+                font-size: 5px;
+                max-width: 30px;
             }
             .pitch-grid .pitch-player .player-rating {
-                font-size: 6px;
-                padding: 0px 3px;
+                font-size: 5px;
+                padding: 0px 2px;
             }
             .pitch-container {
-                min-height: 280px;
-                padding: 8px 4px;
+                min-height: 200px;
+                max-height: 280px;
+                padding: 6px 3px;
             }
             .pitch-grid {
-                min-height: 230px;
-                gap: 4px 2px;
+                min-height: 150px;
+                gap: 3px 1px;
             }
             .pitch-grid .pitch-player {
-                min-height: 40px;
+                min-height: 28px;
             }
         }
     </style>
@@ -3004,7 +3015,6 @@
             return n;
         }
 
-        // ===== IMPROVED findStreamEvent with partial matching =====
         function findStreamEvent(match) {
             if (!streamEvents.length || !match.home_team || !match.away_team) return null;
 
@@ -3436,7 +3446,10 @@
                 }
                 return 0;
             }
-            if (status === 4) return match.minutes || 0;
+            if (status === 4) {
+                // For finished, we may have minutes, but if not, return 0 (we'll show FT only)
+                return match.minutes || 0;
+            }
             if (status === 0) return 0;
             if (status === 2) return match.minutes || 0;
             if (status === 10) return match.minutes || 0;
@@ -3776,9 +3789,8 @@
                 progressFill = 0;
             } else if (isFinished) {
                 badgeHtml = `<div class="live-badge">FT</div>`;
-                const totalMins = Math.floor(seconds / 60);
-                const totalSecs = Math.floor(seconds % 60);
-                timerHtml = `<div class="time-text">${totalMins}:${String(totalSecs).padStart(2,'0')}</div>`;
+                // No timer text, just FT badge
+                timerHtml = '';
                 progressFill = 100;
             } else if (isHT) {
                 badgeHtml = `<div class="live-badge">HT</div>`;
@@ -4155,10 +4167,14 @@
                 const progress = getMatchProgress(seconds, status);
 
                 const timerMain = document.querySelector('#matchModalBody .timer-main');
-                if (timerMain) timerMain.textContent = timer.display;
+                if (timerMain) {
+                    if (status === 4) timerMain.textContent = 'FT';
+                    else if (status === 2) timerMain.textContent = timer.display;
+                    else timerMain.textContent = timer.display;
+                }
                 const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
                 if (stoppageEl) {
-                    if (timer.stoppage) { stoppageEl.textContent = timer.stoppage;
+                    if (timer.stoppage && status !== 4 && status !== 2) { stoppageEl.textContent = timer.stoppage;
                         stoppageEl.style.display = 'inline-block'; } else { stoppageEl.style.display = 'none'; }
                 }
                 const periodEl = document.querySelector('#matchModalBody .match-period');
@@ -4196,10 +4212,15 @@
                         const progress = getMatchProgress(seconds, status);
 
                         const timerMain = document.querySelector('#matchModalBody .timer-main');
-                        if (timerMain) timerMain.textContent = timer.display;
+                        if (timerMain) {
+                            if (status === 4) timerMain.textContent = 'FT';
+                            else if (status === 2) timerMain.textContent = timer.display;
+                            else timerMain.textContent = timer.display;
+                        }
                         const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
                         if (stoppageEl) {
-                            if (timer.stoppage) { stoppageEl.textContent = timer.stoppage;
+                            if (timer.stoppage && status !== 4 && status !== 2) { stoppageEl.textContent = timer
+                                    .stoppage;
                                 stoppageEl.style.display = 'inline-block'; } else { stoppageEl.style.display =
                                 'none'; }
                         }
@@ -4377,17 +4398,17 @@
                 timerMainText = 'Postponed';
             } else if (isUpcoming) {
                 timerMainText = countdownHtml;
+            } else if (isFinished) {
+                timerMainText = 'FT';
+            } else if (isHT) {
+                const totalMins = Math.floor(seconds / 60);
+                const totalSecs = Math.floor(seconds % 60);
+                timerMainText = `${totalMins}:${String(totalSecs).padStart(2,'0')}`;
             } else {
                 const totalMins = Math.floor(seconds / 60);
                 const totalSecs = Math.floor(seconds % 60);
                 const timeStr = `${totalMins}:${String(totalSecs).padStart(2,'0')}`;
-                if (isFinished) {
-                    timerMainText = `FT (${timeStr})`;
-                } else if (isHT) {
-                    timerMainText = `HT (${timeStr})`;
-                } else {
-                    timerMainText = `${timeStr}${timer.stoppage ? ` +${timer.stoppage}` : ''}`;
-                }
+                timerMainText = `${timeStr}${timer.stoppage ? ` +${timer.stoppage}` : ''}`;
             }
 
             let headerHtml = `
@@ -4646,17 +4667,17 @@
                             const playerId = p.player.row_id;
                             let iconsHtml = '';
                             if (p.yellow) iconsHtml +=
-                                `<img src="${ICONS.yellowCard}" style="width:12px;height:12px;" title="Yellow Card" />`;
+                                `<img src="${ICONS.yellowCard}" style="width:10px;height:10px;" title="Yellow Card" />`;
                             if (p.red) iconsHtml +=
-                                `<img src="${ICONS.redCard}" style="width:12px;height:12px;" title="Red Card" />`;
+                                `<img src="${ICONS.redCard}" style="width:10px;height:10px;" title="Red Card" />`;
                             if (p.goal) iconsHtml +=
-                                `<img src="${ICONS.goal}" style="width:12px;height:12px;" title="Goal" />`;
+                                `<img src="${ICONS.goal}" style="width:10px;height:10px;" title="Goal" />`;
                             if (p.assist) iconsHtml +=
-                                `<img src="${ICONS.assist}" style="width:12px;height:12px;" title="Assist" />`;
+                                `<img src="${ICONS.assist}" style="width:10px;height:10px;" title="Assist" />`;
                             if (p.own_goal) iconsHtml +=
-                                `<img src="${ICONS.ownGoal}" style="width:12px;height:12px;" title="Own Goal" />`;
+                                `<img src="${ICONS.ownGoal}" style="width:10px;height:10px;" title="Own Goal" />`;
                             if (p.captain) iconsHtml +=
-                                `<span class="captain-badge" style="width:10px;height:10px;background:gold;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:6px;font-weight:900;color:#000;border:1px solid #fff;">C</span>`;
+                                `<span class="captain-badge" style="width:9px;height:9px;background:gold;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#000;border:1px solid #fff;">C</span>`;
                             return `
                             <div class="pitch-player" onclick="openPlayerModal(${playerId})">
                                 <div class="player-avatar">
@@ -5752,12 +5773,12 @@
         console.log('- Score at Half-Time, Full-Time, ET now displays correctly using fh_scores, sh_scores, fe_scores, se_scores');
         console.log('- Larger font size throughout the site');
         console.log('- Statistics: clean grid layout with possession bar, all stats fields');
-        console.log('- Lineups: players on pitch with background, coach/subs/injuries below');
-        console.log('- Status bar: upcoming shows countdown, live shows time, FT shows score');
+        console.log('- Lineups: players on pitch with background, coach/subs/injuries outside pitch');
+        console.log('- Status bar: upcoming shows countdown, live shows time, FT shows only FT badge no time');
         console.log('- Fixed duplicate HT/FT display');
         console.log('- Penalty shootout with scored/missed indicators');
         console.log('- Stream matching improved with partial name matching');
         console.log('- All data from API displayed correctly like the app.');
     </script>
 </body>
-</html>
+    </html>
