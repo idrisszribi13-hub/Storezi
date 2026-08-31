@@ -426,7 +426,6 @@
         .bottom-nav .nav-item img { width: 24px; height: 24px; object-fit: contain; transition: transform 0.15s; filter: grayscale(0.3); }
         .bottom-nav .nav-item.active img { filter: grayscale(0); transform: scale(1.04); }
         .bottom-nav .nav-item .badge-dot { position: absolute; top: 0; right: 50%; transform: translateX(calc(50% + 14px)); width: 6px; height: 6px; background: #dc3545; border-radius: 50%; border: 1px solid var(--bottom-nav-bg); }
-        /* Settings Card Styles */
         .settings-card { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 15px; margin-bottom: 10px; }
         .settings-card h5 { font-size: calc(14px * var(--font-scale)); font-weight: 700; margin-bottom: 10px; color: var(--text-color); }
         .settings-card .form-select { font-size: calc(13px * var(--font-scale)); }
@@ -1360,7 +1359,6 @@
             if (status === 0 || status === 14) return 0;
             
             if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) {
-                // Freeze at 45 for HT, 105 for ET HT
                 if (status === 2) return Math.min(match.minutes, 45 * 60);
                 if (status === 5) return Math.min(match.minutes, 105 * 60);
                 return match.minutes;
@@ -1524,7 +1522,7 @@
             if (results.teams && results.teams.length) {
                 has = true;
                 results.teams.slice(0, 5).forEach(t => {
-                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : 'data:image/svg+xml,...';
+                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%2230%22 height=%2230%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E';
                     const title = t.name?.title || 'Unknown';
                     const id = t.name?.row_id || t.id;
                     html += `<div class="result-item" onclick="openTeamModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Team</span></div>`;
@@ -1533,7 +1531,7 @@
             if (results.championship && results.championship.length) {
                 has = true;
                 results.championship.slice(0, 5).forEach(c => {
-                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : 'data:image/svg+xml,...';
+                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%2230%22 height=%2230%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E';
                     const title = c.name?.title || 'Unknown';
                     const urlId = c.name?.url_id || c.id;
                     const type = c.name?.type || 1;
@@ -1543,7 +1541,7 @@
             if (results.player && results.player.length) {
                 has = true;
                 results.player.slice(0, 5).forEach(p => {
-                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : 'data:image/svg+xml,...';
+                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%2230%22 height=%2230%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E';
                     const title = p.name?.title || 'Unknown';
                     const id = p.name?.row_id || p.id;
                     html += `<div class="result-item" onclick="openPlayerModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Player</span></div>`;
@@ -1581,7 +1579,7 @@
                 item.dataset.champType = champ.type || 1;
                 item.dataset.standings = champ.standings ? '1' : '0';
                 item.dataset.cups = champ.cups ? '1' : '0';
-                const img = champ.image ? IMG_BASE_CHAMP + champ.image : 'data:image/svg+xml,...';
+                const img = champ.image ? IMG_BASE_CHAMP + champ.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2224%22 height=%2224%22%3E%3Crect width=%2224%22 height=%2224%22 fill=%22%23ddd%22/%3E%3Ctext x=%224%22 y=%2216%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E';
                 item.innerHTML = `<img src="${img}" style="width:22px;height:22px;margin-right:10px;object-fit:contain;" /> <span>${champ.title}</span>`;
                 item.addEventListener('click', function(e) { e.preventDefault(); selectChampionship(this); });
                 container.appendChild(item);
@@ -1881,8 +1879,8 @@
             videos.forEach(v => {
                 let thumb = v.thumbnail;
                 if (!thumb && v.url.includes('youtube.com')) { const matchId = v.url.match(/(?:v=|\/)([a-zA-Z0-9_-]{11})/); if (matchId) thumb = `https://img.youtube.com/vi/${matchId[1]}/hqdefault.jpg`; }
-                if (!thumb) thumb = 'data:image/svg+xml,...';
-                html += `<div class="highlight-card" onclick="openHighlightPlayer('${v.url}','${v.title.replace(/'/g,"\\'")}')"><div class="highlight-thumb"><img src="${thumb}" alt="${v.title}" onerror="this.src='data:image/svg+xml,...'" /><div class="play-overlay"></div></div><div class="highlight-body"><div class="highlight-title">${v.title}</div><div class="highlight-meta"><span>${v.competition}</span></div></div></div>`;
+                if (!thumb) thumb = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22270%22%3E%3Crect width=%22480%22 height=%22270%22 fill=%22%23222%22/%3E%3Ctext x=%22180%22 y=%22140%22 font-family=%22sans-serif%22 font-size=%2224%22 fill=%22%23fff%22%3EVideo%3C/text%3E%3C/svg%3E';
+                html += `<div class="highlight-card" onclick="openHighlightPlayer('${v.url}','${v.title.replace(/'/g,"\\'")}')"><div class="highlight-thumb"><img src="${thumb}" alt="${v.title}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%22480%22 height=%22270%22%3E%3Crect width=%22480%22 height=%22270%22 fill=%22%23222%22/%3E%3Ctext x=%22180%22 y=%22140%22 font-family=%22sans-serif%22 font-size=%2224%22 fill=%22%23fff%22%3EVideo%3C/text%3E%3C/svg%3E'" /><div class="play-overlay"></div></div><div class="highlight-body"><div class="highlight-title">${v.title}</div><div class="highlight-meta"><span>${v.competition}</span></div></div></div>`;
             });
             container.innerHTML = html;
         }
@@ -2198,7 +2196,7 @@
                         gk.sort(sortByPos); def.sort(sortByPos); mid.sort(sortByPos); fwd.sort(sortByPos);
 
                         function playerCard(p) {
-                            const img = p.player.image ? IMG_BASE_PLAYER + p.player.image : 'data:image/svg+xml,...';
+                            const img = p.player.image ? IMG_BASE_PLAYER + p.player.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%2230%22 height=%2230%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E';
                             const number = p.player.player_number || '';
                             const rating = p.rating || '';
                             const name = p.player.title || 'Unknown';
@@ -2210,7 +2208,7 @@
                             if (p.assist) iconsHtml += `<img src="${ICONS.assist}" style="width:10px;height:10px;" title="Assist" />`;
                             if (p.own_goal) iconsHtml += `<img src="${ICONS.ownGoal}" style="width:10px;height:10px;" title="Own Goal" />`;
                             if (p.captain) iconsHtml += `<span class="captain-badge" style="width:9px;height:9px;background:gold;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:5px;font-weight:900;color:#000;border:1px solid #fff;">C</span>`;
-                            return `<div class="pitch-player" onclick="openPlayerModal(${playerId})"><div class="player-avatar"><img src="${img}" onerror="this.src='data:image/svg+xml,...'" />${number ? `<div class="player-number">${number}</div>` : ''}${iconsHtml ? `<div class="player-icons">${iconsHtml}</div>` : ''}</div><div class="player-name">${name}</div>${rating ? `<div class="player-rating">${rating}</div>` : ''}</div>`;
+                            return `<div class="pitch-player" onclick="openPlayerModal(${playerId})"><div class="player-avatar"><img src="${img}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2230%22 height=%2230%22%3E%3Crect width=%2230%22 height=%2230%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2214%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E'" />${number ? `<div class="player-number">${number}</div>` : ''}${iconsHtml ? `<div class="player-icons">${iconsHtml}</div>` : ''}</div><div class="player-name">${name}</div>${rating ? `<div class="player-rating">${rating}</div>` : ''}</div>`;
                         }
 
                         function renderRow(players, rowClass) { if (!players || players.length === 0) return ''; let html = `<div class="${rowClass}">`; if (rowClass === 'row-gk') { html += `<div style="display:flex;justify-content:center;width:100%;">`; players.forEach(p => { html += playerCard(p); }); html += `</div>`; } else { players.forEach(p => { html += `<div style="flex:1;display:flex;justify-content:center;">${playerCard(p)}</div>`; }); } html += `</div>`; return html; }
@@ -2218,9 +2216,9 @@
                         let pitchHtml = `<div class="pitch-container"><div class="pitch-team-name"><img src="${IMG_BASE_TEAM + team.image}" onclick="openTeamModal(${team.row_id})" />${team.title} <span class="formation">(${formation})</span></div><div class="pitch-grid">${renderRow(gk, 'row-gk')}${renderRow(def, 'row-def')}${renderRow(mid, 'row-mid')}${renderRow(fwd, 'row-fwd')}</div>`;
 
                         let extrasHtml = '<div class="pitch-extras">';
-                        if (coach) { const img = coach.image ? IMG_BASE_COACH + coach.image : 'data:image/svg+xml,...'; extrasHtml += `<div class="coach-section" onclick="openCoachModal(${coach.id})"><img src="${img}" class="coach-avatar" onerror="this.src='data:image/svg+xml,...'" /><span class="coach-name">${coach.title}</span></div>`; }
-                        if (subs && subs.length) { extrasHtml += `<div class="subs-section"><div class="subs-title">Substitutions</div>`; subs.forEach(sub => { const player = sub.player; const replaced = sub.player_lineup ? sub.player_lineup.title : ''; const time = sub.substitute_time ? `${sub.substitute_time}'` : ''; const img = player.image ? IMG_BASE_PLAYER + player.image : 'data:image/svg+xml,...'; const playerId = player.row_id; extrasHtml += `<div class="sub-item"><span>${time}</span><img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" /><span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span>${replaced ? `<span class="sub-arrow">→ ${replaced}</span>` : ''}</div>`; }); extrasHtml += `</div>`; }
-                        if (injured && injured.length) { extrasHtml += `<div class="injuries-section"><div class="injuries-title">⚠️ Missing Players</div>`; injured.forEach(inj => { const player = inj.player; const type = inj.type_name || 'Injury'; const img = player.image ? IMG_BASE_PLAYER + player.image : 'data:image/svg+xml,...'; const playerId = player.row_id; extrasHtml += `<div class="injury-item"><img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" /><span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span><span class="injury-type">- ${type}</span></div>`; }); extrasHtml += `</div>`; }
+                        if (coach) { const img = coach.image ? IMG_BASE_COACH + coach.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E'; extrasHtml += `<div class="coach-section" onclick="openCoachModal(${coach.id})"><img src="${img}" class="coach-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2232%22 height=%2232%22%3E%3Crect width=%2232%22 height=%2232%22 fill=%22%23ddd%22/%3E%3Ctext x=%225%22 y=%2220%22 font-family=%22sans-serif%22 font-size=%2212%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E'" /><span class="coach-name">${coach.title}</span></div>`; }
+                        if (subs && subs.length) { extrasHtml += `<div class="subs-section"><div class="subs-title">Substitutions</div>`; subs.forEach(sub => { const player = sub.player; const replaced = sub.player_lineup ? sub.player_lineup.title : ''; const time = sub.substitute_time ? `${sub.substitute_time}'` : ''; const img = player.image ? IMG_BASE_PLAYER + player.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2218%22 height=%2218%22%3E%3Crect width=%2218%22 height=%2218%22 fill=%22%23ddd%22/%3E%3Ctext x=%223%22 y=%2212%22 font-family=%22sans-serif%22 font-size=%2210%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E'; const playerId = player.row_id; extrasHtml += `<div class="sub-item"><span>${time}</span><img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" /><span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span>${replaced ? `<span class="sub-arrow">→ ${replaced}</span>` : ''}</div>`; }); extrasHtml += `</div>`; }
+                        if (injured && injured.length) { extrasHtml += `<div class="injuries-section"><div class="injuries-title">⚠️ Missing Players</div>`; injured.forEach(inj => { const player = inj.player; const type = inj.type_name || 'Injury'; const img = player.image ? IMG_BASE_PLAYER + player.image : 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%2218%22 height=%2218%22%3E%3Crect width=%2218%22 height=%2218%22 fill=%22%23ddd%22/%3E%3Ctext x=%223%22 y=%2212%22 font-family=%22sans-serif%22 font-size=%2210%22 fill=%22%23999%22%3E?%3C/text%3E%3C/svg%3E'; const playerId = player.row_id; extrasHtml += `<div class="injury-item"><img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" /><span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span><span class="injury-type">- ${type}</span></div>`; }); extrasHtml += `</div>`; }
                         extrasHtml += '</div>';
                         pitchHtml += extrasHtml; pitchHtml += `</div>`; return pitchHtml;
                     }
@@ -2802,7 +2800,6 @@
         //  INIT
         // ============================================================
         (async function init() {
-            // Load settings
             const savedOffset = localStorage.getItem('timezoneOffset');
             if (savedOffset !== null) selectedTimeZoneOffset = parseInt(savedOffset);
             const savedFormat = localStorage.getItem('timeFormat');
@@ -2853,4 +2850,4 @@
         console.log('- ADDED: Settings tab for Timezone and Time Format.');
     </script>
 </body>
-</html>
+                </html>
