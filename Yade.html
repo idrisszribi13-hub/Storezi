@@ -859,18 +859,18 @@
         let selectedTimeZoneOffset = parseInt(localStorage.getItem('timezoneOffset')) || 3600; // Default GMT+1
         let selectedTimeFormat = localStorage.getItem('timeFormat') || '24';
 
-        // ===== EVENT TYPE MAPPING =====
+        // ===== EVENT TYPE MAPPING (CORRECTED) =====
         const EVENT_TYPE_MAP = {
             1: { label: 'Goal', icon: ICONS.goal },
             2: { label: 'Yellow Card', icon: ICONS.yellowCard },
             3: { label: 'Second Yellow Card', icon: ICONS.yellowCard },
-            4: { label: 'Red Card', icon: ICONS.redCard },
+            4: { label: 'Own Goal', icon: ICONS.redCard }, // FIXED: Own Goal
             5: { label: 'Penalty Scored', icon: ICONS.penaltyScored },
             6: { label: 'Red Card', icon: ICONS.redCard },
-            7: { label: 'Offside', icon: ICONS.flag },
+            7: { label: 'Offside', icon: ICONS.redCard }, // FIXED: Offside
             8: { label: 'Substitution', icon: ICONS.substitutePlayer },
             9: { label: 'Foul', icon: ICONS.flag },
-            10: { label: 'Own Goal', icon: ICONS.ownGoal },
+            10: { label: 'Own Goal', icon: ICONS.redCard },
             11: { label: 'Penalty Missed', icon: ICONS.penaltyMissed },
             12: { label: 'Penalty Saved', icon: ICONS.penaltyKick },
             13: { label: 'Goal', icon: ICONS.goal },
@@ -2305,12 +2305,14 @@
 
             let playerHtml = '', subHtml = '';
             if (evType === 8) {
-                const out = ev.assist_player_name ? ev.assist_player_name.title : '';
-                const inn = ev.player_name ? ev.player_name.title : '';
+                // FIXED: player_name is OUT, assist_player_name is IN
+                const out = ev.player_name ? ev.player_name.title : '';
+                const inn = ev.assist_player_name ? ev.assist_player_name.title : '';
                 const playerId = ev.player && ev.player.row_id ? ev.player.row_id : null;
                 const assistId = ev.assist_player && ev.assist_player.row_id ? ev.assist_player.row_id : null;
-                playerHtml = `<span class="in-arrow">&#8594;</span> <span class="player-name-click" onclick="${playerId ? `openPlayerModal(${playerId})` : ''}">${inn}</span>`;
-                subHtml = `<span class="out-arrow">&#8592;</span> <span class="player-name-click" onclick="${assistId ? `openPlayerModal(${assistId})` : ''}">${out}</span>`;
+                
+                playerHtml = `<span class="in-arrow">&#8594;</span> <span class="player-name-click" onclick="${assistId ? `openPlayerModal(${assistId})` : ''}">${inn}</span>`;
+                subHtml = `<span class="out-arrow">&#8592;</span> <span class="player-name-click" onclick="${playerId ? `openPlayerModal(${playerId})` : ''}">${out}</span>`;
             } else {
                 const name = ev.player_name ? ev.player_name.title : '';
                 const playerId = ev.player && ev.player.row_id ? ev.player.row_id : null;
@@ -2844,10 +2846,9 @@
         })();
 
         console.log('Football Center restored with all requested fixes:');
-        console.log('- FIXED: Status system (Upcoming, 1st Half, HT, 2nd Half, Ended, ET1/ET2, PEN) with freeze at 45/90/105 and countdown to next half.');
-        console.log('- FIXED: Lineups sorted and placed correctly on the pitch.');
-        console.log('- FIXED: Events show correct scores for each half/state.');
-        console.log('- ADDED: Settings tab for Timezone and Time Format.');
+        console.log('- FIXED: Event type mapping (Own Goal and Offside icons).');
+        console.log('- FIXED: Substitution order (Incoming and Outgoing players).');
+        console.log('- FIXED: Status system with countdown and score in events.');
     </script>
 </body>
-                </html>
+                    </html>
