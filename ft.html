@@ -1,317 +1,768 @@
 <!DOCTYPE html>
-<html dir="rtl" lang="ar">
+<html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Yalla Shoot - Live Sports</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cesar365 - Paris sportifs</title>
     <style>
-        :root {
-            --Main-Color: #39dbbf;
-            --Secondary-Color: #06b1c3;
-            --Body-BG: #e4eeff;
-            --Secondary-BG: #ffffff;
-            --Main-Font-Color: #444;
-            --Border: 1px solid #d1e7ff;
-            --Shadow: 0 2px 10px 0 rgba(0,0,0,0.15);
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
-        body.Night {
-            --Body-BG: #07080e;
-            --Secondary-BG: #171923;
-            --Main-Font-Color: #BFC3D4;
-            --Border: 1px solid #252c37;
+        body {
+            background: #0b0e14;
+            color: #e8edf5;
+            padding-bottom: 80px;
         }
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--Body-BG); color: var(--Main-Font-Color); direction: rtl; overflow-x: hidden; transition: 0.3s; }
-        
-        .container { max-width: 1200px; margin: auto; padding: 12px; }
-        
-        /* الهيدر */
-        .SiteHeader { background: var(--Secondary-BG); box-shadow: var(--Shadow); padding: 15px; position: sticky; top: 0; z-index: 50; }
-        .header-wrapper { display: flex; justify-content: space-between; align-items: center; }
-        #logo { font-size: 24px; font-weight: bold; color: var(--Main-Color); }
-        .menu-ul { display: flex; list-style: none; gap: 20px; }
-        .header-items-wrap { display: flex; align-items: center; gap: 10px; }
-        .search-form input { padding: 8px; border-radius: 20px; border: var(--Border); background: var(--Body-BG); color: var(--Main-Font-Color); }
-        .dark-mode, .settings-toggle { cursor: pointer; font-size: 20px; padding: 5px 10px; background: var(--Body-BG); border-radius: 8px; }
-        .dark-mode:hover, .settings-toggle:hover { background: var(--Main-Color); color: #000; }
+        /* Header */
+        .header {
+            background: #141a24;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #2a3340;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .logo {
+            font-weight: 700;
+            font-size: 20px;
+            color: #f0b90b;
+        }
+        .logo span {
+            color: #fff;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 14px;
+        }
+        .balance {
+            background: #1f2937;
+            padding: 4px 12px;
+            border-radius: 20px;
+            color: #4ade80;
+        }
+        /* Navigation */
+        .nav {
+            background: #141a24;
+            padding: 8px 12px;
+            display: flex;
+            overflow-x: auto;
+            gap: 16px;
+            border-bottom: 1px solid #2a3340;
+        }
+        .nav-item {
+            white-space: nowrap;
+            padding: 6px 0;
+            font-size: 14px;
+            color: #9aa4b3;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+        }
+        .nav-item.active {
+            color: #f0b90b;
+            border-bottom-color: #f0b90b;
+        }
+        .nav-item:hover {
+            color: #fff;
+        }
+        /* Main */
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 12px;
+        }
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin: 16px 0 10px;
+            color: #9aa4b3;
+            letter-spacing: 0.5px;
+        }
+        /* Match card */
+        .match-card {
+            background: #1a212c;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border: 1px solid #2a3340;
+            transition: 0.2s;
+            cursor: pointer;
+        }
+        .match-card:active {
+            transform: scale(0.98);
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            color: #9aa4b3;
+        }
+        .match-league {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .match-league .flag {
+            width: 20px;
+            height: 14px;
+            background: #2a3340;
+            border-radius: 2px;
+        }
+        .match-live {
+            background: #dc2626;
+            color: #fff;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 11px;
+            font-weight: 600;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        .match-teams {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 8px;
+        }
+        .team {
+            font-size: 16px;
+            font-weight: 500;
+        }
+        .team-away {
+            text-align: right;
+        }
+        .match-score {
+            font-size: 22px;
+            font-weight: 700;
+            color: #f0b90b;
+            background: #0f172a;
+            padding: 0 12px;
+            border-radius: 6px;
+        }
+        .match-time {
+            font-size: 13px;
+            color: #9aa4b3;
+            margin-top: 4px;
+            text-align: center;
+        }
+        /* Odds row */
+        .odds-row {
+            display: flex;
+            justify-content: space-around;
+            margin-top: 12px;
+            gap: 6px;
+        }
+        .odd-btn {
+            flex: 1;
+            background: #1f2937;
+            border: 1px solid #2a3340;
+            border-radius: 8px;
+            padding: 8px 0;
+            text-align: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: #e8edf5;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .odd-btn:active {
+            background: #374151;
+        }
+        .odd-btn .label {
+            font-size: 10px;
+            color: #9aa4b3;
+            font-weight: 400;
+        }
+        .odd-btn .price {
+            display: block;
+            font-size: 16px;
+            margin-top: 2px;
+        }
+        .odd-btn.selected {
+            background: #f0b90b;
+            color: #0b0e14;
+            border-color: #f0b90b;
+        }
+        .odd-btn.selected .label {
+            color: #0b0e14;
+        }
 
-        /* نافذة الإعدادات */
-        .drop-item-wrap { display: none; position: absolute; top: 60px; left: 20px; background: var(--Secondary-BG); padding: 20px; border-radius: 12px; box-shadow: var(--Shadow); z-index: 100; width: 280px; }
-        .drop-item-wrap.active { display: block; }
-        .dd-header { display: flex; justify-content: space-between; margin-bottom: 15px; border-bottom: var(--Border); padding-bottom: 10px; }
-        select, .st-opt label { display: block; width: 100%; padding: 10px; margin-bottom: 10px; background: var(--Body-BG); border: var(--Border); border-radius: 8px; cursor: pointer; }
+        /* Expandable detail */
+        .match-detail {
+            margin-top: 12px;
+            border-top: 1px solid #2a3340;
+            padding-top: 12px;
+            display: none;
+        }
+        .match-detail.open {
+            display: block;
+        }
+        .market-group {
+            margin-bottom: 12px;
+        }
+        .market-title {
+            font-size: 14px;
+            font-weight: 500;
+            color: #9aa4b3;
+            margin-bottom: 6px;
+        }
+        .market-odds {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        .market-odd {
+            flex: 1;
+            min-width: 60px;
+            background: #1f2937;
+            border-radius: 6px;
+            padding: 6px 0;
+            text-align: center;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #2a3340;
+            transition: 0.2s;
+        }
+        .market-odd:active {
+            background: #374151;
+        }
+        .market-odd .m-label {
+            display: block;
+            font-size: 10px;
+            color: #9aa4b3;
+        }
+        .market-odd .m-price {
+            font-weight: 600;
+        }
+        .market-odd.selected {
+            background: #f0b90b;
+            color: #0b0e14;
+            border-color: #f0b90b;
+        }
+        .market-odd.selected .m-label {
+            color: #0b0e14;
+        }
 
-        /* شريط الفلترة والتاريخ */
-        .filter-toolbar { display: flex; justify-content: space-between; align-items: center; background: var(--Secondary-BG); padding: 12px; border-radius: 12px; margin-bottom: 15px; box-shadow: var(--Shadow); flex-wrap: wrap; gap: 10px; }
-        .filter-tabs button { background: var(--Body-BG); border: var(--Border); padding: 8px 15px; border-radius: 20px; cursor: pointer; color: var(--Main-Font-Color); }
-        .tab-btn.active { background: var(--Main-Color); color: #000; font-weight: bold; border: none; }
-        .date-picker { cursor: pointer; position: relative; background: var(--Body-BG); padding: 8px 15px; border-radius: 8px; border: var(--Border); }
-        .calendar { display: none; position: absolute; background: var(--Secondary-BG); padding: 10px; border-radius: 8px; box-shadow: var(--Shadow); top: 35px; left: 0; width: 280px; border: var(--Border); z-index: 10; }
-        .calendar.active { display: block; }
-        .cal-days { display: grid; grid-template-columns: repeat(7, 1fr); gap: 5px; text-align: center; padding-top: 10px; }
-        .cal-day { padding: 8px; cursor: pointer; border-radius: 5px; }
-        .cal-day:hover { background: var(--Main-Color); color: #000; }
-        .cal-day.selected { background: var(--Main-Color); color: #000; font-weight: bold; }
+        /* Bet slip */
+        .bet-slip {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #141a24;
+            border-top: 2px solid #f0b90b;
+            padding: 12px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            max-height: 50vh;
+            overflow-y: auto;
+            z-index: 200;
+            transition: 0.3s;
+        }
+        .bet-slip.hidden {
+            transform: translateY(100%);
+        }
+        .bet-slip-header {
+            display: flex;
+            justify-content: space-between;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .bet-slip-item {
+            background: #1f2937;
+            border-radius: 6px;
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+        .bet-slip-item .remove {
+            color: #ef4444;
+            cursor: pointer;
+            font-weight: 700;
+            margin-left: 8px;
+        }
+        .bet-slip-total {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #2a3340;
+            padding-top: 8px;
+        }
+        .bet-slip-total input {
+            background: #0b0e14;
+            border: 1px solid #2a3340;
+            border-radius: 6px;
+            padding: 6px 10px;
+            color: #fff;
+            width: 100px;
+        }
+        .bet-slip-total .potential {
+            color: #4ade80;
+            font-weight: 600;
+        }
+        .place-bet-btn {
+            background: #f0b90b;
+            color: #0b0e14;
+            border: none;
+            border-radius: 8px;
+            padding: 10px;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .place-bet-btn:active {
+            transform: scale(0.97);
+        }
+        .place-bet-btn:disabled {
+            opacity: 0.5;
+            pointer-events: none;
+        }
 
-        /* بطاقات المباريات */
-        .TitleBox { background: var(--Secondary-BG); padding: 15px; border-radius: 12px; margin-bottom: 10px; border-bottom: var(--Border); font-size: 20px; font-weight: bold; color: var(--Main-Color); }
-        .match-card { background: var(--Secondary-BG); border-radius: 12px; padding: 15px; margin-bottom: 10px; box-shadow: var(--Shadow); display: flex; justify-content: space-between; align-items: center; }
-        .team-info { display: flex; flex-direction: column; align-items: center; width: 30%; }
-        .team-logo { width: 50px; height: 50px; border-radius: 50%; background: #eee; margin-bottom: 5px; display: flex; justify-content: center; align-items: center; font-size: 20px; font-weight: bold; }
-        .match-score { text-align: center; width: 30%; font-size: 24px; font-weight: bold; }
-        .live-status { color: red; font-size: 12px; animation: blink 1s infinite; margin-bottom: 5px; }
-        @keyframes blink { 50% { opacity: 0.5; } }
-
-        /* قسم الأحداث والبطاقات */
-        .events-box { background: var(--Secondary-BG); border-radius: 12px; padding: 10px; margin-bottom: 10px; }
-        .event-item { display: flex; justify-content: space-between; padding: 5px 0; border-bottom: 1px solid #eee; }
-        .event-item:last-child { border-bottom: none; }
-        .card-icon { display: inline-block; width: 12px; height: 16px; background: yellow; margin-left: 5px; }
-        
-        @media (max-width: 768px) { 
-            .action-bar { display: flex; } 
-            .menu-ul { display: none; } 
-            .filter-toolbar { flex-direction: column; align-items: stretch; }
-            .filter-tabs { display: flex; overflow-x: auto; white-space: nowrap; }
+        /* empty state */
+        .empty {
+            color: #6b7280;
+            text-align: center;
+            padding: 40px 0;
+        }
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .text-green {
+            color: #4ade80;
+        }
+        .text-red {
+            color: #ef4444;
+        }
+        .text-muted {
+            color: #9aa4b3;
+        }
+        /* Responsive */
+        @media (min-width: 768px) {
+            .container {
+                max-width: 800px;
+            }
+            .bet-slip {
+                max-width: 400px;
+                right: 20px;
+                left: auto;
+                bottom: 20px;
+                border-radius: 12px;
+            }
         }
     </style>
 </head>
 <body>
 
-    <!-- الهيدر -->
-    <header class="SiteHeader">
-        <div class="container header-wrapper">
-            <div id="logo">Yalla Shoot</div>
-            <ul class="menu-ul">
-                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">الرئيسية</a></li>
-                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">المباريات</a></li>
-                <li><a href="#" style="color:var(--Main-Font-Color); text-decoration:none;">الأخبار</a></li>
-            </ul>
-            <div class="header-items-wrap">
-                <div class="search-form">
-                    <input type="text" placeholder="بحث...">
-                </div>
-                <div class="settings-toggle" onclick="toggleSettings()">⚙️</div>
-                <div class="dark-mode" onclick="toggleDarkMode()" id="dark-btn">🌙</div>
-            </div>
-        </div>
-    </header>
-
-    <!-- نافذة الإعدادات (Timezone) -->
-    <div id="settings-panel" class="drop-item-wrap">
-        <div class="dd-header">
-            <h6>الإعدادات</h6>
-            <span style="cursor:pointer" onclick="toggleSettings()">✖</span>
-        </div>
-        <label style="font-weight:bold">منطقتك الزمنية</label>
-        <select id="timezone-select" onchange="changeTimezone()">
-            <option value="Asia/Riyadh">السعودية (GMT+3)</option>
-            <option value="Africa/Cairo">مصر (GMT+2)</option>
-            <option value="UTC">التوقيت العالمي (UTC)</option>
-        </select>
+<!-- Header -->
+<header class="header">
+    <div class="logo">Cesar<span>365</span></div>
+    <div class="user-info">
+        <span class="balance">💰 1 234.50</span>
+        <span>👤 93802</span>
     </div>
+</header>
 
-    <!-- شريط الفلترة والتاريخ -->
-    <div class="container">
-        <div class="filter-toolbar">
-            <div class="filter-tabs">
-                <button class="tab-btn active" onclick="filterByLeague(649)">الدوري السعودي</button>
-                <button class="tab-btn" onclick="filterByLeague(7)">الدوري الإنجليزي</button>
-                <button class="tab-btn" onclick="filterByLeague(11)">الدوري الإسباني</button>
-            </div>
-            <div class="date-picker" onclick="toggleCalendar()">
-                📅 <span id="selected-date">2026-08-28</span> ▾
-                <div id="calendar-dropdown" class="calendar">
-                    <div class="cal-header">أغسطس 2026</div>
-                    <div class="cal-days" id="cal-days"></div>
-                </div>
-            </div>
-        </div>
+<!-- Navigation -->
+<nav class="nav">
+    <span class="nav-item active">⚽ Football</span>
+    <span class="nav-item">🏀 Basketball</span>
+    <span class="nav-item">🎾 Tennis</span>
+    <span class="nav-item">🏐 Volleyball</span>
+    <span class="nav-item">🏓 Ping-Pong</span>
+    <span class="nav-item">🎮 E-sports</span>
+</nav>
 
-        <!-- حاوية المباريات (سيتم تعبئتها بالـ API) -->
-        <section class="MW-Box">
-            <header class="TitleBox">
-                مباريات اليوم
-            </header>
-            <div id="matches-container">
-                <p style="text-align:center">جاري تحميل البيانات...</p>
-            </div>
-        </section>
+<!-- Main -->
+<div class="container" id="app">
+    <div class="section-title">⚡ EN DIRECT</div>
+    <div id="matches-list"></div>
+</div>
+
+<!-- Bet Slip -->
+<div class="bet-slip hidden" id="betSlip">
+    <div class="bet-slip-header">
+        <span>📋 Mon pari</span>
+        <span id="slipCount">0 sélection</span>
     </div>
-
-    <!-- الشريط السفلي -->
-    <div class="action-bar">
-        <ul>
-            <li class="active"><span style="font-size:20px;">📺</span><br>المباريات</li>
-            <li><span style="font-size:20px;">🔥</span><br>الأخبار</li>
-            <li><span style="font-size:20px;">🏆</span><br>البطولات</li>
-            <li onclick="toggleSettings()"><span style="font-size:20px;">⚙️</span><br>الإعدادات</li>
-        </ul>
+    <div id="slipItems"></div>
+    <div class="bet-slip-total">
+        <span>Mise</span>
+        <input type="number" id="stakeInput" placeholder="0.00" min="0" step="0.01" value="10">
+        <span>Gain potentiel</span>
+        <span class="potential" id="potentialWin">0.00</span>
     </div>
+    <button class="place-bet-btn" id="placeBetBtn">Placer le pari</button>
+</div>
 
-    <script>
-        // ==== 1. تحديد رابط الـ API الخاص بك ====
-        // ضع هنا الرابط الذي سيعطيك بيانات المباريات
-        const API_URL = "https://phantom-pro-theme.malik-web.net/wp-json/wp/v2/your-api-endpoint"; 
-        // ملاحظة: البيانات التي أرسلتها تمثل مباراة واحدة حية، لذلك سأعرضها كنموذج للتوضيح.
-        
-        let currentLeague = 649; // الدوري السعودي
-        let currentDate = new Date('2026-08-28');
-        let matchesData = []; // سيتم تخزين البيانات هنا
+<script>
+    // ===================================================================
+    // DONNÉES EMBARQUÉES (extraites des réponses API)
+    // ===================================================================
 
-        // ==== 2. دالة جلب البيانات من الـ API ====
-        // هنا سنقوم بمحاكاة استخراج البيانات من الـ JSON الذي أرسلته
-        async function fetchMatches() {
-            document.getElementById('matches-container').innerHTML = '<p style="text-align:center">جاري التحميل...</p>';
-            
-            try {
-                // في الواقع ستقوم بـ fetch(API_URL)
-                // لكن للتوضيح، سأستخدم JSON الذي أرسلته مباشرة
-                // (في الكود الحقيقي استبدل هذا بـ fetch(API_URL))
-                const mockResponse = {
-                    "game": {
-                        "competitionId": 649,
-                        "competitionDisplayName": "السعودية, الدوري السعودي",
-                        "statusText": "شوط",
-                        "gameTimeDisplay": "45'",
-                        "homeCompetitor": { "name": "الرياض", "score": 0 },
-                        "awayCompetitor": { "name": "نيوم", "score": 0 },
-                        "events": [
-                            { "playerId": 367810, "eventType": { "name": "بطاقة صفراء" }, "gameTimeDisplay": "37'" },
-                            { "playerId": 6761501, "eventType": { "name": "بطاقة صفراء" }, "gameTimeDisplay": "45'" }
-                        ]
-                    }
-                };
+    // Compétiteurs
+    const competitors = {
+        43611: { name: 'Real Betis', abbr: 'BET' },
+        43610: { name: 'Real Madrid', abbr: 'RMA' },
+        43975: { name: 'Ipswich', abbr: 'IPS' },
+        43703: { name: 'Liverpool', abbr: 'LIV' },
+        43671: { name: 'PSG', abbr: 'PSG' },
+        43674: { name: 'Monaco', abbr: 'ASM' },
+        47905: { name: 'Lommel SK', abbr: 'LOM' },
+        43747: { name: 'Club Brugge', abbr: 'BRU' },
+        43772: { name: 'FC Porto', abbr: 'POR' },
+        47107: { name: 'Moreirense', abbr: 'MOR' },
+    };
 
-                // استخراج المباراة من الـ API
-                const game = mockResponse.game;
-                
-                // فلترة حسب البطولة (حسب القيمة المختارة)
-                if (game.competitionId === currentLeague) {
-                    matchesData = [game];
-                } else {
-                    matchesData = [];
-                }
-
-                renderMatches();
-            } catch (error) {
-                console.error("خطأ في الاتصال بالـ API:", error);
-                document.getElementById('matches-container').innerHTML = '<p style="color:red; text-align:center">تعذر الاتصال بالخادم</p>';
+    // Matchs avec leurs marchés principaux (1x2)
+    const matches = [{
+        id: 17466892,
+        name: 'Real Betis vs. Real Madrid',
+        homeId: 43611,
+        awayId: 43610,
+        score: [0, 0],
+        liveTime: "68'",
+        league: 'LaLiga • Espagne',
+        status: 1,
+        markets: {
+            '1x2': {
+                label: '1x2',
+                odds: [
+                    { label: '1', price: 9.0, competitorId: 43611 },
+                    { label: 'X', price: 2.4 },
+                    { label: '2', price: 1.875, competitorId: 43610 }
+                ]
+            },
+            'Total': {
+                label: 'Total (0.5)',
+                odds: [
+                    { label: 'Plus de 0.5', price: 1.425 },
+                    { label: 'Moins de 0.5', price: 2.9 }
+                ]
+            },
+            'Double chance': {
+                label: 'Double chance',
+                odds: [
+                    { label: '1X', price: 1.9 },
+                    { label: '12', price: 1.5556 },
+                    { label: 'X2', price: 1.0556 }
+                ]
+            },
+            'Les deux équipes qui marquent': {
+                label: 'BTTS',
+                odds: [
+                    { label: 'Oui', price: 6.0 },
+                    { label: 'Non', price: 1.1053 }
+                ]
             }
         }
-
-        // ==== 3. دالة عرض المباريات ====
-        function renderMatches() {
-            const container = document.getElementById('matches-container');
-            container.innerHTML = '';
-
-            if (matchesData.length === 0) {
-                container.innerHTML = '<p class="no-matches">لا توجد مباريات حالياً في هذه البطولة</p>';
-                return;
+    }, {
+        id: 17162722,
+        name: 'Ipswich vs. Liverpool',
+        homeId: 43975,
+        awayId: 43703,
+        score: [0, 2],
+        liveTime: "72'",
+        league: 'Premier League • Angleterre',
+        status: 1,
+        markets: {
+            '1x2': {
+                label: '1x2',
+                odds: [
+                    { label: '1', price: 101, competitorId: 43975 },
+                    { label: 'X', price: 16 },
+                    { label: '2', price: 1.0134, competitorId: 43703 }
+                ]
             }
+        }
+    }, {
+        id: 17455117,
+        name: 'PSG vs. Monaco',
+        homeId: 43671,
+        awayId: 43674,
+        score: [1, 1],
+        liveTime: "66'",
+        league: 'Ligue 1 • France',
+        status: 1,
+        markets: {
+            '1x2': {
+                label: '1x2',
+                odds: [
+                    { label: '1', price: 1.8462, competitorId: 43671 },
+                    { label: 'X', price: 2.4 },
+                    { label: '2', price: 9.5, competitorId: 43674 }
+                ]
+            }
+        }
+    }, {
+        id: 17300833,
+        name: 'Lommel SK vs. Club Brugge',
+        homeId: 47905,
+        awayId: 43747,
+        score: [0, 1],
+        liveTime: "87'",
+        league: 'Pro League • Belgique',
+        status: 1,
+        markets: {
+            '1x2': {
+                label: '1x2',
+                odds: [
+                    { label: '1', price: 101, competitorId: 47905 },
+                    { label: 'X', price: 8.5 },
+                    { label: '2', price: 1.0667, competitorId: 43747 }
+                ]
+            }
+        }
+    }, {
+        id: 17467156,
+        name: 'FC Porto vs. Moreirense',
+        homeId: 43772,
+        awayId: 47107,
+        score: [1, 1],
+        liveTime: "52'",
+        league: 'Primeira Liga • Portugal',
+        status: 1,
+        markets: {
+            '1x2': {
+                label: '1x2',
+                odds: [
+                    { label: '1', price: 1.3847, competitorId: 43772 },
+                    { label: 'X', price: 3.45 },
+                    { label: '2', price: 18, competitorId: 47107 }
+                ]
+            }
+        }
+    }];
 
-            matchesData.forEach(match => {
-                const liveStatus = match.statusText === "شوط" ? '<div class="live-status">● مباشر</div>' : '';
-                const homeScore = match.homeCompetitor.score;
-                const awayScore = match.awayCompetitor.score;
+    // ===================================================================
+    // RENDU
+    // ===================================================================
 
-                // إنشاء كود HTML لبطاقة المباراة
-                let matchHTML = `
-                    <div class="match-card">
-                        <div class="team-info">
-                            <div class="team-logo">${match.homeCompetitor.name[0]}</div>
-                            <span>${match.homeCompetitor.name}</span>
+    const app = document.getElementById('matches-list');
+    const betSlip = document.getElementById('betSlip');
+    const slipItems = document.getElementById('slipItems');
+    const slipCount = document.getElementById('slipCount');
+    const stakeInput = document.getElementById('stakeInput');
+    const potentialWin = document.getElementById('potentialWin');
+    const placeBtn = document.getElementById('placeBetBtn');
+
+    let selectedBets = []; // { matchId, marketKey, oddIndex, label, price }
+
+    function renderMatches() {
+        let html = '';
+        matches.forEach(match => {
+            const home = competitors[match.homeId]?.name || 'Home';
+            const away = competitors[match.awayId]?.name || 'Away';
+            const homeAbbr = competitors[match.homeId]?.abbr || '';
+            const awayAbbr = competitors[match.awayId]?.abbr || '';
+            const scoreStr = match.score.join(' : ');
+            const market = match.markets['1x2'];
+            const odds = market.odds;
+
+            html += `
+                <div class="match-card" data-matchid="${match.id}">
+                    <div class="match-header">
+                        <div class="match-league">
+                            <span class="flag"></span>
+                            ${match.league}
                         </div>
-                        <div class="match-score">
-                            ${liveStatus}
-                            <div>${homeScore} - ${awayScore}</div>
-                            <div style="font-size: 14px; color: grey;">${match.gameTimeDisplay}</div>
-                        </div>
-                        <div class="team-info">
-                            <div class="team-logo">${match.awayCompetitor.name[0]}</div>
-                            <span>${match.awayCompetitor.name}</span>
-                        </div>
+                        <span class="match-live">EN DIRECT</span>
                     </div>
-                `;
-
-                // إضافة قسم الأحداث (البطاقات الصفراء) إذا كانت موجودة
-                if (match.events && match.events.length > 0) {
-                    matchHTML += `<div class="events-box"><strong>أهم الأحداث:</strong>`;
-                    match.events.forEach(event => {
-                        // استخراج اسم اللاعب (في الواقع يجب البحث عنه في قائمة اللاعبين)
-                        const playerName = event.playerId === 367810 ? "فيكتور لكحل" : "هارون كامارا";
-                        matchHTML += `
-                            <div class="event-item">
-                                <span>${playerName}</span>
-                                <span><span class="card-icon"></span> ${event.gameTimeDisplay}</span>
+                    <div class="match-teams">
+                        <div class="team">${home}</div>
+                        <div class="match-score">${scoreStr}</div>
+                        <div class="team team-away">${away}</div>
+                    </div>
+                    <div class="match-time">${match.liveTime}</div>
+                    <div class="odds-row">
+                        ${odds.map((odd, idx) => `
+                            <div class="odd-btn" data-match="${match.id}" data-market="1x2" data-index="${idx}" data-price="${odd.price}" data-label="${odd.label}">
+                                <span class="label">${odd.label}</span>
+                                <span class="price">${odd.price}</span>
                             </div>
-                        `;
-                    });
-                    matchHTML += `</div>`;
-                }
+                        `).join('')}
+                    </div>
+                    <div class="match-detail" id="detail-${match.id}">
+                        ${Object.keys(match.markets).filter(k => k !== '1x2').map(key => {
+                            const m = match.markets[key];
+                            return `
+                                <div class="market-group">
+                                    <div class="market-title">${m.label}</div>
+                                    <div class="market-odds">
+                                        ${m.odds.map((odd, idx) => `
+                                            <div class="market-odd" data-match="${match.id}" data-market="${key}" data-index="${idx}" data-price="${odd.price}" data-label="${odd.label}">
+                                                <span class="m-label">${odd.label}</span>
+                                                <span class="m-price">${odd.price}</span>
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                </div>
+            `;
+        });
+        app.innerHTML = html;
 
-                container.innerHTML += matchHTML;
+        // Événements pour ouvrir/fermer les détails
+        document.querySelectorAll('.match-card').forEach(card => {
+            card.addEventListener('click', function(e) {
+                // Ignorer si on a cliqué sur un bouton de cote
+                if (e.target.closest('.odd-btn') || e.target.closest('.market-odd')) return;
+                const detail = this.querySelector('.match-detail');
+                detail.classList.toggle('open');
             });
-        }
+        });
 
-        // ==== وظائف الفلترة والتاريخ والوقت ====
-        function filterByLeague(id) {
-            currentLeague = id;
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            fetchMatches(); // إعادة جلب البيانات
-        }
+        // Événements pour ajouter aux paris (odds principaux)
+        document.querySelectorAll('.odd-btn').forEach(btn => {
+            btn.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const matchId = parseInt(this.dataset.match);
+                const marketKey = this.dataset.market;
+                const idx = parseInt(this.dataset.index);
+                const price = parseFloat(this.dataset.price);
+                const label = this.dataset.label;
+                toggleBet(matchId, marketKey, idx, label, price, this);
+            });
+        });
 
-        function toggleCalendar() {
-            document.getElementById('calendar-dropdown').classList.toggle('active');
-            renderCalendar();
-        }
+        // Événements pour marchés secondaires
+        document.querySelectorAll('.market-odd').forEach(el => {
+            el.addEventListener('click', function(e) {
+                e.stopPropagation();
+                const matchId = parseInt(this.dataset.match);
+                const marketKey = this.dataset.market;
+                const idx = parseInt(this.dataset.index);
+                const price = parseFloat(this.dataset.price);
+                const label = this.dataset.label;
+                toggleBet(matchId, marketKey, idx, label, price, this);
+            });
+        });
+    }
 
-        function renderCalendar() {
-            const cal = document.getElementById('cal-days');
-            cal.innerHTML = '';
-            for(let i=1; i<=31; i++) {
-                const selectedClass = i === currentDate.getDate() ? 'selected' : '';
-                cal.innerHTML += `<div class="cal-day ${selectedClass}" onclick="selectDate(${i})">${i}</div>`;
-            }
+    function toggleBet(matchId, marketKey, idx, label, price, element) {
+        const betKey = `${matchId}-${marketKey}-${idx}`;
+        const existing = selectedBets.find(b => b.key === betKey);
+        if (existing) {
+            // Retirer
+            selectedBets = selectedBets.filter(b => b.key !== betKey);
+            element.classList.remove('selected');
+        } else {
+            // Ajouter
+            selectedBets.push({
+                key: betKey,
+                matchId,
+                marketKey,
+                idx,
+                label,
+                price
+            });
+            element.classList.add('selected');
         }
+        updateSlip();
+    }
 
-        function selectDate(day) {
-            currentDate = new Date(`2026-08-${day}`);
-            document.getElementById('selected-date').textContent = `2026-08-${day}`;
-            document.getElementById('calendar-dropdown').classList.remove('active');
-            fetchMatches(); // جلب مباريات اليوم الجديد
+    function updateSlip() {
+        if (selectedBets.length === 0) {
+            betSlip.classList.add('hidden');
+            return;
         }
+        betSlip.classList.remove('hidden');
+        slipCount.textContent = `${selectedBets.length} sélection`;
 
-        function toggleSettings() {
-            document.getElementById('settings-panel').classList.toggle('active');
-        }
+        let itemsHtml = '';
+        selectedBets.forEach(b => {
+            const match = matches.find(m => m.id === b.matchId);
+            const home = competitors[match.homeId]?.abbr || '';
+            const away = competitors[match.awayId]?.abbr || '';
+            const matchName = `${home} vs ${away}`;
+            itemsHtml += `
+                <div class="bet-slip-item">
+                    <span>${matchName} - ${b.label} @ ${b.price}</span>
+                    <span class="remove" data-key="${b.key}">✕</span>
+                </div>
+            `;
+        });
+        slipItems.innerHTML = itemsHtml;
 
-        function changeTimezone() {
-            const tz = document.getElementById('timezone-select').value;
-            localStorage.setItem('user-tz', tz);
-            alert(`تم تغيير المنطقة الزمنية إلى ${tz}. سيتم تحويل أوقات المباريات عند عرضها.`);
-            // هنا يمكنك إضافة كود لتحويل وقت البداية من UTC إلى التوقيت المحدد
-            // باستخدام: new Intl.DateTimeFormat('en-GB', { timeZone: tz })
-        }
+        // Supprimer un pari
+        document.querySelectorAll('.bet-slip-item .remove').forEach(btn => {
+            btn.addEventListener('click', function() {
+                const key = this.dataset.key;
+                const bet = selectedBets.find(b => b.key === key);
+                if (bet) {
+                    // Retirer la classe selected du bouton correspondant
+                    const selector = `.odd-btn[data-match="${bet.matchId}"][data-market="${bet.marketKey}"][data-index="${bet.idx}"]`;
+                    document.querySelector(selector)?.classList.remove('selected');
+                    const selector2 = `.market-odd[data-match="${bet.matchId}"][data-market="${bet.marketKey}"][data-index="${bet.idx}"]`;
+                    document.querySelector(selector2)?.classList.remove('selected');
+                }
+                selectedBets = selectedBets.filter(b => b.key !== key);
+                updateSlip();
+            });
+        });
 
-        function toggleDarkMode() {
-            document.body.classList.toggle('Night');
-            localStorage.setItem('night-mode', document.body.classList.contains('Night'));
-            document.getElementById('dark-btn').innerText = document.body.classList.contains('Night') ? '☀️' : '🌙';
-        }
+        // Calcul du gain potentiel
+        calculatePotential();
+    }
 
-        // تهيئة عند التحميل
-        window.onload = function() {
-            if(localStorage.getItem('night-mode') === 'true') {
-                document.body.classList.add('Night');
-                document.getElementById('dark-btn').innerText = '☀️';
-            }
-            const tz = localStorage.getItem('user-tz');
-            if(tz) document.getElementById('timezone-select').value = tz;
-            
-            fetchMatches(); // جلب البيانات
+    function calculatePotential() {
+        const stake = parseFloat(stakeInput.value) || 0;
+        if (selectedBets.length === 0 || stake <= 0) {
+            potentialWin.textContent = '0.00';
+            return;
         }
-    </script>
+        // Pour simplifier, on combine les cotes (multiplication)
+        let totalOdds = 1;
+        selectedBets.forEach(b => { totalOdds *= b.price; });
+        const win = stake * totalOdds;
+        potentialWin.textContent = win.toFixed(2);
+    }
+
+    stakeInput.addEventListener('input', calculatePotential);
+
+    placeBtn.addEventListener('click', function() {
+        if (selectedBets.length === 0) {
+            alert('Ajoutez au moins un pari');
+            return;
+        }
+        const stake = parseFloat(stakeInput.value) || 0;
+        if (stake <= 0) {
+            alert('Mise invalide');
+            return;
+        }
+        const totalWin = parseFloat(potentialWin.textContent);
+        alert(`Pari placé !\nMise: ${stake}\nGain potentiel: ${totalWin}\n\n(Simulation)`);
+        // Réinitialiser
+        selectedBets = [];
+        document.querySelectorAll('.odd-btn.selected, .market-odd.selected').forEach(el => el.classList.remove('selected'));
+        updateSlip();
+    });
+
+    // Lancer
+    renderMatches();
+</script>
+
 </body>
-</html>
+    </html>
