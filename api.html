@@ -1,22 +1,20 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="fr">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Goal 216 - Live & Top Events</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Goal 216 - Live Widgets</title>
     <style>
-        /* --- نفس الـ Styles السابقة --- */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         body {
             background: #0b0e13;
             color: #f0f3f7;
+            font-family: system-ui, -apple-system, sans-serif;
             padding: 12px;
-            min-height: 100vh;
         }
         .header {
             display: flex;
@@ -30,135 +28,20 @@
             font-size: 22px;
             font-weight: 700;
             color: #00e676;
-            cursor: pointer;
         }
         .badge {
             background: #1f2937;
-            padding: 4px 10px;
+            padding: 4px 12px;
             border-radius: 20px;
-            font-size: 12px;
+            font-size: 11px;
             color: #9ca3af;
         }
-        .nav-tabs {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid #1f2937;
-            padding-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .nav-tabs button {
-            background: transparent;
-            border: none;
-            color: #9ca3af;
-            padding: 8px 16px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            border-radius: 20px;
-            transition: 0.2s;
-            white-space: nowrap;
-        }
-        .nav-tabs button.active {
-            background: #00e676;
-            color: #0b0e13;
-        }
-        .nav-tabs button:hover {
-            background: #1f2937;
-            color: #f0f3f7;
-        }
-        .match-card {
+        .widget-container {
             background: #14181f;
             border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 12px;
-            border-left: 4px solid #dc2626;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .match-card.coming {
-            border-left-color: #fbbf24;
-        }
-        .match-card.top-event {
-            border-left-color: #8b5cf6;
-        }
-        .match-card:hover {
-            background: #1a202a;
-        }
-        .match-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 12px;
-            color: #9ca3af;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-            gap: 4px;
-        }
-        .match-time {
-            font-weight: 600;
-            color: #fbbf24;
-        }
-        .match-league {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            max-width: 60%;
-        }
-        .score-line {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 18px;
-            font-weight: 600;
-            padding: 4px 0 8px 0;
-        }
-        .team {
-            display: flex;
-            flex-direction: column;
-            max-width: 40%;
-        }
-        .team-name {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .team-score {
-            font-size: 24px;
-            font-weight: 700;
-        }
-        .team.away {
-            text-align: right;
-        }
-        .vs-dash {
-            color: #4b5563;
-            font-weight: 300;
-            padding: 0 4px;
-        }
-        .odds-row {
-            display: flex;
-            justify-content: space-around;
-            background: #1e2530;
-            border-radius: 8px;
-            padding: 8px 0;
-            margin-top: 6px;
-        }
-        .odd-item {
-            text-align: center;
-            flex: 1;
-        }
-        .odd-item .label {
-            font-size: 11px;
-            color: #6b7280;
-            font-weight: 600;
-            text-transform: uppercase;
-        }
-        .odd-item .value {
-            font-size: 16px;
-            font-weight: 700;
-            color: #facc15;
-        }
-        .odd-item .value.highlight {
-            color: #34d399;
+            padding: 16px;
+            min-height: 200px;
+            margin-bottom: 16px;
         }
         .loading {
             text-align: center;
@@ -172,54 +55,6 @@
             color: #fca5a5;
             text-align: center;
             font-size: 14px;
-        }
-        .back-btn {
-            background: #1f2937;
-            border: none;
-            color: #f0f3f7;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 14px;
-            cursor: pointer;
-            margin-bottom: 16px;
-            display: inline-block;
-        }
-        .back-btn:hover {
-            background: #374151;
-        }
-        .market-group {
-            background: #14181f;
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-        }
-        .market-title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 10px;
-            color: #fbbf24;
-        }
-        .market-items {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-        }
-        .market-item {
-            background: #1e2530;
-            padding: 8px 14px;
-            border-radius: 8px;
-            flex: 1 0 calc(33% - 8px);
-            text-align: center;
-            min-width: 80px;
-        }
-        .market-item .name {
-            font-size: 12px;
-            color: #9ca3af;
-        }
-        .market-item .price {
-            font-size: 16px;
-            font-weight: 700;
-            color: #facc15;
         }
         .footer-menu {
             display: flex;
@@ -239,55 +74,18 @@
         .footer-menu .active {
             color: #00e676;
         }
-        .hidden {
-            display: none !important;
-        }
-        .live-label {
-            display: inline-block;
-            background: #dc2626;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-right: 8px;
-            animation: blink 1.2s infinite;
-        }
-        .top-label {
-            display: inline-block;
-            background: #8b5cf6;
-            color: white;
-            font-size: 10px;
-            font-weight: bold;
-            padding: 2px 8px;
-            border-radius: 4px;
-            margin-right: 8px;
-        }
-        @keyframes blink {
-            0% { opacity: 1; }
-            50% { opacity: 0.4; }
-            100% { opacity: 1; }
-        }
-        .sport-icon {
-            margin-right: 4px;
-        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1 id="home-link">⚽ goal216</h1>
+        <h1>⚽ goal216</h1>
         <span class="badge">LIVE</span>
     </div>
 
-    <div class="nav-tabs" id="navTabs">
-        <button class="active" data-view="live">🔴 EN DIRECT</button>
-        <button data-view="top">⭐ TOP EVENTS</button>
-        <button data-view="coming">📅 À VENIR</button>
-    </div>
-
-    <div id="app">
-        <div class="loading">⏳ Chargement...</div>
+    <!-- حاوية الـ Widgets -->
+    <div id="widget-container" class="widget-container">
+        <div class="loading">⏳ Chargement des widgets...</div>
     </div>
 
     <div class="footer-menu">
@@ -298,274 +96,44 @@
         <span>📺 Casino en Direct</span>
     </div>
 
+    <!-- ========================================================= -->
+    <!-- تحميل Widget Loader من الموقع الأصلي -->
+    <!-- ========================================================= -->
+    <script src="https://widgets.biahostod.com/46de729d1ad0ad36c0c780838303c0c4/widgetloader" n="SIR"></script>
+
+    <!-- ========================================================= -->
+    <!-- كود تهيئة الـ Widgets باستخدام نفس معاملات الموقع الأصلي -->
+    <!-- ========================================================= -->
     <script>
-        // ----------------------------------------------
-        // 1. CONFIGURATION
-        // ----------------------------------------------
+        // انتظار تحميل الـ Widgets
+        window.SIR = window.SIR || function() {};
+        window.SIR.q = window.SIR.q || [];
 
-        // 🔥 استبدل هذا الرابط بالرابط الفعلي لـ Edge Function الخاص بك في Supabase
-        const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
+        // تعريف الـ Widgets مع نفس الإعدادات التي وجدتها في الموقع الأصلي
+        window.SIR.q.push(['addWidget', '#widget-container', {
+            // معرّف المباراة (Arsenal vs Chelsea – يمكنك تغييره)
+            matchId: 72221232,
+            // اللغة والمنطقة (نفسها من طلباتك)
+            language: 'fr',
+            countryCode: 'TN',
+            // تفعيل الميزات المتقدمة
+            widgetSharing: true,
+            // استخدام ترخيص الموقع الأصلي
+            // هذا يعمل فقط على نطاق goal216.com
+            licensingUrl: 'https://widgets.biahostod.com/ee11c256d1a9bbc530b4a3380dae8698/licensing'
+        }]);
 
-        const BASE_PARAMS = 'timezoneOffset=-60&langId=39&skinName=dreamswin365_21&configId=1&culture=fr-FR&countryCode=TN&deviceType=Mobile&numformat=en&integration=betrebels';
-
-        // ----------------------------------------------
-        // 2. HELPERS
-        // ----------------------------------------------
-
-        function buildProxyUrl(endpoint, extraParams = '') {
-            let url = `${PROXY_URL}?endpoint=${endpoint}&${BASE_PARAMS}`;
-            if (extraParams) {
-                url += `&${extraParams}`;
-            }
-            return url;
-        }
-
-        async function fetchFromProxy(endpoint, extraParams = '') {
-    let url = `${PROXY_URL}?endpoint=${endpoint}`;
-    if (extraParams) {
-        url += `&extraParams=${extraParams}`;
-    }
-    const response = await fetch(url);
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`HTTP ${response.status}: ${errorData.error || errorData.details || response.statusText}`);
-    }
-    return await response.json();
-}
-        function extractOdds(markets) {
-            let odds1 = '-', oddsX = '-', odds2 = '-';
-            if (!markets) return { odds1, oddsX, odds2 };
-            const market = markets.find(m => m.Id === 1 || m.MarketId === 1);
-            if (market && market.Items) {
-                const items = market.Items;
-                const o1 = items.find(i => i.SelectionTypeId === 1);
-                const oX = items.find(i => i.SelectionTypeId === 2);
-                const o2 = items.find(i => i.SelectionTypeId === 3);
-                odds1 = o1 ? o1.Price || o1.odds : odds1;
-                oddsX = oX ? oX.Price || oX.odds : oddsX;
-                odds2 = o2 ? o2.Price || o2.odds : odds2;
-            }
-            return { odds1, oddsX, odds2 };
-        }
-
-        // ----------------------------------------------
-        // 3. RENDER FUNCTIONS
-        // ----------------------------------------------
-
-        const app = document.getElementById('app');
-
-        function renderMatchList(events, type = 'live') {
-            if (!events || events.length === 0) {
-                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
-                return;
-            }
-
-            let html = '';
-            events.forEach(match => {
-                const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
-                const time = match.LiveCurrentTime || match.EventDate?.split('T')[1]?.slice(0,5) || '--';
-                const score = match.LiveScore || '0:0';
-                const scores = score.split(':');
-                const team1 = match.Competitors?.[0]?.Name || 'Équipe A';
-                const team2 = match.Competitors?.[1]?.Name || 'Équipe B';
-                const league = match.ChampName || match.CategoryName || 'Championnat';
-                const matchId = match.Id;
-
-                const { odds1, oddsX, odds2 } = extractOdds(match.Items);
-
-                let label = '';
-                let cardClass = '';
-                if (type === 'live' && isLive) {
-                    label = '<span class="live-label">EN DIRECT</span>';
-                    cardClass = '';
-                } else if (type === 'top') {
-                    label = '<span class="top-label">⭐ TOP</span>';
-                    cardClass = 'top-event';
-                } else {
-                    label = '<span class="live-label" style="background:#fbbf24;color:#0b0e13;">À VENIR</span>';
-                    cardClass = 'coming';
-                }
-
-                html += `
-                    <div class="match-card ${cardClass}" data-matchid="${matchId}">
-                        <div class="match-header">
-                            ${label}
-                            <span class="match-time">${time}</span>
-                            <span class="match-league">${league}</span>
-                        </div>
-                        <div class="score-line">
-                            <div class="team home">
-                                <span class="team-name">${team1}</span>
-                                <span class="team-score">${scores[0] || '0'}</span>
-                            </div>
-                            <span class="vs-dash">⚡</span>
-                            <div class="team away">
-                                <span class="team-name">${team2}</span>
-                                <span class="team-score">${scores[1] || '0'}</span>
-                            </div>
-                        </div>
-                        <div class="odds-row">
-                            <div class="odd-item">
-                                <div class="label">1</div>
-                                <div class="value">${odds1}</div>
-                            </div>
-                            <div class="odd-item">
-                                <div class="label">X</div>
-                                <div class="value highlight">${oddsX}</div>
-                            </div>
-                            <div class="odd-item">
-                                <div class="label">2</div>
-                                <div class="value">${odds2}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-
-            app.innerHTML = html;
-
-            document.querySelectorAll('.match-card').forEach(card => {
-                card.addEventListener('click', function() {
-                    const matchId = this.dataset.matchid;
-                    if (matchId) {
-                        showEventDetails(matchId);
-                    }
-                });
-            });
-        }
-
-        // عرض تفاصيل المباراة (نفس الكود السابق)
-        async function showEventDetails(matchId) {
-            try {
-                app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
-                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
-                const result = data?.Result;
-                if (!result) {
-                    app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables pour ce match.</div>`;
-                    return;
-                }
-
-                const homeTeam = result.Competitors?.[0]?.Name || 'Home';
-                const awayTeam = result.Competitors?.[1]?.Name || 'Away';
-                const league = result.ChampName || result.CategoryName || 'Ligue';
-                const date = result.EventDate || '';
-
-                let html = `
-                    <button class="back-btn" id="backToList">← Retour</button>
-                    <div style="margin-bottom:16px;">
-                        <h2 style="font-size:20px;">${homeTeam} vs ${awayTeam}</h2>
-                        <p style="color:#9ca3af; font-size:14px;">${league} | ${date}</p>
-                    </div>
-                `;
-
-                const marketGroups = result.MarketGroups || [];
-                marketGroups.forEach(group => {
-                    if (!group.Items || group.Items.length === 0) return;
-                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
-                    group.Items.forEach(market => {
-                        if (!market.Items || market.Items.length === 0) return;
-                        const items = market.Items.slice(0, 6);
-                        items.forEach(item => {
-                            const name = item.Name || item.ShortName || '—';
-                            const price = item.Price || '-';
-                            html += `
-                                <div class="market-item">
-                                    <div class="name">${name}</div>
-                                    <div class="price">${price}</div>
-                                </div>
-                            `;
-                        });
-                    });
-                    html += `</div></div>`;
-                });
-
-                app.innerHTML = html;
-
-                document.getElementById('backToList').addEventListener('click', () => {
-                    const activeTab = document.querySelector('.nav-tabs .active');
-                    if (activeTab) {
-                        loadView(activeTab.dataset.view);
-                    } else {
-                        loadView('live');
-                    }
-                });
-
-            } catch (error) {
-                app.innerHTML = `<div class="error-msg">⛔ Erreur lors du chargement des détails: ${error.message}</div>`;
-                console.error(error);
-            }
-        }
-
-        // ----------------------------------------------
-        // 4. LOAD VIEWS
-        // ----------------------------------------------
-
-
-async function loadView(view) {
-    app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
-    try {
-        let events = [];
-        if (view === 'live') {
-            const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
-            events = data?.Result?.Items?.[0]?.Events || [];
-            renderMatchList(events, 'live');
-        } else if (view === 'top') {
-            const data = await fetchFromProxy('GetTopEvents', '');
-            events = data?.Result?.Events || [];
-            renderMatchList(events, 'top');
-        } else if (view === 'coming') {
-            // نستخدم نفس المعاملات التي نجحت في الطلب الأصلي
-            const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=10');
-            events = data?.Result?.Items?.[0]?.Events || [];
-            renderMatchList(events, 'coming');
-        }
-    } catch (error) {
-        app.innerHTML = `
-            <div class="error-msg">
-                ⛔ Erreur de chargement: ${error.message}
-                <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
-            </div>
-        `;
-        console.error(error);
-    }
-}
-
-        // ----------------------------------------------
-        // 5. NAVIGATION & INIT
-        // ----------------------------------------------
-
-        document.querySelectorAll('.nav-tabs button').forEach(btn => {
-            btn.addEventListener('click', function() {
-                document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
-                const view = this.dataset.view;
-                loadView(view);
-            });
-        });
-
-        document.getElementById('home-link').addEventListener('click', function(e) {
-            e.preventDefault();
-            const activeTab = document.querySelector('.nav-tabs .active');
-            if (activeTab) {
-                loadView(activeTab.dataset.view);
-            } else {
-                loadView('live');
+        // عند تحميل الصفحة، نطلب من الـ Widgets التحديث
+        document.addEventListener('DOMContentLoaded', function() {
+            // إذا كان الـ Widgets جاهزاً، نطلب التحقق
+            if (window.SIR && window.SIR.check) {
+                window.SIR.check();
             }
         });
 
-        // تحميل العرض الافتراضي (المباشر)
-        loadView('live');
-
-        // تحديث المباريات المباشرة كل 30 ثانية
-        setInterval(() => {
-            const activeTab = document.querySelector('.nav-tabs .active');
-            if (activeTab && activeTab.dataset.view === 'live') {
-                loadView('live');
-            }
-        }, 30000);
-
-        window.loadView = loadView;
-        window.showEventDetails = showEventDetails;
+        // مراقبة الأخطاء
+        console.log('🚀 Widgets initialisés avec le licensing de goal216.com');
+        console.log('⚠️ ATTENTION: Ce code ne fonctionne que sur le domaine goal216.com');
     </script>
 
 </body>
