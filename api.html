@@ -497,28 +497,32 @@
         // 4. LOAD VIEWS
         // ----------------------------------------------
 
-        async function loadView(view) {
-            app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
-            try {
-                let events = [];
-                if (view === 'live') {
-                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
-                    events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, 'live');
-                } else if (view === 'top') {
-                    const data = await fetchFromProxy('GetTopEvents', 'presetName=default&eventCount=10');
-                    events = data?.Result?.Events || [];
-                    renderMatchList(events, 'top');
-                } else if (view === 'coming') {
-                    const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=15');
-                    events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, 'coming');
-                }
-            } catch (error) {
-                app.innerHTML = `<div class="error-msg">⛔ Erreur de chargement: ${error.message}</div>`;
-                console.error(error);
-            }
-        }
+async function loadView(view) {
+  app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
+  try {
+    let events = [];
+    if (view === 'live') {
+      const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
+      events = data?.Result?.Items?.[0]?.Events || [];
+      renderMatchList(events, 'live');
+    } else if (view === 'top') {
+      // GetTopEvents لا تحتاج إلى extraParams لأننا نضعها في الـ Proxy
+      const data = await fetchFromProxy('GetTopEvents', '');
+      // البنية: Result.Events
+      events = data?.Result?.Events || [];
+      renderMatchList(events, 'top');
+    } else if (view === 'coming') {
+      // GetHighlights تحتاج إلى sportId و showAllEvents
+      const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=15');
+      // البنية: Result.Items[0].Events (مثل GetLivenow)
+      events = data?.Result?.Items?.[0]?.Events || [];
+      renderMatchList(events, 'coming');
+    }
+  } catch (error) {
+    app.innerHTML = `<div class="error-msg">⛔ Erreur de chargement: ${error.message}</div>`;
+    console.error(error);
+  }
+}
 
         // ----------------------------------------------
         // 5. NAVIGATION & INIT
