@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Zi Store - مباريات وأسعار</title>
-    <!-- Widget API-Sports -->
     <script type="module" src="https://widgets.api-sports.io/3.1.0/widgets.js"></script>
     <style>
         /* ===== ROOT ===== */
@@ -135,14 +134,14 @@
         api-sports-widget {
             display: block;
             width: 100%;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
         }
 
-        /* ===== ODDS SECTION ===== */
-        .odds-section {
-            margin-top: 30px;
-            border-top: 2px solid var(--border);
+        /* ===== ODDS SECTION (متكامل مع المباريات) ===== */
+        .matches-odds-section {
+            margin-top: 10px;
             padding-top: 20px;
+            border-top: 2px solid var(--border);
         }
         .section-title {
             font-size: 22px;
@@ -335,7 +334,7 @@
             </div>
         </header>
 
-        <!-- ===== WIDGET API-SPORTS ===== -->
+        <!-- ===== WIDGET API-SPORTS (المباريات) ===== -->
         <api-sports-widget
             data-type="games"
             data-tab="all"
@@ -348,8 +347,8 @@
             data-target-standings="modal"
         ></api-sports-widget>
 
-        <!-- ===== ODDS SECTION (من Altenar) ===== -->
-        <section class="odds-section" id="oddsSection">
+        <!-- ===== ODDS SECTION (متكامل أسفل المباريات) ===== -->
+        <section class="matches-odds-section">
             <div class="section-title">
                 📊 الأسعار (1-X-2)
                 <span>مباشر وقادم</span>
