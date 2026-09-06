@@ -3,38 +3,40 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Goal 216 - Live Matches</title>
+    <title>Goal 216 - Live Scores</title>
     <style>
-        /* ===== RESET & BASE ===== */
+        /* ===== RESET ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         body { background: #0b0e13; color: #f0f3f7; padding: 12px; min-height: 100vh; padding-bottom: 80px; }
+        
+        /* ===== HEADER ===== */
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
-        .header h1 { font-size: 22px; font-weight: 700; color: #00e676; cursor: pointer; }
-        .badge { background: #1f2937; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #9ca3af; }
+        .header h1 { font-size: 24px; font-weight: 700; color: #00e676; cursor: pointer; }
+        .badge { background: #1f2937; padding: 4px 12px; border-radius: 20px; font-size: 11px; color: #9ca3af; }
 
         /* ===== DAYS TABS ===== */
-        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; }
+        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; }
+        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
         .days-tabs button.active { background: #00e676; color: #0b0e13; }
         .days-tabs button:hover { background: #1f2937; color: #f0f3f7; }
 
-        /* ===== TABS ===== */
+        /* ===== MAIN TABS ===== */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; flex-wrap: wrap; }
         .nav-tabs button { background: transparent; border: none; color: #9ca3af; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: 0.2s; white-space: nowrap; }
         .nav-tabs button.active { background: #00e676; color: #0b0e13; }
         .nav-tabs button:hover { background: #1f2937; color: #f0f3f7; }
 
-        /* ===== MATCH CARDS ===== */
+        /* ===== MATCH CARD ===== */
         .match-card { background: #14181f; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; border-left: 4px solid #dc2626; cursor: pointer; transition: 0.2s; }
         .match-card.coming { border-left-color: #fbbf24; }
         .match-card.top-event { border-left-color: #8b5cf6; }
         .match-card:hover { background: #1a202a; }
 
-        .match-header { display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
-        .match-time { font-weight: 600; color: #fbbf24; }
-        .match-league { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; background: #1f2937; padding: 0 8px; border-radius: 10px; }
+        .match-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
+        .match-time { font-weight: 600; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 2px 10px; border-radius: 12px; }
+        .match-league { background: #1f2937; padding: 2px 10px; border-radius: 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%; }
 
-        .score-line { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; padding: 4px 0 8px 0; }
+        .score-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 10px 0; }
         .team-block { display: flex; align-items: center; gap: 10px; max-width: 42%; }
         .team-block.away { flex-direction: row-reverse; text-align: right; }
         .team-crest { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #f0f3f7; overflow: hidden; }
@@ -45,7 +47,7 @@
         .team-block.away .team-info { align-items: flex-end; }
         .vs-dash { color: #4b5563; font-weight: 300; font-size: 18px; padding: 0 6px; }
 
-        .odds-row { display: flex; justify-content: space-around; background: #1e2530; border-radius: 8px; padding: 8px 0; margin-top: 6px; }
+        .odds-row { display: flex; justify-content: space-around; background: #1e2530; border-radius: 8px; padding: 6px 0; margin-top: 6px; }
         .odd-item { text-align: center; flex: 1; cursor: pointer; padding: 4px 0; border-radius: 4px; transition: 0.2s; }
         .odd-item:hover { background: #2a3340; }
         .odd-item .label { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; }
@@ -57,20 +59,55 @@
         .coming-label { display: inline-block; background: #fbbf24; color: #0b0e13; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* ===== WIDGET CONTAINER ===== */
-        .widget-container { background: #14181f; border-radius: 12px; padding: 0; overflow: hidden; margin-top: 12px; min-height: 400px; }
-        .widget-container iframe { width: 100%; height: 600px; border: none; }
+        /* ===== DETAILS VIEW ===== */
+        .back-btn { background: #1f2937; border: none; color: #f0f3f7; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 16px; display: inline-block; }
+        .back-btn:hover { background: #374151; }
+        .match-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
+        .match-detail-sub { color: #9ca3af; font-size: 14px; margin-bottom: 16px; }
+
+        .market-group { background: #14181f; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        .market-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #fbbf24; }
+        .market-items { display: flex; flex-wrap: wrap; gap: 8px; }
+        .market-item { background: #1e2530; padding: 8px 12px; border-radius: 8px; flex: 1 0 calc(33% - 8px); text-align: center; min-width: 70px; cursor: pointer; transition: 0.2s; }
+        .market-item:hover { background: #2a3340; }
+        .market-item .name { font-size: 11px; color: #9ca3af; }
+        .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
+
+        /* ===== TIMELINE ===== */
+        .timeline-container { background: #14181f; border-radius: 12px; padding: 16px; margin-top: 12px; max-height: 300px; overflow-y: auto; }
+        .timeline-event { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #1f2937; font-size: 13px; }
+        .timeline-event .time { color: #fbbf24; font-weight: 600; min-width: 40px; }
+        .timeline-event .icon { width: 24px; text-align: center; }
+        .timeline-event .desc { flex: 1; }
+        .event-goal { color: #34d399; }
+        .event-yellow { color: #facc15; }
+        .event-red { color: #dc2626; }
+        .event-sub { color: #60a5fa; }
+
+        /* ===== BET SLIP ===== */
+        .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
+        .bet-slip-toggle .badge { position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
+
+        .bet-slip { position: fixed; bottom: 0; left: 0; right: 0; background: #14181f; border-top: 2px solid #00e676; padding: 16px; max-height: 60vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s; z-index: 99; border-radius: 16px 16px 0 0; }
+        .bet-slip.open { transform: translateY(0); }
+        .bet-slip .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 12px; }
+        .bet-slip .header h3 { color: #00e676; }
+        .bet-slip .close-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
+        .bet-slip-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1f2937; }
+        .bet-slip-item .remove { color: #dc2626; cursor: pointer; font-size: 18px; }
+        .bet-slip-total { display: flex; justify-content: space-between; padding: 12px 0; font-weight: 600; border-top: 1px solid #222; margin-top: 8px; }
+        .place-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 8px; }
 
         .loading { text-align: center; padding: 40px; color: #6b7280; }
-        .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; word-break: break-word; }
-        .error-msg .error-detail { font-size: 12px; color: #f87171; margin-top: 8px; display: block; }
-
+        .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; }
         .footer-menu { display: flex; justify-content: space-around; background: #0f131a; padding: 12px 0; border-top: 1px solid #222; margin-top: 20px; position: sticky; bottom: 0; }
         .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; }
         .footer-menu .active { color: #00e676; }
 
-        .back-btn { background: #1f2937; border: none; color: #f0f3f7; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 16px; display: inline-block; }
-        .back-btn:hover { background: #374151; }
+        /* ===== LEAGUE GROUP ===== */
+        .league-group { margin-bottom: 16px; }
+        .league-group-title { font-size: 16px; font-weight: 700; color: #fbbf24; padding: 8px 0 12px 0; border-bottom: 1px solid #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+        .league-group-title .country-flag { font-size: 18px; }
 
         @media (max-width: 480px) {
             .team-name { font-size: 12px; }
@@ -78,21 +115,16 @@
             .team-crest { width: 26px; height: 26px; }
             .nav-tabs button { font-size: 12px; padding: 6px 10px; }
             .match-card { padding: 12px; }
-            .widget-container iframe { height: 400px; }
         }
-
-        /* Hide default widget loader elements */
-        .sr-bb { font-size: 12px; }
     </style>
 </head>
 <body>
 
     <div class="header">
         <h1 id="home-link">⚽ goal216</h1>
-        <span class="badge">LIVE</span>
+        <span class="badge" id="liveBadge">LIVE</span>
     </div>
 
-    <!-- Day Selector -->
     <div class="days-tabs" id="daysTabs">
         <button class="active" data-day="0">Aujourd'hui</button>
         <button data-day="1">Lun 7/9</button>
@@ -112,6 +144,20 @@
 
     <div id="app">
         <div class="loading">⏳ Chargement...</div>
+    </div>
+
+    <!-- Bet Slip -->
+    <button class="bet-slip-toggle" id="betSlipToggle">
+        🧾 <span class="badge" id="betCount">0</span>
+    </button>
+    <div class="bet-slip" id="betSlip">
+        <div class="header">
+            <h3>📋 FICHE DE PARI</h3>
+            <button class="close-btn" id="closeBetSlip">✕</button>
+        </div>
+        <div id="betSlipItems"><p style="color:#6b7280;text-align:center;padding:20px 0;">Aucun pari sélectionné</p></div>
+        <div class="bet-slip-total"><span>Total</span><span id="betTotal">0.00</span></div>
+        <button class="place-bet-btn" id="placeBetBtn">PLACER UN PARI</button>
     </div>
 
     <div class="footer-menu">
@@ -136,6 +182,14 @@
         let currentMatchId = null;
         let eventsCache = {};
         let isUpdating = false;
+        let betSlip = [];
+
+        // DOM refs
+        const app = document.getElementById('app');
+        const betSlipEl = document.getElementById('betSlip');
+        const betSlipItemsEl = document.getElementById('betSlipItems');
+        const betTotalEl = document.getElementById('betTotal');
+        const betCountEl = document.getElementById('betCount');
 
         // ============================================================
         // 3. HELPERS
@@ -178,7 +232,10 @@
             const comps = match.Competitors || [];
             const home = comps[0] || { Name: 'Home', Id: null };
             const away = comps[1] || { Name: 'Away', Id: null };
-            return { home: { ...home, crest: getCrestUrl(home) }, away: { ...away, crest: getCrestUrl(away) } };
+            return {
+                home: { ...home, crest: getCrestUrl(home) },
+                away: { ...away, crest: getCrestUrl(away) }
+            };
         }
 
         function getDateRange(dayOffset) {
@@ -189,10 +246,7 @@
             const end = new Date(start);
             end.setDate(start.getDate() + 1);
             end.setHours(23, 59, 59, 999);
-            return {
-                start: start.toISOString(),
-                end: end.toISOString()
-            };
+            return { start: start.toISOString(), end: end.toISOString() };
         }
 
         function extractTime24(eventDate) {
@@ -200,44 +254,81 @@
             try {
                 const d = new Date(eventDate);
                 if (isNaN(d.getTime())) return '--:--';
-                const h = String(d.getHours()).padStart(2, '0');
-                const m = String(d.getMinutes()).padStart(2, '0');
-                return `${h}h${m}`;
-            } catch (e) {
-                return '--:--';
+                return String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0');
+            } catch (e) { return '--:--'; }
+        }
+
+        // ============================================================
+        // 4. BET SLIP
+        // ============================================================
+        function updateBetSlipUI() {
+            if (betSlip.length === 0) {
+                betSlipItemsEl.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px 0;">Aucun pari sélectionné</p>';
+                betTotalEl.textContent = '0.00';
+                betCountEl.textContent = '0';
+                return;
             }
-        }
-
-        // ============================================================
-        // 4. RENDER FUNCTIONS
-        // ============================================================
-        const app = document.getElementById('app');
-
-        // Grouper les matchs par championnat
-        function groupByLeague(events) {
-            const groups = {};
-            events.forEach(match => {
-                const league = match.ChampName || match.CategoryName || 'Autres';
-                if (!groups[league]) groups[league] = [];
-                groups[league].push(match);
+            let html = '', total = 0;
+            betSlip.forEach((item, index) => {
+                total += item.price;
+                html += `
+                    <div class="bet-slip-item">
+                        <div><strong>${item.match}</strong><br><span style="color:#9ca3af;font-size:12px;">${item.selection} @ ${item.price}</span></div>
+                        <span class="remove" data-index="${index}">✕</span>
+                    </div>
+                `;
             });
-            return groups;
+            betSlipItemsEl.innerHTML = html;
+            betTotalEl.textContent = total.toFixed(2);
+            betCountEl.textContent = betSlip.length;
+
+            document.querySelectorAll('.bet-slip-item .remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    betSlip.splice(parseInt(this.dataset.index), 1);
+                    updateBetSlipUI();
+                });
+            });
         }
 
+        function addToBetSlip(matchName, selection, price) {
+            betSlip.push({ match: matchName, selection, price });
+            updateBetSlipUI();
+            betSlipEl.classList.add('open');
+        }
+
+        document.getElementById('betSlipToggle').addEventListener('click', () => betSlipEl.classList.toggle('open'));
+        document.getElementById('closeBetSlip').addEventListener('click', () => betSlipEl.classList.remove('open'));
+        document.getElementById('placeBetBtn').addEventListener('click', () => {
+            if (betSlip.length === 0) return alert('Ajoutez des paris d\'abord.');
+            alert('✅ Pari placé ! (simulation)');
+            betSlip = [];
+            updateBetSlipUI();
+            betSlipEl.classList.remove('open');
+        });
+
+        // ============================================================
+        // 5. RENDER - Match List avec regroupement par ligue
+        // ============================================================
         function renderMatchList(events, type = 'live', preserveScroll = false) {
             if (!events || events.length === 0) {
-                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
+                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé.</div>`;
                 return;
             }
 
-            // Grouper par championnat
-            const groups = groupByLeague(events);
-            const leagueNames = Object.keys(groups);
+            // Grouper par ligue (ChampName)
+            const groups = {};
+            events.forEach(match => {
+                const league = match.ChampName || match.CategoryName || 'Autre';
+                if (!groups[league]) groups[league] = [];
+                groups[league].push(match);
+            });
 
             let html = '';
-            leagueNames.forEach(league => {
+            const sortedLeagues = Object.keys(groups).sort();
+
+            sortedLeagues.forEach(league => {
                 const matches = groups[league];
-                html += `<div style="margin-bottom:16px;"><div style="font-weight:700; font-size:14px; color:#fbbf24; margin-bottom:8px; padding:4px 12px; background:#1f2937; border-radius:8px; display:inline-block;">🏆 ${league}</div>`;
+                html += `<div class="league-group"><div class="league-group-title">🏆 ${league}</div>`;
 
                 matches.forEach(match => {
                     const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
@@ -251,7 +342,6 @@
                     const score = match.LiveScore || '0:0';
                     const scores = score.split(':');
                     const matchId = match.Id;
-
                     const { home, away } = getCompetitorsWithCrests(match);
                     const { odds1, oddsX, odds2 } = extractOdds(match.Items);
 
@@ -267,10 +357,10 @@
                         cardClass = 'coming';
                     }
 
-                    const homeCrestHtml = home.crest
+                    const homeCrest = home.crest
                         ? `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">`
                         : home.Name.substring(0, 2).toUpperCase();
-                    const awayCrestHtml = away.crest
+                    const awayCrest = away.crest
                         ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
                         : away.Name.substring(0, 2).toUpperCase();
 
@@ -282,7 +372,7 @@
                             </div>
                             <div class="score-line">
                                 <div class="team-block home">
-                                    <div class="team-crest">${homeCrestHtml}</div>
+                                    <div class="team-crest">${homeCrest}</div>
                                     <div class="team-info">
                                         <span class="team-name">${home.Name}</span>
                                         <span class="team-score">${scores[0] || '0'}</span>
@@ -290,7 +380,7 @@
                                 </div>
                                 <span class="vs-dash">⚡</span>
                                 <div class="team-block away">
-                                    <div class="team-crest">${awayCrestHtml}</div>
+                                    <div class="team-crest">${awayCrest}</div>
                                     <div class="team-info">
                                         <span class="team-name">${away.Name}</span>
                                         <span class="team-score">${scores[1] || '0'}</span>
@@ -320,116 +410,156 @@
 
             const scrollY = preserveScroll ? window.scrollY : 0;
             app.innerHTML = html;
-            if (preserveScroll) {
-                window.scrollTo(0, scrollY);
-            }
+            if (preserveScroll) window.scrollTo(0, scrollY);
 
-            // Clic sur carte => ouvrir le widget (iframe ou direct)
+            // Click events
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.closest('.odd-item')) return;
-                    const matchId = this.dataset.matchid;
-                    if (matchId) showEventWithWidget(matchId);
+                    const mid = this.dataset.matchid;
+                    if (mid) showEventDetails(mid);
                 });
             });
 
-            // Clic sur cotes => alerter (simulation)
             document.querySelectorAll('.odd-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
                     const match = this.dataset.match;
                     const selection = this.dataset.selection;
-                    const price = this.dataset.price;
-                    alert(`Pari ajouté: ${match} - ${selection} @ ${price}`);
+                    const price = parseFloat(this.dataset.price);
+                    if (price && price > 0 && price !== '-') {
+                        addToBetSlip(match, selection, price);
+                    } else {
+                        alert('Cote non disponible');
+                    }
                 });
             });
         }
 
         // ============================================================
-        // 5. AFFICHER LE WIDGET STATSCORE (via iframe)
+        // 6. DETAILS VIEW avec Timeline
         // ============================================================
-        function showEventWithWidget(matchId) {
-            currentMatchId = matchId;
-            app.innerHTML = `
-                <button class="back-btn" id="backToList">← Retour</button>
-                <div style="margin-bottom:12px; color:#9ca3af;">Chargement du widget pour le match ${matchId}...</div>
-                <div class="widget-container" id="widgetContainer">
-                    <div class="loading">⏳ Chargement du widget...</div>
-                </div>
-            `;
-
-            document.getElementById('backToList').addEventListener('click', () => {
-                currentMatchId = null;
-                loadView(currentView, true);
-            });
-
-            // Charger le widget STATSCORE via le loader
-            loadStatscoreWidget(matchId);
-        }
-
-        function loadStatscoreWidget(matchId) {
-            const container = document.getElementById('widgetContainer');
-            if (!container) return;
-
-            // Utiliser le widgetloader de STATSCORE avec le matchId
-            // On crée un élément div pour le widget
-            const widgetDiv = document.createElement('div');
-            widgetDiv.id = `sr-widget-${matchId}`;
-            widgetDiv.setAttribute('data-sr-widget', 'match.lmt');
-            widgetDiv.setAttribute('data-sr-matchid', matchId);
-            widgetDiv.style.width = '100%';
-            widgetDiv.style.minHeight = '400px';
-            container.innerHTML = '';
-            container.appendChild(widgetDiv);
-
-            // Charger le widgetloader s'il n'est pas déjà chargé
-            if (!window.SIR) {
-                const script = document.createElement('script');
-                script.src = 'https://widgets.biahostod.com/46de729d1ad0ad36c0c780838303c0c4/widgetloader';
-                script.setAttribute('n', 'SIR');
-                script.async = true;
-                script.onload = function() {
-                    initWidget(matchId);
-                };
-                script.onerror = function() {
-                    container.innerHTML = `<div class="error-msg">⚠️ Erreur de chargement du widget. Vérifiez votre connexion.</div>`;
-                };
-                document.head.appendChild(script);
-            } else {
-                initWidget(matchId);
-            }
-        }
-
-        function initWidget(matchId) {
-            const container = document.getElementById('widgetContainer');
-            if (!container) return;
-
+        async function showEventDetails(matchId) {
             try {
-                // Initialiser le widget via SIR
-                const sir = window.SIR;
-                if (sir && typeof sir.addWidget === 'function') {
-                    const widgetDiv = document.getElementById(`sr-widget-${matchId}`);
-                    if (widgetDiv) {
-                        sir.addWidget(widgetDiv, { matchId: matchId });
-                    }
-                } else {
-                    // Fallback: afficher un message
-                    container.innerHTML = `
-                        <div style="padding:20px; text-align:center; color:#9ca3af;">
-                            <div style="font-size:24px; margin-bottom:12px;">⚽</div>
-                            <div>Widget STATSCORE en cours de chargement...</div>
-                            <div style="font-size:12px; margin-top:8px;">ID: ${matchId}</div>
-                            <button onclick="location.reload()" style="margin-top:12px; padding:8px 20px; background:#00e676; border:none; border-radius:8px; color:#0b0e13; font-weight:600; cursor:pointer;">Réessayer</button>
-                        </div>
-                    `;
+                currentMatchId = matchId;
+                app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
+
+                // Récupérer les détails du match
+                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
+                const result = data?.Result;
+                if (!result) {
+                    app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables.</div>`;
+                    return;
                 }
-            } catch (e) {
-                container.innerHTML = `<div class="error-msg">⚠️ Erreur: ${e.message}</div>`;
+
+                const homeTeam = result.Competitors?.[0]?.Name || 'Home';
+                const awayTeam = result.Competitors?.[1]?.Name || 'Away';
+                const league = result.ChampName || result.CategoryName || 'Ligue';
+                const date = result.EventDate || '';
+                const isLive = result.IsLiveEvent;
+
+                let html = `
+                    <button class="back-btn" id="backToList">← Retour</button>
+                    <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
+                    <div class="match-detail-sub">${league} | ${date}</div>
+                `;
+
+                // Si match live, charger timeline
+                if (isLive) {
+                    try {
+                        const timelineData = await fetchFromProxy('match_timeline', matchId);
+                        const events = timelineData?.doc?.[0]?.data?.events || [];
+                        const matchInfo = timelineData?.doc?.[0]?.data?.match || {};
+                        const status = matchInfo?.status?.name || 'En direct';
+                        const played = matchInfo?.timeinfo?.played || 0;
+                        const timeDisplay = played ? Math.floor(played / 60) + '\'' : '';
+
+                        html += `
+                            <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${status}</span>
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${timeDisplay}</span>
+                            </div>
+                            <div class="timeline-container">
+                                <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements</div>
+                        `;
+
+                        const recent = events.slice(-20).reverse();
+                        recent.forEach(ev => {
+                            const evTime = ev.time ? ev.time + '\'' : '--';
+                            let icon = '•', cls = '';
+                            if (ev.type === 'goal') { icon = '⚽'; cls = 'event-goal'; }
+                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-yellow'; }
+                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-red'; }
+                            else if (ev.type === 'substitution') { icon = '🔄'; cls = 'event-sub'; }
+                            else if (ev.type === 'shotontarget') { icon = '🎯'; }
+                            else if (ev.type === 'corner') { icon = '🚩'; }
+                            const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
+                            const playerName = ev.player?.name || '';
+                            const desc = ev.name || ev.type || '';
+                            html += `
+                                <div class="timeline-event">
+                                    <span class="time">${evTime}</span>
+                                    <span class="icon ${cls}">${icon}</span>
+                                    <span class="desc">${teamName ? `<span style="font-weight:500;">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div>`;
+                    } catch (e) {
+                        console.warn('Timeline non disponible:', e);
+                    }
+                }
+
+                // Marchés
+                const marketGroups = result.MarketGroups || [];
+                marketGroups.forEach(group => {
+                    if (!group.Items || group.Items.length === 0) return;
+                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
+                    group.Items.forEach(market => {
+                        if (!market.Items || market.Items.length === 0) return;
+                        market.Items.slice(0, 10).forEach(item => {
+                            const name = item.Name || item.ShortName || '—';
+                            const price = item.Price || '-';
+                            html += `
+                                <div class="market-item" data-selection="${name}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
+                                    <div class="name">${name}</div>
+                                    <div class="price">${price}</div>
+                                </div>
+                            `;
+                        });
+                    });
+                    html += `</div></div>`;
+                });
+
+                app.innerHTML = html;
+
+                document.getElementById('backToList').addEventListener('click', () => {
+                    currentMatchId = null;
+                    loadView(currentView, true);
+                });
+
+                document.querySelectorAll('.market-item').forEach(item => {
+                    item.addEventListener('click', function() {
+                        const match = this.dataset.match;
+                        const selection = this.dataset.selection;
+                        const price = parseFloat(this.dataset.price);
+                        if (price && price > 0 && price !== '-') {
+                            addToBetSlip(match, selection, price);
+                        } else {
+                            alert('Cote non disponible');
+                        }
+                    });
+                });
+
+            } catch (error) {
+                app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                console.error(error);
             }
         }
 
         // ============================================================
-        // 6. LOAD VIEWS
+        // 7. LOAD VIEWS
         // ============================================================
         async function loadView(view, preserveScroll = false) {
             if (isUpdating) return;
@@ -437,13 +567,10 @@
 
             try {
                 currentView = view;
-                if (currentMatchId) {
-                    isUpdating = false;
-                    return;
-                }
+                if (currentMatchId) { isUpdating = false; return; }
 
                 let events = [];
-                let cacheKey = `${view}_${currentDay}`;
+                const cacheKey = `${view}_${currentDay}`;
 
                 if (eventsCache[cacheKey]) {
                     events = eventsCache[cacheKey];
@@ -478,12 +605,7 @@
 
             } catch (error) {
                 if (!preserveScroll) {
-                    app.innerHTML = `
-                        <div class="error-msg">
-                            ⛔ Erreur de chargement: ${error.message}
-                            <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
-                        </div>
-                    `;
+                    app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
                 }
                 console.error(error);
             }
@@ -492,11 +614,10 @@
         }
 
         // ============================================================
-        // 7. SILENT REFRESH
+        // 8. SILENT REFRESH
         // ============================================================
         async function silentRefresh() {
-            if (isUpdating) return;
-            if (currentMatchId) return;
+            if (isUpdating || currentMatchId) return;
 
             try {
                 const view = currentView;
@@ -533,7 +654,7 @@
         }
 
         // ============================================================
-        // 8. NAVIGATION & INIT
+        // 9. NAVIGATION
         // ============================================================
 
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
@@ -551,8 +672,7 @@
                 this.classList.add('active');
                 currentDay = parseInt(this.dataset.day);
                 currentMatchId = null;
-                const cacheKey = `${currentView}_${currentDay}`;
-                delete eventsCache[cacheKey];
+                delete eventsCache[`${currentView}_${currentDay}`];
                 loadView(currentView);
             });
         });
@@ -564,14 +684,14 @@
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
-        // Chargement initial
+        // ============================================================
+        // 10. INIT
+        // ============================================================
         loadView('live');
-
-        // Refresh toutes les 30s
         setInterval(silentRefresh, 30000);
 
         window.loadView = loadView;
-        window.showEventWithWidget = showEventWithWidget;
+        window.showEventDetails = showEventDetails;
     </script>
 </body>
 </html>
