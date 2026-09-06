@@ -1,8 +1,12 @@
-import { API_BASE, NEWS_BASE, STREAM_API_URL, WORKER_PROXY_URL } from './config.js';
-import { fetchFromProxy, getLocalDateStr, findStreamEvent } from './utils.js';
-import { setStreamEvents, setLiveMatches, setTodayMatches } from './state.js';
+// ============================================================
+// api.js - كل استدعاءات الواجهة الخلفية (Fetch)
+// ============================================================
 
-// ===== API: MATCHES =====
+import { API_BASE, NEWS_BASE, STREAM_API_URL, WORKER_PROXY_URL } from './config.js';
+import { fetchFromProxy, getLocalDateStr } from './utils.js';
+import { setStreamEvents } from './state.js';
+
+// ===== STREAM EVENTS =====
 export async function loadStreamEvents() {
     try {
         const fullUrl = WORKER_PROXY_URL + '?url=' + encodeURIComponent(STREAM_API_URL);
@@ -16,10 +20,13 @@ export async function loadStreamEvents() {
     }
 }
 
+// ===== MATCHES =====
 export async function loadLiveMatches() {
     try {
         const url = `${API_BASE}/matches/matches_in_proccess/L/60`;
         const data = await fetchFromProxy(url);
+        // يتم التحديث في state.js عبر دالة setLiveMatches
+        const { setLiveMatches } = await import('./state.js');
         setLiveMatches(data.data || []);
         await loadStreamEvents();
     } catch (err) { console.error('Live matches error:', err); }
@@ -27,14 +34,15 @@ export async function loadLiveMatches() {
 
 export async function loadTodayMatches() {
     try {
-        const dateStr = getLocalDateStr(selectedDate);
+        const dateStr = getLocalDateStr(new Date()); // نستخدم تاريخ اليوم، يمكن تعديله إذا لزم
         const url = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
         const data = await fetchFromProxy(url).catch(() => ({ data: [] }));
+        const { setTodayMatches } = await import('./state.js');
         setTodayMatches(data.data || []);
     } catch (err) { console.error('Today matches error:', err); }
 }
 
-// ===== API: CHAMPIONSHIPS =====
+// ===== CHAMPIONSHIPS =====
 export async function loadChampionships() {
     try {
         const url = `${API_BASE}/info/championship_ranking/L/60`;
@@ -46,7 +54,7 @@ export async function loadChampionships() {
     } catch (err) { console.error(err); return []; }
 }
 
-// ===== API: STANDINGS, SCORERS, NEWS =====
+// ===== STANDINGS =====
 export async function getStandings(champ) {
     let url;
     if (champ.type === 1) url = `${API_BASE}/matches/league_standing_stage/${champ.url_id}`;
@@ -54,27 +62,31 @@ export async function getStandings(champ) {
     return await fetchFromProxy(url);
 }
 
+// ===== SCORERS =====
 export async function getScorers(champ, page) {
     const url = `${API_BASE}/matches/league_scorers_map/${champ.url_id}?page=${page}`;
     return await fetchFromProxy(url);
 }
 
+// ===== ASSISTS =====
 export async function getAssists(champ, page) {
     const url = `${API_BASE}/matches/league_assists_map/${champ.url_id}?page=${page}`;
     return await fetchFromProxy(url);
 }
 
+// ===== NEWS =====
 export async function getNews(champ, page) {
     const url = `${NEWS_BASE}/News/news_league/${champ.url_id}?page=${page}`;
     return await fetchFromProxy(url);
 }
 
+// ===== BRACKET =====
 export async function getBracket(champ) {
     const url = `${API_BASE}/matches/cups_teams_standings/${champ.url_id}/L/60`;
     return await fetchFromProxy(url);
 }
 
-// ===== API: MATCH DETAILS =====
+// ===== MATCH DETAILS =====
 export async function getMatchDetails(matchId) {
     const [infoRes, eventsRes, lineupRes, statsRes, h2hRes] = await Promise.all([
         fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
@@ -99,7 +111,7 @@ export async function getStandingsForMatch(champUrlId) {
     } catch (e) { return null; }
 }
 
-// ===== API: TEAM, PLAYER, COACH, NEWS DETAILS =====
+// ===== TEAM, PLAYER, COACH, REFEREE, NEWS DETAILS =====
 export async function getTeamInfo(id) {
     return await fetchFromProxy(`${API_BASE}/info/team_info/${id}/L/60`);
 }
@@ -120,7 +132,7 @@ export async function getNewsDetail(id) {
     return await fetchFromProxy(`${NEWS_BASE}/News/news_detail/${id}`);
 }
 
-// ===== API: HIGHLIGHTS =====
+// ===== HIGHLIGHTS =====
 export async function fetchHighlightsForMatch(matchId) {
     try {
         const detailUrl = `${API_BASE}/matches/match_info/${matchId}/L/60`;
@@ -132,9 +144,9 @@ export async function fetchHighlightsForMatch(matchId) {
     return [];
 }
 
-// ===== API: SEARCH =====
+// ===== SEARCH =====
 export async function performSearch(query) {
     const url = `${API_BASE}/search/${encodeURIComponent(query)}/L/60`;
     const data = await fetchFromProxy(url);
     return data.data || {};
-}
+    }
