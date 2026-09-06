@@ -2,32 +2,34 @@
 <html lang="ar" dir="ltr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Zi Store - مباريات وأسعار</title>
-    <script type="module" src="https://widgets.api-sports.io/3.1.0/widgets.js"></script>
     <style>
         /* ===== ROOT ===== */
         :root {
             --bg: #0d1117;
             --surface: #161b22;
             --surface-glass: rgba(22, 27, 34, 0.95);
+            --surface-hover: rgba(48, 54, 61, 0.8);
             --border: rgba(255, 255, 255, 0.08);
             --text: #f0f6fc;
             --text-secondary: #8b949e;
             --accent: #58a6ff;
             --accent-glow: rgba(88, 166, 255, 0.3);
             --live: #f85149;
-            --shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
-            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
-            --header-bg: rgba(13, 17, 23, 0.95);
+            --live-glow: rgba(248, 81, 73, 0.4);
+            --shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             --radius: 16px;
             --radius-sm: 10px;
             --transition: 0.3s ease;
+            --header-bg: rgba(13, 17, 23, 0.95);
+            --font: 'Segoe UI', -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
         }
         [data-theme="light"] {
             --bg: #f6f8fa;
             --surface: #ffffff;
             --surface-glass: rgba(255, 255, 255, 0.95);
+            --surface-hover: #f0f2f5;
             --border: rgba(0, 0, 0, 0.08);
             --text: #161b22;
             --text-secondary: #57606a;
@@ -39,6 +41,7 @@
             --bg: #120f0a;
             --surface: #2a241d;
             --surface-glass: rgba(42, 36, 29, 0.95);
+            --surface-hover: #3d342a;
             --border: rgba(255, 215, 0, 0.2);
             --text: #f5e6d3;
             --text-secondary: #b8a491;
@@ -47,30 +50,23 @@
             --header-bg: rgba(18, 15, 10, 0.95);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             background: var(--bg);
             font-family: var(--font);
             min-height: 100vh;
             color: var(--text);
             transition: background 0.4s;
+            padding: 12px;
         }
-        .app {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 16px;
-        }
+        .app { max-width: 1000px; margin: 0 auto; }
 
         /* ===== HEADER ===== */
         .header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 12px 0;
+            padding: 12px 0 16px 0;
             border-bottom: 1px solid var(--border);
             margin-bottom: 20px;
             flex-wrap: wrap;
@@ -82,6 +78,7 @@
             gap: 10px;
             font-weight: 800;
             font-size: 22px;
+            color: var(--text);
         }
         .brand-icon {
             width: 38px;
@@ -119,52 +116,23 @@
             font-weight: 600;
             font-size: 11px;
             transition: 0.3s;
+            white-space: nowrap;
         }
-        .theme-btn:hover {
-            color: var(--text);
-            background: rgba(255,255,255,0.1);
-        }
+        .theme-btn:hover { color: var(--text); background: var(--surface-hover); }
         .theme-btn.active {
             background: var(--accent);
             color: #0a0a0f;
             box-shadow: 0 0 10px var(--accent-glow);
         }
 
-        /* ===== WIDGET ===== */
-        api-sports-widget {
-            display: block;
-            width: 100%;
-            margin-bottom: 20px;
-        }
-
-        /* ===== ODDS SECTION (متكامل مع المباريات) ===== */
-        .matches-odds-section {
-            margin-top: 10px;
-            padding-top: 20px;
-            border-top: 2px solid var(--border);
-        }
-        .section-title {
-            font-size: 22px;
-            font-weight: 700;
-            margin-bottom: 16px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-        .section-title span {
-            background: var(--accent);
-            color: #0a0a0f;
-            padding: 2px 14px;
-            border-radius: 30px;
-            font-size: 14px;
-        }
-        .odds-tabs {
+        /* ===== TABS ===== */
+        .tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
             flex-wrap: wrap;
         }
-        .odds-tabs button {
+        .tabs button {
             background: var(--surface-glass);
             border: 1px solid var(--border);
             border-radius: 30px;
@@ -175,48 +143,48 @@
             cursor: pointer;
             transition: var(--transition);
         }
-        .odds-tabs button.active {
+        .tabs button.active {
             background: var(--accent);
             color: #0a0a0f;
             border-color: var(--accent);
         }
-        .odds-tabs button:hover {
+        .tabs button:hover {
             background: var(--surface-hover);
             color: var(--text);
         }
 
-        .odds-list {
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-        }
-
-        .match-odds-card {
+        /* ===== MATCH CARD ===== */
+        .match-card {
             background: var(--surface);
             border-radius: var(--radius);
             padding: 16px;
+            margin-bottom: 14px;
             border: 1px solid var(--border);
             transition: var(--transition);
         }
-        .match-odds-card:hover {
+        .match-card:hover {
             border-color: var(--accent);
             transform: translateY(-2px);
         }
-        .match-odds-header {
+        .match-header {
             display: flex;
             justify-content: space-between;
-            font-size: 13px;
+            font-size: 12px;
             color: var(--text-secondary);
             margin-bottom: 8px;
             flex-wrap: wrap;
             gap: 4px;
         }
-        .match-odds-header .league {
+        .match-header .league {
             background: var(--surface-glass);
             padding: 0 10px;
             border-radius: 12px;
         }
-        .match-odds-teams {
+        .match-header .time {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .match-teams {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -224,35 +192,38 @@
             font-size: 16px;
             padding: 4px 0 8px 0;
         }
-        .match-odds-teams .team {
+        .match-teams .team {
             display: flex;
             align-items: center;
             gap: 10px;
-            max-width: 40%;
+            max-width: 42%;
         }
-        .match-odds-teams .team img {
-            width: 28px;
-            height: 28px;
+        .match-teams .team img {
+            width: 32px;
+            height: 32px;
             border-radius: 50%;
             object-fit: contain;
             background: rgba(255,255,255,0.05);
         }
-        .match-odds-teams .vs {
+        .match-teams .vs {
             color: var(--text-secondary);
             font-weight: 300;
         }
-        .match-odds-teams .score {
-            font-size: 20px;
+        .match-teams .score {
+            font-size: 22px;
             font-weight: 700;
             color: var(--live);
         }
+
+        /* ===== ODDS ROW ===== */
         .odds-row {
             display: flex;
             justify-content: space-around;
             background: var(--surface-glass);
             border-radius: var(--radius-sm);
             padding: 6px 0;
-            margin-top: 6px;
+            margin-top: 8px;
+            border: 1px solid var(--border);
         }
         .odd-item {
             text-align: center;
@@ -263,7 +234,7 @@
             transition: 0.2s;
         }
         .odd-item:hover {
-            background: rgba(255,255,255,0.05);
+            background: var(--surface-hover);
         }
         .odd-item .label {
             font-size: 10px;
@@ -279,8 +250,12 @@
         .odd-item .value.highlight {
             color: #34d399;
         }
+        .odd-item .value.na {
+            color: var(--text-secondary);
+        }
 
-        .loading {
+        /* ===== LOADING & ERRORS ===== */
+        .loading, .empty {
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -288,7 +263,7 @@
             padding: 40px 20px;
             color: var(--text-secondary);
         }
-        .loading .spinner {
+        .spinner {
             width: 36px;
             height: 36px;
             border: 4px solid var(--border);
@@ -297,7 +272,6 @@
             animation: spin 0.8s linear infinite;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-
         .error-msg {
             background: #7f1d1d;
             padding: 15px;
@@ -311,280 +285,329 @@
         @media (max-width: 600px) {
             .header { flex-direction: column; align-items: stretch; }
             .theme-switch { align-self: flex-start; }
-            .match-odds-teams { font-size: 14px; flex-wrap: wrap; justify-content: center; gap: 6px; }
-            .match-odds-teams .team { max-width: 100%; }
+            .match-teams { font-size: 14px; flex-wrap: wrap; justify-content: center; gap: 6px; }
+            .match-teams .team { max-width: 100%; }
             .odds-row { flex-wrap: wrap; }
             .odd-item { min-width: 60px; }
         }
     </style>
 </head>
 <body>
-    <div class="app">
+<div class="app">
 
-        <!-- ===== HEADER ===== -->
-        <header class="header">
-            <div class="brand">
-                <div class="brand-icon">Z</div>
-                <span>Zi Store</span>
-            </div>
-            <div class="theme-switch" id="themeSwitch">
-                <button class="theme-btn active" data-theme="dark">🌙 Dark</button>
-                <button class="theme-btn" data-theme="light">☀️ Light</button>
-                <button class="theme-btn" data-theme="legendary">👑 Legendary</button>
-            </div>
-        </header>
+    <!-- HEADER -->
+    <header class="header">
+        <div class="brand">
+            <div class="brand-icon">Z</div>
+            <span>Zi Store</span>
+        </div>
+        <div class="theme-switch" id="themeSwitch">
+            <button class="theme-btn active" data-theme="dark">🌙 Dark</button>
+            <button class="theme-btn" data-theme="light">☀️ Light</button>
+            <button class="theme-btn" data-theme="legendary">👑 Legendary</button>
+        </div>
+    </header>
 
-        <!-- ===== WIDGET API-SPORTS (المباريات) ===== -->
-        <api-sports-widget
-            data-type="games"
-            data-tab="all"
-            data-refresh="30"
-            data-show-toolbar="true"
-            data-games-style="2"
-            data-target-game="modal"
-            data-target-team="modal"
-            data-target-player="modal"
-            data-target-standings="modal"
-        ></api-sports-widget>
-
-        <!-- ===== ODDS SECTION (متكامل أسفل المباريات) ===== -->
-        <section class="matches-odds-section">
-            <div class="section-title">
-                📊 الأسعار (1-X-2)
-                <span>مباشر وقادم</span>
-            </div>
-
-            <div class="odds-tabs" id="oddsTabs">
-                <button class="active" data-type="live">🔴 مباشر</button>
-                <button data-type="upcoming">📅 قادم</button>
-            </div>
-
-            <div id="oddsContainer">
-                <div class="loading"><div class="spinner"></div><div>جاري تحميل الأسعار...</div></div>
-            </div>
-        </section>
-
-        <!-- ===== CONFIG WIDGET (لتفعيل الـ API) ===== -->
-        <api-sports-widget
-            data-type="config"
-            data-key="e227ff90ed4eacc3eacb07eca05ce78b"
-            data-sport="football"
-            data-lang="ar"
-            data-theme="dark"
-            data-show-logos="true"
-            data-favorite="true"
-            data-game-tab="statistics"
-            data-target-game="modal"
-            data-target-team="modal"
-            data-target-player="modal"
-            data-target-standings="modal"
-            data-target-league="modal"
-        ></api-sports-widget>
-
+    <!-- TABS -->
+    <div class="tabs" id="tabsContainer">
+        <button class="active" data-type="live">🔴 مباشر</button>
+        <button data-type="upcoming">📅 قادم</button>
     </div>
 
-    <script>
-        (function() {
-            "use strict";
+    <!-- MATCHES CONTAINER -->
+    <div id="matchesContainer">
+        <div class="loading"><div class="spinner"></div><div>جاري تحميل المباريات...</div></div>
+    </div>
 
-            // ==================== CONFIG ALTENAR PROXY ====================
-            const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
+</div>
 
-            // ==================== THEME ====================
-            function setTheme(theme) {
-                document.documentElement.setAttribute('data-theme', theme);
-                localStorage.setItem('zs-theme', theme);
-                document.querySelectorAll('.theme-btn').forEach(btn => {
-                    btn.classList.toggle('active', btn.dataset.theme === theme);
-                });
-            }
-            setTheme(localStorage.getItem('zs-theme') || 'legendary');
-            document.getElementById('themeSwitch').addEventListener('click', (e) => {
-                const btn = e.target.closest('.theme-btn');
-                if (btn) setTheme(btn.dataset.theme);
+<script>
+    (function() {
+        "use strict";
+
+        // ==================== CONFIG ====================
+        const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
+        const API_BASE = 'https://v3.football.api-sports.io';
+        const ALTENAR_PROXY = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
+
+        // ==================== THEME ====================
+        function setTheme(theme) {
+            document.documentElement.setAttribute('data-theme', theme);
+            localStorage.setItem('zs-theme', theme);
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.theme === theme);
             });
+        }
+        setTheme(localStorage.getItem('zs-theme') || 'legendary');
+        document.getElementById('themeSwitch').addEventListener('click', (e) => {
+            const btn = e.target.closest('.theme-btn');
+            if (btn) setTheme(btn.dataset.theme);
+        });
 
-            // ==================== DOM REFS ====================
-            const oddsContainer = document.getElementById('oddsContainer');
-            const oddsTabs = document.getElementById('oddsTabs');
+        // ==================== DOM REFS ====================
+        const container = document.getElementById('matchesContainer');
+        const tabs = document.getElementById('tabsContainer');
 
-            // ==================== HELPERS ====================
-            async function fetchFromProxy(endpoint, extraParams = '') {
-                let url = `${PROXY_URL}?endpoint=${endpoint}`;
-                if (extraParams) url += `&extraParams=${extraParams}`;
-                const response = await fetch(url);
-                if (!response.ok) {
-                    const errorData = await response.json().catch(() => ({}));
-                    throw new Error(`HTTP ${response.status}: ${errorData.error || errorData.details || response.statusText}`);
+        // ==================== HELPERS ====================
+        function fetchAPI(endpoint, params = {}) {
+            const query = new URLSearchParams(params).toString();
+            return fetch(`${API_BASE}${endpoint}?${query}`, {
+                headers: {
+                    'x-apisports-key': API_SPORTS_KEY,
+                    'Content-Type': 'application/json'
                 }
-                return await response.json();
-            }
+            }).then(res => {
+                if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                return res.json();
+            }).then(data => {
+                if (data.errors && Object.keys(data.errors).length > 0) {
+                    throw new Error(JSON.stringify(data.errors));
+                }
+                return data;
+            });
+        }
 
-            function extractOdds(markets) {
-                let odds1 = '-', oddsX = '-', odds2 = '-';
-                if (!markets) return { odds1, oddsX, odds2 };
-                const market = markets.find(m => m.Id === 1 || m.MarketId === 1);
-                if (market && market.Items) {
-                    const items = market.Items;
+        async function fetchAltenarOdds(matchId) {
+            // محاولة جلب الأسعار من Altenar عبر الـ proxy (هذا افتراضي، قد لا يعمل)
+            try {
+                const url = `${ALTENAR_PROXY}?endpoint=GetEventDetails&extraParams=eventId=${matchId}&sportId=1`;
+                const res = await fetch(url);
+                if (!res.ok) return null;
+                const data = await res.json();
+                const result = data?.Result;
+                if (!result) return null;
+                // استخراج أسعار 1-X-2 من MarketGroups
+                const markets = result.MarketGroups || [];
+                const mainMarket = markets.find(m => m.Id === 1 || m.Name === 'Main');
+                if (mainMarket && mainMarket.Items) {
+                    const items = mainMarket.Items;
                     const o1 = items.find(i => i.SelectionTypeId === 1);
                     const oX = items.find(i => i.SelectionTypeId === 2);
                     const o2 = items.find(i => i.SelectionTypeId === 3);
-                    odds1 = o1 ? o1.Price || o1.odds : odds1;
-                    oddsX = oX ? oX.Price || oX.odds : oddsX;
-                    odds2 = o2 ? o2.Price || o2.odds : odds2;
+                    return {
+                        odds1: o1 ? o1.Price || o1.odds : '-',
+                        oddsX: oX ? oX.Price || oX.odds : '-',
+                        odds2: o2 ? o2.Price || o2.odds : '-'
+                    };
                 }
-                return { odds1, oddsX, odds2 };
-            }
-
-            function getCrestUrl(competitor) {
-                if (!competitor) return null;
-                if (competitor.Logo) return `https://img.sportradar.com/ls/crest/32/${competitor.Logo}.png`;
-                if (competitor.Id) return `https://img.sportradar.com/ls/crest/32/${competitor.Id}.png`;
+                // محاولة البحث في أي مجموعة أخرى
+                for (const group of markets) {
+                    if (group.Items) {
+                        const o1 = group.Items.find(i => i.SelectionTypeId === 1);
+                        const oX = group.Items.find(i => i.SelectionTypeId === 2);
+                        const o2 = group.Items.find(i => i.SelectionTypeId === 3);
+                        if (o1 || oX || o2) {
+                            return {
+                                odds1: o1 ? o1.Price || o1.odds : '-',
+                                oddsX: oX ? oX.Price || oX.odds : '-',
+                                odds2: o2 ? o2.Price || o2.odds : '-'
+                            };
+                        }
+                    }
+                }
+                return null;
+            } catch (e) {
+                console.warn('Altenar fetch failed for match', matchId, e);
                 return null;
             }
+        }
 
-            function getCompetitorsWithCrests(match) {
-                const comps = match.Competitors || [];
-                const home = comps[0] || { Name: 'Home', Id: null };
-                const away = comps[1] || { Name: 'Away', Id: null };
-                return { home: { ...home, crest: getCrestUrl(home) }, away: { ...away, crest: getCrestUrl(away) } };
+        function getLiveStatus(fixture) {
+            const status = fixture.fixture.status.short;
+            const elapsed = fixture.fixture.status.elapsed || 0;
+            if (status === '1H' || status === '2H' || status === 'HT' || status === 'ET' || status === 'BT') {
+                return { isLive: true, label: elapsed > 0 ? elapsed + "'" : status };
+            }
+            if (status === 'FT') return { isLive: false, label: 'انتهت' };
+            if (status === 'NS') return { isLive: false, label: 'لم تبدأ' };
+            return { isLive: false, label: status };
+        }
+
+        function formatTime(dateStr) {
+            if (!dateStr) return '--:--';
+            try {
+                const d = new Date(dateStr);
+                if (isNaN(d)) return '--:--';
+                return d.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+            } catch { return '--:--'; }
+        }
+
+        // ==================== RENDER MATCHES ====================
+        function renderMatches(matches, type) {
+            if (!matches || matches.length === 0) {
+                container.innerHTML = `<div class="empty">لا توجد مباريات ${type === 'live' ? 'مباشرة' : 'قادمة'}</div>`;
+                return;
             }
 
-            function extractTime24(eventDate) {
-                if (!eventDate) return '--:--';
-                try {
-                    const d = new Date(eventDate);
-                    if (isNaN(d.getTime())) return '--:--';
-                    const h = String(d.getHours()).padStart(2, '0');
-                    const m = String(d.getMinutes()).padStart(2, '0');
-                    return `${h}h${m}`;
-                } catch (e) { return '--:--'; }
-            }
+            let html = '';
+            // نأخذ أول 15 مباراة فقط لتجنب الإكثار
+            const limited = matches.slice(0, 15);
 
-            // ==================== LOAD ODDS ====================
-            async function loadOdds(type) {
-                oddsContainer.innerHTML = '<div class="loading"><div class="spinner"></div><div>جاري التحميل...</div></div>';
-                try {
-                    let events = [];
-                    if (type === 'live') {
-                        const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=20');
-                        events = data?.Result?.Items?.[0]?.Events || [];
-                    } else if (type === 'upcoming') {
-                        const data = await fetchFromProxy('GetUpcoming', 'sportId=1&showAllEvents=false&count=20');
-                        events = data?.Result?.Items?.[0]?.Events || [];
-                    }
+            limited.forEach((fixture, index) => {
+                const home = fixture.teams.home;
+                const away = fixture.teams.away;
+                const homeScore = fixture.goals.home !== null ? fixture.goals.home : '-';
+                const awayScore = fixture.goals.away !== null ? fixture.goals.away : '-';
+                const league = fixture.league.name;
+                const status = getLiveStatus(fixture);
+                const timeDisplay = status.isLive ? status.label : formatTime(fixture.fixture.date);
 
-                    if (!events || events.length === 0) {
-                        oddsContainer.innerHTML = `<div style="text-align:center;padding:30px;color:var(--text-secondary);">لا توجد مباريات ${type === 'live' ? 'مباشرة' : 'قادمة'} مع أسعار</div>`;
-                        return;
-                    }
+                const homeLogo = home.logo ? `<img src="${home.logo}" loading="lazy" onerror="this.style.display='none'">` : '';
+                const awayLogo = away.logo ? `<img src="${away.logo}" loading="lazy" onerror="this.style.display='none'">` : '';
 
-                    // استخراج الأسعار وعرضها
-                    let html = '<div class="odds-list">';
-                    events.forEach(match => {
-                        const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
-                        let timeDisplay;
-                        if (type === 'live' && isLive) {
-                            timeDisplay = match.LiveCurrentTime || '--';
-                        } else {
-                            timeDisplay = extractTime24(match.EventDate);
-                        }
+                // نضيف معرف فريد لكل بطاقة
+                const matchId = fixture.fixture.id;
 
-                        const score = match.LiveScore || '0:0';
-                        const scores = score.split(':');
-                        const league = match.ChampName || match.CategoryName || 'Championnat';
-                        const { home, away } = getCompetitorsWithCrests(match);
-                        const { odds1, oddsX, odds2 } = extractOdds(match.Items);
-
-                        const homeCrestHtml = home.crest ?
-                            `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">` :
-                            home.Name.substring(0, 2).toUpperCase();
-                        const awayCrestHtml = away.crest ?
-                            `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">` :
-                            away.Name.substring(0, 2).toUpperCase();
-
-                        html += `
-                            <div class="match-odds-card">
-                                <div class="match-odds-header">
-                                    <span class="league">${league}</span>
-                                    <span style="font-weight:600;">${timeDisplay}</span>
-                                </div>
-                                <div class="match-odds-teams">
-                                    <div class="team">
-                                        ${homeCrestHtml}
-                                        <span>${home.Name}</span>
-                                    </div>
-                                    <div class="score">${scores[0] || '0'} - ${scores[1] || '0'}</div>
-                                    <div class="team">
-                                        <span>${away.Name}</span>
-                                        ${awayCrestHtml}
-                                    </div>
-                                </div>
-                                <div class="odds-row">
-                                    <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
-                                        <div class="label">1</div>
-                                        <div class="value">${odds1}</div>
-                                    </div>
-                                    <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
-                                        <div class="label">X</div>
-                                        <div class="value highlight">${oddsX}</div>
-                                    </div>
-                                    <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
-                                        <div class="label">2</div>
-                                        <div class="value">${odds2}</div>
-                                    </div>
-                                </div>
+                html += `
+                    <div class="match-card" data-fixtureid="${matchId}">
+                        <div class="match-header">
+                            <span class="league">${league}</span>
+                            <span class="time">${timeDisplay}</span>
+                        </div>
+                        <div class="match-teams">
+                            <div class="team">
+                                ${homeLogo}
+                                <span>${home.name}</span>
                             </div>
-                        `;
-                    });
-                    html += '</div>';
-                    oddsContainer.innerHTML = html;
-
-                    // تفاعل النقر على السعر
-                    document.querySelectorAll('.odd-item').forEach(item => {
-                        item.addEventListener('click', function() {
-                            const match = this.dataset.match;
-                            const selection = this.dataset.selection;
-                            const price = parseFloat(this.dataset.price);
-                            if (price && price > 0 && price !== '-') {
-                                alert(`تم إضافة الرهان: ${match} - ${selection} @ ${price}`);
-                            } else {
-                                alert('السعر غير متاح');
-                            }
-                        });
-                    });
-
-                } catch (error) {
-                    console.error('Odds error:', error);
-                    oddsContainer.innerHTML = `<div class="error-msg">⚠️ فشل تحميل الأسعار: ${error.message}</div>`;
-                }
-            }
-
-            // ==================== TABS SWITCH ====================
-            oddsTabs.addEventListener('click', (e) => {
-                const btn = e.target.closest('button');
-                if (!btn) return;
-                oddsTabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
-                btn.classList.add('active');
-                const type = btn.dataset.type;
-                loadOdds(type);
+                            <div class="score">${homeScore} - ${awayScore}</div>
+                            <div class="team">
+                                <span>${away.name}</span>
+                                ${awayLogo}
+                            </div>
+                        </div>
+                        <div class="odds-row" id="odds-row-${matchId}">
+                            <div class="odd-item"><div class="label">1</div><div class="value na">⏳</div></div>
+                            <div class="odd-item"><div class="label">X</div><div class="value na">⏳</div></div>
+                            <div class="odd-item"><div class="label">2</div><div class="value na">⏳</div></div>
+                        </div>
+                    </div>
+                `;
             });
 
-            // ==================== INIT ====================
-            // تحميل الأسعار المباشرة أولاً
-            loadOdds('live');
+            container.innerHTML = html;
 
-            // تحديث كل 30 ثانية للتبويب النشط
-            setInterval(() => {
-                const activeTab = document.querySelector('#oddsTabs .active');
-                if (activeTab) {
-                    const type = activeTab.dataset.type;
-                    loadOdds(type);
+            // بعد عرض البطاقات، نجلب الأسعار لكل مباراة على حدة
+            limited.forEach((fixture) => {
+                const matchId = fixture.fixture.id;
+                const oddsRow = document.getElementById(`odds-row-${matchId}`);
+                if (!oddsRow) return;
+
+                // محاولة جلب الأسعار من Altenar
+                fetchAltenarOdds(matchId)
+                    .then(odds => {
+                        if (odds) {
+                            const o1 = odds.odds1 !== '-' ? odds.odds1 : '-';
+                            const oX = odds.oddsX !== '-' ? odds.oddsX : '-';
+                            const o2 = odds.odds2 !== '-' ? odds.odds2 : '-';
+                            oddsRow.innerHTML = `
+                                <div class="odd-item" data-selection="1" data-price="${o1}" data-match="${home.name} vs ${away.name}">
+                                    <div class="label">1</div>
+                                    <div class="value">${o1}</div>
+                                </div>
+                                <div class="odd-item" data-selection="X" data-price="${oX}" data-match="${home.name} vs ${away.name}">
+                                    <div class="label">X</div>
+                                    <div class="value highlight">${oX}</div>
+                                </div>
+                                <div class="odd-item" data-selection="2" data-price="${o2}" data-match="${home.name} vs ${away.name}">
+                                    <div class="label">2</div>
+                                    <div class="value">${o2}</div>
+                                </div>
+                            `;
+                        } else {
+                            oddsRow.innerHTML = `
+                                <div class="odd-item"><div class="label">1</div><div class="value na">-</div></div>
+                                <div class="odd-item"><div class="label">X</div><div class="value na">-</div></div>
+                                <div class="odd-item"><div class="label">2</div><div class="value na">-</div></div>
+                            `;
+                        }
+                        // إعادة ربط حدث النقر على الأسعار
+                        attachOddsClick();
+                    })
+                    .catch(() => {
+                        oddsRow.innerHTML = `
+                            <div class="odd-item"><div class="label">1</div><div class="value na">-</div></div>
+                            <div class="odd-item"><div class="label">X</div><div class="value na">-</div></div>
+                            <div class="odd-item"><div class="label">2</div><div class="value na">-</div></div>
+                        `;
+                    });
+            });
+
+            // ربط حدث النقر على الأسعار (يتم استدعاؤها بعد تحديث كل صف)
+            function attachOddsClick() {
+                document.querySelectorAll('.odd-item').forEach(item => {
+                    item.addEventListener('click', function(e) {
+                        e.stopPropagation();
+                        const match = this.dataset.match;
+                        const selection = this.dataset.selection;
+                        const price = parseFloat(this.dataset.price);
+                        if (price && price > 0 && price !== '-') {
+                            alert(`✅ تم إضافة الرهان: ${match} - ${selection} @ ${price}`);
+                        } else {
+                            alert('⚠️ السعر غير متاح');
+                        }
+                    });
+                });
+            }
+            // التأكد من ربط الأحداث بعد التحميل الأول
+            setTimeout(attachOddsClick, 100);
+        }
+
+        // ==================== LOAD DATA ====================
+        async function loadMatches(type) {
+            container.innerHTML = '<div class="loading"><div class="spinner"></div><div>جاري التحميل...</div></div>';
+
+            try {
+                let data;
+                if (type === 'live') {
+                    // جلب المباريات المباشرة
+                    data = await fetchAPI('/fixtures', { live: 'all' });
+                } else {
+                    // جلب مباريات اليوم
+                    const today = new Date().toISOString().split('T')[0];
+                    data = await fetchAPI('/fixtures', { date: today });
                 }
-            }, 30000);
 
-        })();
-    </script>
+                const fixtures = data.response || [];
+                if (fixtures.length === 0) {
+                    container.innerHTML = `<div class="empty">لا توجد مباريات ${type === 'live' ? 'مباشرة' : 'لهذا اليوم'}</div>`;
+                    return;
+                }
+
+                // فلترة المباريات التي تحتوي على فريقيْن
+                const valid = fixtures.filter(f => f.teams.home && f.teams.away);
+                renderMatches(valid, type);
+
+            } catch (error) {
+                console.error(error);
+                container.innerHTML = `<div class="error-msg">⚠️ فشل تحميل المباريات: ${error.message}</div>`;
+            }
+        }
+
+        // ==================== TABS ====================
+        tabs.addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (!btn) return;
+            tabs.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const type = btn.dataset.type;
+            loadMatches(type);
+        });
+
+        // ==================== INIT ====================
+        // تحميل المباريات المباشرة أولاً
+        loadMatches('live');
+
+        // تحديث تلقائي كل 30 ثانية (للتبويب النشط)
+        setInterval(() => {
+            const activeTab = document.querySelector('#tabsContainer .active');
+            if (activeTab) {
+                const type = activeTab.dataset.type;
+                loadMatches(type);
+            }
+        }, 30000);
+
+    })();
+</script>
 
 </body>
 </html>
