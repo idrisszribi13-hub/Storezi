@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Goal 216 - Live Score & Odds</title>
     <style>
+        /* ===== STYLES ===== (inchangés, garder ceux de la réponse précédente) */
         * {
             margin: 0;
             padding: 0;
@@ -133,6 +134,14 @@
             background: #1f2937;
             padding: 0 8px;
             border-radius: 10px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .match-league img {
+            height: 16px;
+            width: auto;
+            vertical-align: middle;
         }
         .score-line {
             display: flex;
@@ -674,8 +683,9 @@
         const betTotalEl = document.getElementById('betTotal');
         const betCountEl = document.getElementById('betCount');
 
-        // Cache pour les logos (teamId -> logoUrl)
+        // Cache pour les logos (teamId -> logoUrl) et (teamName -> logoUrl)
         const logoCache = {};
+        const leagueLogoCache = {};
 
         // ============================================================
         // 3. HELPERS
@@ -691,26 +701,78 @@
             return await response.json();
         }
 
-        // Appel à l'API Sports pour récupérer le logo d'une équipe par son nom
+        // Récupérer le logo d'une équipe depuis API Sports (avec cache)
         async function fetchTeamLogo(teamName) {
-            // Vérifier le cache
-            if (logoCache[teamName]) return logoCache[teamName];
+            if (!teamName) return null;
+            const key = teamName.trim().toLowerCase();
+            if (logoCache[key]) return logoCache[key];
 
             try {
-                const url = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`;
-                const response = await fetch(url, {
+                // Essayer d'abord une recherche exacte
+                let url = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`;
+                let response = await fetch(url, {
                     headers: {
                         'x-apisports-key': API_SPORTS_KEY,
                         'Content-Type': 'application/json'
                     }
                 });
                 if (!response.ok) return null;
-                const data = await response.json();
+                let data = await response.json();
                 if (data.response && data.response.length > 0) {
                     const logo = data.response[0].team.logo;
-                    logoCache[teamName] = logo;
+                    logoCache[key] = logo;
                     return logo;
                 }
+
+                // Si pas de résultat, essayer avec une recherche plus souple (enlever les accents, etc.)
+                const simplified = teamName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-zA-Z0-9 ]/g, '').trim();
+                if (simplified !== teamName) {
+                    url = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(simplified)}`;
+                    response = await fetch(url, {
+                        headers: {
+                            'x-apisports-key': API_SPORTS_KEY,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (response.ok) {
+                        data = await response.json();
+                        if (data.response && data.response.length > 0) {
+                            const logo = data.response[0].team.logo;
+                            logoCache[key] = logo;
+                            return logo;
+                        }
+                    }
+                }
+
+                // Fallback: tenter de trouver par nom partiel (premier mot)
+                const firstWord = teamName.split(' ')[0];
+                if (firstWord && firstWord.length > 2 && firstWord !== teamName) {
+                    url = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(firstWord)}`;
+                    response = await fetch(url, {
+                        headers: {
+                            'x-apisports-key': API_SPORTS_KEY,
+                            'Content-Type': 'application/json'
+                        }
+                    });
+                    if (response.ok) {
+                        data = await response.json();
+                        if (data.response && data.response.length > 0) {
+                            // Chercher celui qui correspond le mieux
+                            for (let item of data.response) {
+                                if (item.team.name.toLowerCase().includes(firstWord.toLowerCase())) {
+                                    const logo = item.team.logo;
+                                    logoCache[key] = logo;
+                                    return logo;
+                                }
+                            }
+                            // sinon prendre le premier
+                            const logo = data.response[0].team.logo;
+                            logoCache[key] = logo;
+                            return logo;
+                        }
+                    }
+                }
+
                 return null;
             } catch (e) {
                 console.warn('Erreur lors de la récupération du logo pour', teamName, e);
@@ -718,9 +780,12 @@
             }
         }
 
-        // Appel à l'API Sports pour récupérer le logo d'une ligue par son nom
+        // Récupérer le logo d'une ligue depuis API Sports
         async function fetchLeagueLogo(leagueName) {
-            // On peut aussi mettre en cache mais on ne le fait pas pour simplifier
+            if (!leagueName) return null;
+            const key = leagueName.trim().toLowerCase();
+            if (leagueLogoCache[key]) return leagueLogoCache[key];
+
             try {
                 const url = `https://v3.football.api-sports.io/leagues?search=${encodeURIComponent(leagueName)}`;
                 const response = await fetch(url, {
@@ -732,7 +797,9 @@
                 if (!response.ok) return null;
                 const data = await response.json();
                 if (data.response && data.response.length > 0) {
-                    return data.response[0].league.logo;
+                    const logo = data.response[0].league.logo;
+                    leagueLogoCache[key] = logo;
+                    return logo;
                 }
                 return null;
             } catch (e) {
@@ -815,7 +882,7 @@
         }
 
         // ============================================================
-        // 4. BET SLIP (identique)
+        // 4. BET SLIP (inchangé)
         // ============================================================
         function updateBetSlipUI() {
             if (betSlip.length === 0) {
@@ -882,22 +949,21 @@
                 return;
             }
 
-            // Pour chaque match, on va récupérer les logos en arrière-plan
-            // On prépare un tableau de promesses
+            // Récupérer les logos en parallèle
             const matchesWithLogos = await Promise.all(events.map(async (match) => {
                 const comps = match.Competitors || [];
                 const homeName = comps[0]?.Name || 'Home';
                 const awayName = comps[1]?.Name || 'Away';
-                // Récupérer les logos depuis API Sports
+                const leagueName = match.ChampName || match.CategoryName || '';
+
+                // Récupérer les logos
                 const homeLogo = await fetchTeamLogo(homeName);
                 const awayLogo = await fetchTeamLogo(awayName);
-                // Récupérer le logo de la ligue (optionnel)
-                const leagueName = match.ChampName || match.CategoryName || '';
                 const leagueLogo = leagueName ? await fetchLeagueLogo(leagueName) : null;
+
                 return { ...match, homeLogo, awayLogo, leagueLogo };
             }));
 
-            // Maintenant on construit le HTML
             let html = '';
             matchesWithLogos.forEach(match => {
                 const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
@@ -929,7 +995,7 @@
                     cardClass = 'coming';
                 }
 
-                // Utiliser les logos récupérés, sinon fallback
+                // Construire les balises des logos
                 const homeCrestHtml = match.homeLogo ?
                     `<img src="${match.homeLogo}" alt="${homeName}" loading="lazy" onerror="this.style.display='none'">` :
                     homeName.substring(0, 2).toUpperCase();
@@ -937,9 +1003,8 @@
                     `<img src="${match.awayLogo}" alt="${awayName}" loading="lazy" onerror="this.style.display='none'">` :
                     awayName.substring(0, 2).toUpperCase();
 
-                // Afficher le logo de la ligue si disponible
-                const leagueHtml = match.leagueLogo ?
-                    `<img src="${match.leagueLogo}" style="height:16px; vertical-align:middle; margin-right:4px;">` :
+                const leagueLogoHtml = match.leagueLogo ?
+                    `<img src="${match.leagueLogo}" alt="${league}" loading="lazy" onerror="this.style.display='none'">` :
                     '';
 
                 html += `
@@ -947,7 +1012,7 @@
                             <div class="match-header">
                                 ${label}
                                 <span class="match-time">${timeDisplay}</span>
-                                <span class="match-league">${leagueHtml} ${league}</span>
+                                <span class="match-league">${leagueLogoHtml} ${league}</span>
                             </div>
                             <div class="score-line">
                                 <div class="team-block home">
@@ -1013,7 +1078,7 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW (inchangé, mais on pourrait aussi ajouter les logos)
+        // 6. DETAILS VIEW (inchangé)
         // ============================================================
         async function showEventDetails(matchId) {
             try {
@@ -1220,7 +1285,7 @@
         }
 
         // ============================================================
-        // 7. LOAD VIEWS (inchangé)
+        // 7. LOAD VIEWS
         // ============================================================
         async function loadView(view, preserveScroll = false) {
             if (isUpdating) return;
