@@ -1,152 +1,577 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ar">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Football Dashboard</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>Goal 216 - Live & Coming</title>
     <style>
-        body { font-family: Arial, sans-serif; background-color: #121212; color: #fff; margin: 0; padding: 20px; }
-        h2 { border-bottom: 2px solid #00c853; padding-bottom: 10px; margin-bottom: 20px; }
-        
-        /* شبكة الفرق */
-        .teams-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 15px; margin-bottom: 40px; }
-        .team-card { background: #1e1e1e; border-radius: 10px; padding: 15px; text-align: center; border: 1px solid #333; }
-        .team-card img { width: 60px; height: 60px; object-fit: contain; margin-bottom: 10px; }
-        .team-card span { display: block; font-size: 14px; font-weight: bold; }
+        /* ---------- Reset & Base ---------- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0b0e13;
+            color: #f0f3f7;
+            padding: 12px;
+            direction: ltr;
+            min-height: 100vh;
+        }
+        a {
+            color: inherit;
+            text-decoration: none;
+        }
 
-        /* جدول المباريات */
-        .match-table { width: 100%; border-collapse: collapse; }
-        .match-row { display: flex; justify-content: space-between; align-items: center; background: #1e1e1e; margin-bottom: 10px; padding: 15px; border-radius: 8px; border: 1px solid #333; }
-        .team-info { display: flex; align-items: center; gap: 10px; width: 40%; }
-        .team-info img { width: 30px; height: 30px; }
-        .team-name { font-weight: bold; }
-        
-        /* منتصف الجدول - الوقت */
-        .match-time { width: 20%; text-align: center; font-size: 24px; font-weight: bold; color: #00c853; }
-        .match-score { width: 20%; text-align: center; font-size: 24px; font-weight: bold; }
-        
-        /* التبويبات */
-        .tabs { margin-bottom: 20px; }
-        .tab { background: #333; border: none; color: #fff; padding: 10px 20px; border-radius: 5px; cursor: pointer; }
-        .tab.active { background: #00c853; }
+        /* ---------- Header ---------- */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00e676;
+            cursor: pointer;
+        }
+        .badge {
+            background: #1f2937;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+
+        /* ---------- Navigation Tabs ---------- */
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 8px;
+        }
+        .nav-tabs button {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.2s;
+        }
+        .nav-tabs button.active {
+            background: #00e676;
+            color: #0b0e13;
+        }
+        .nav-tabs button:hover {
+            background: #1f2937;
+            color: #f0f3f7;
+        }
+
+        /* ---------- Match Cards ---------- */
+        .match-card {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #dc2626;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .match-card.coming {
+            border-left-color: #fbbf24;
+        }
+        .match-card:hover {
+            background: #1a202a;
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+        .match-time {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .match-league {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+        }
+
+        .score-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 4px 0 8px 0;
+        }
+        .team {
+            display: flex;
+            flex-direction: column;
+            max-width: 40%;
+        }
+        .team-name {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .team-score {
+            font-size: 24px;
+            font-weight: 700;
+        }
+        .team.away {
+            text-align: right;
+        }
+        .vs-dash {
+            color: #4b5563;
+            font-weight: 300;
+            padding: 0 4px;
+        }
+
+        .odds-row {
+            display: flex;
+            justify-content: space-around;
+            background: #1e2530;
+            border-radius: 8px;
+            padding: 8px 0;
+            margin-top: 6px;
+        }
+        .odd-item {
+            text-align: center;
+            flex: 1;
+        }
+        .odd-item .label {
+            font-size: 11px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .odd-item .value {
+            font-size: 16px;
+            font-weight: 700;
+            color: #facc15;
+        }
+        .odd-item .value.highlight {
+            color: #34d399;
+        }
+
+        /* ---------- Loading & Error ---------- */
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .error-msg {
+            background: #7f1d1d;
+            padding: 15px;
+            border-radius: 8px;
+            color: #fca5a5;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        /* ---------- Back Button ---------- */
+        .back-btn {
+            background: #1f2937;
+            border: none;
+            color: #f0f3f7;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .back-btn:hover {
+            background: #374151;
+        }
+
+        /* ---------- Event Details (Markets) ---------- */
+        .market-group {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .market-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+        .market-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .market-item {
+            background: #1e2530;
+            padding: 8px 14px;
+            border-radius: 8px;
+            flex: 1 0 calc(33% - 8px);
+            text-align: center;
+            min-width: 80px;
+        }
+        .market-item .name {
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .market-item .price {
+            font-size: 16px;
+            font-weight: 700;
+            color: #facc15;
+        }
+
+        /* ---------- Footer ---------- */
+        .footer-menu {
+            display: flex;
+            justify-content: space-around;
+            background: #0f131a;
+            padding: 12px 0;
+            border-top: 1px solid #222;
+            margin-top: 20px;
+            position: sticky;
+            bottom: 0;
+        }
+        .footer-menu span {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .footer-menu .active {
+            color: #00e676;
+        }
+
+        /* ---------- Utilities ---------- */
+        .hidden {
+            display: none !important;
+        }
+        .live-label {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+            animation: blink 1.2s infinite;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
     </style>
 </head>
 <body>
 
-    <h2>⚽ الفرق (Grid)</h2>
-    <div id="teamsGrid" class="teams-grid">جاري تحميل الفرق...</div>
+    <!-- Header -->
+    <div class="header">
+        <h1 id="home-link">⚽ goal216</h1>
+        <span class="badge">LIVE</span>
+    </div>
 
-    <h2>📅 مباريات اليوم (Table)</h2>
-    <div id="matchesTable" class="match-table">جاري تحميل المباريات...</div>
+    <!-- Navigation Tabs -->
+    <div class="nav-tabs" id="navTabs">
+        <button class="active" data-view="live">🔴 EN DIRECT</button>
+        <button data-view="coming">📅 À VENIR</button>
+    </div>
+
+    <!-- Main Content Area -->
+    <div id="app">
+        <!-- سيتم ملؤها ديناميكياً -->
+        <div class="loading">⏳ Chargement...</div>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer-menu">
+        <span class="active">📋 Menu</span>
+        <span>🏟️ Sport</span>
+        <span>🔴 Live</span>
+        <span>🎰 Casino</span>
+        <span>📺 Casino en Direct</span>
+    </div>
 
     <script>
-        const API_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
-        const BASE_URL = 'https://v3.football.api-sports.io';
-        const options = {
-            method: 'GET',
-            headers: { 'x-apisports-key': API_KEY }
-        };
+        // ----------------------------------------------
+        // 1. CONFIGURATION
+        // ----------------------------------------------
 
-        // 1. جلب الفرق (الشبكة)
-        async function fetchTeams() {
+        // 🔥 استبدل هذا الرابط بالرابط الفعلي لـ Edge Function الخاص بك في Supabase
+        const PROXY_URL = 'https://<your-project-ref>.supabase.co/functions/v1/altenar-proxy';
+
+        // المعاملات الثابتة (نفسها من الطلبات الأصلية)
+        const BASE_PARAMS = 'timezoneOffset=-60&langId=39&skinName=dreamswin365_21&configId=1&culture=fr-FR&countryCode=TN&deviceType=Mobile&numformat=en&integration=betrebels';
+
+        // ----------------------------------------------
+        // 2. HELPERS
+        // ----------------------------------------------
+
+        // دالة لبناء الرابط الكامل للـ Proxy
+        function buildProxyUrl(endpoint, extraParams = '') {
+            let url = `${PROXY_URL}?endpoint=${endpoint}&${BASE_PARAMS}`;
+            if (extraParams) {
+                url += `&${extraParams}`;
+            }
+            return url;
+        }
+
+        // دالة لجلب البيانات من الـ Proxy
+        async function fetchFromProxy(endpoint, extraParams = '') {
+            const url = buildProxyUrl(endpoint, extraParams);
+            const response = await fetch(url);
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        }
+
+        // استخراج الاحتمالات من الـ Market (1x2)
+        function extractOdds(markets) {
+            let odds1 = '-', oddsX = '-', odds2 = '-';
+            if (!markets) return { odds1, oddsX, odds2 };
+            const market = markets.find(m => m.Id === 1);
+            if (market && market.Items) {
+                const items = market.Items;
+                const o1 = items.find(i => i.SelectionTypeId === 1);
+                const oX = items.find(i => i.SelectionTypeId === 2);
+                const o2 = items.find(i => i.SelectionTypeId === 3);
+                odds1 = o1 ? o1.Price : odds1;
+                oddsX = oX ? oX.Price : oddsX;
+                odds2 = o2 ? o2.Price : odds2;
+            }
+            return { odds1, oddsX, odds2 };
+        }
+
+        // ----------------------------------------------
+        // 3. RENDER FUNCTIONS
+        // ----------------------------------------------
+
+        const app = document.getElementById('app');
+
+        // عرض قائمة المباريات (مباشرة أو قادمة)
+        function renderMatchList(events, isLive = true) {
+            if (!events || events.length === 0) {
+                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé.</div>`;
+                return;
+            }
+
+            let html = '';
+            events.forEach(match => {
+                const time = match.LiveCurrentTime || match.EventDate?.split('T')[1]?.slice(0,5) || '--';
+                const score = match.LiveScore || '0:0';
+                const scores = score.split(':');
+                const team1 = match.Competitors?.[0]?.Name || 'Équipe A';
+                const team2 = match.Competitors?.[1]?.Name || 'Équipe B';
+                const league = match.ChampName || match.CategoryName || 'Championnat';
+                const matchId = match.Id;
+
+                const { odds1, oddsX, odds2 } = extractOdds(match.Items);
+
+                const liveClass = isLive ? 'live-label' : 'coming-label';
+                const cardClass = isLive ? '' : 'coming';
+
+                html += `
+                    <div class="match-card ${cardClass}" data-matchid="${matchId}">
+                        <div class="match-header">
+                            <span class="${liveClass}">${isLive ? 'EN DIRECT' : 'À VENIR'}</span>
+                            <span class="match-time">${time}</span>
+                            <span class="match-league">${league}</span>
+                        </div>
+                        <div class="score-line">
+                            <div class="team home">
+                                <span class="team-name">${team1}</span>
+                                <span class="team-score">${scores[0] || '0'}</span>
+                            </div>
+                            <span class="vs-dash">⚡</span>
+                            <div class="team away">
+                                <span class="team-name">${team2}</span>
+                                <span class="team-score">${scores[1] || '0'}</span>
+                            </div>
+                        </div>
+                        <div class="odds-row">
+                            <div class="odd-item">
+                                <div class="label">1</div>
+                                <div class="value">${odds1}</div>
+                            </div>
+                            <div class="odd-item">
+                                <div class="label">X</div>
+                                <div class="value highlight">${oddsX}</div>
+                            </div>
+                            <div class="odd-item">
+                                <div class="label">2</div>
+                                <div class="value">${odds2}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            app.innerHTML = html;
+
+            // إضافة مستمعي النقر على البطاقات لعرض التفاصيل
+            document.querySelectorAll('.match-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const matchId = this.dataset.matchid;
+                    if (matchId) {
+                        showEventDetails(matchId);
+                    }
+                });
+            });
+        }
+
+        // عرض تفاصيل المباراة (جميع الأسواق)
+        async function showEventDetails(matchId) {
             try {
-                const res = await fetch(`${BASE_URL}/teams?season=2026&league=1933`, options);
-                const data = await res.json();
-                
-                const teamsGrid = document.getElementById('teamsGrid');
-                if (data.errors && data.errors.requests) {
-                    teamsGrid.innerHTML = 'تم تجاوز حد الطلبات، حاول لاحقاً.';
+                app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
+                // جلب تفاصيل المباراة
+                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
+                const result = data?.Result;
+                if (!result) {
+                    app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables pour ce match.</div>`;
                     return;
                 }
 
-                teamsGrid.innerHTML = data.response.map(team => `
-                    <div class="team-card">
-                        <img src="${team.team.logo}" alt="${team.team.name}" />
-                        <span>${team.team.name}</span>
+                const homeTeam = result.Competitors?.[0]?.Name || 'Home';
+                const awayTeam = result.Competitors?.[1]?.Name || 'Away';
+                const league = result.ChampName || result.CategoryName || 'Ligue';
+                const date = result.EventDate || '';
+
+                let html = `
+                    <button class="back-btn" id="backToList">← Retour</button>
+                    <div style="margin-bottom:16px;">
+                        <h2 style="font-size:20px;">${homeTeam} vs ${awayTeam}</h2>
+                        <p style="color:#9ca3af; font-size:14px;">${league} | ${date}</p>
                     </div>
-                `).join('');
+                `;
+
+                // عرض مجموعات الأسواق
+                const marketGroups = result.MarketGroups || [];
+                marketGroups.forEach(group => {
+                    if (!group.Items || group.Items.length === 0) return;
+                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
+                    group.Items.forEach(market => {
+                        if (!market.Items || market.Items.length === 0) return;
+                        // نأخذ أول 3 عناصر فقط للتجميل (يمكن عرض الكل)
+                        const items = market.Items.slice(0, 6);
+                        items.forEach(item => {
+                            const name = item.Name || item.ShortName || '—';
+                            const price = item.Price || '-';
+                            html += `
+                                <div class="market-item">
+                                    <div class="name">${name}</div>
+                                    <div class="price">${price}</div>
+                                </div>
+                            `;
+                        });
+                    });
+                    html += `</div></div>`;
+                });
+
+                app.innerHTML = html;
+
+                // إعادة زر الرجوع
+                document.getElementById('backToList').addEventListener('click', () => {
+                    // إعادة تحميل العرض الحالي (يعتمد على التبويب النشط)
+                    const activeTab = document.querySelector('.nav-tabs .active');
+                    if (activeTab) {
+                        const view = activeTab.dataset.view;
+                        loadView(view);
+                    } else {
+                        loadView('live');
+                    }
+                });
+
             } catch (error) {
-                console.error("خطأ في جلب الفرق:", error);
+                app.innerHTML = `<div class="error-msg">⛔ Erreur lors du chargement des détails: ${error.message}</div>`;
+                console.error(error);
             }
         }
 
-        // 2. جلب المباريات (الجدول + خاصية الوقت الإضافي)
-        async function fetchMatches() {
+        // ----------------------------------------------
+        // 4. LOAD VIEWS (Live / Coming)
+        // ----------------------------------------------
+
+        async function loadView(view) {
+            app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
             try {
-                // استخدم live=all للمباريات الجارية أو date=2026-08-27 لمباريات اليوم
-                const res = await fetch(`${BASE_URL}/fixtures?date=2026-08-27`, options);
-                const data = await res.json();
-
-                const matchesTable = document.getElementById('matchesTable');
-                
-                matchesTable.innerHTML = data.response.map(match => {
-                    // **منطق خاصية الوقت الإضافي (Extra Time) **
-                    const minute = match.fixture.status.elapsed;
-                    const statusShort = match.fixture.status.short;
-                    const statusLong = match.fixture.status.long;
-                    
-                    let timeDisplay = '';
-                    
-                    // إذا كانت المباراة لم تبدأ أو مؤجلة
-                    if (statusLong === 'Not Started') {
-                        timeDisplay = match.fixture.date.substring(11, 16); // عرض الوقت فقط
-                    } 
-                    // إذا انتهت أو لم تبدأ
-                    else if (statusLong === 'Match Finished') {
-                        timeDisplay = 'FT';
-                    }
-                    // إذا كانت استراحة
-                    else if (statusShort === 'HT') {
-                        timeDisplay = 'HT';
-                    }
-                    // إذا كانت مباشرة (First Half, Second Half, Extra Time)
-                    else {
-                        // عرض الدقيقة + علامة دقيقة (مثل: 45')
-                        timeDisplay = `${minute}'`;
-                        
-                        // **الجزء الخاص بالوقت المضاف من الحكم (45+ / 90+)**
-                        // نتحقق إذا كان الوقت قرب نهاية الشوط أو بهدف متأخر
-                        if (minute === 45 || minute === 90) {
-                            // نقوم بعرض رمز + لتنبيه المستخدم بوجود وقت بدل ضائع (Extra)
-                            // (في الـ API لا يوجد حقل +، لكننا نضيف هذا المنطق ليتطابق مع التطبيق)
-                            timeDisplay = `${minute}+'`;
-                        } 
-                        // في حال كان الشوط الإضافي (بالدقيقة 105 أو 120)
-                        else if (minute >= 105 && minute <= 120) {
-                            timeDisplay = `${minute}' ET`;
-                        }
-                    }
-
-                    // عرض النتيجة (فقط إذا بدأت وانتهت)
-                    const showScore = (statusShort === '1H' || statusShort === '2H' || statusLong === 'Match Finished');
-                    const scoreHTML = showScore 
-                        ? `${match.goals.home} - ${match.goals.away}` 
-                        : `<span style="color:#777">VS</span>`;
-
-                    return `
-                        <div class="match-row">
-                            <div class="team-info">
-                                <img src="${match.teams.home.logo}" />
-                                <span class="team-name">${match.teams.home.name}</span>
-                            </div>
-                            <div class="match-time">${timeDisplay}</div>
-                            <div class="match-score">${scoreHTML}</div>
-                            <div class="team-info" style="justify-content: flex-end; text-align: right;">
-                                <span class="team-name">${match.teams.away.name}</span>
-                                <img src="${match.teams.away.logo}" />
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-
+                let events = [];
+                if (view === 'live') {
+                    // جلب المباريات المباشرة
+                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                    renderMatchList(events, true);
+                } else if (view === 'coming') {
+                    // جلب المباريات القادمة (نستخدم GetHighlights كما في الطلب)
+                    // لكن قد لا يعطي نفس النتيجة، يمكن استخدام GetEvents مع فلتر زمني
+                    // ولكن حسب الطلب، لدينا GetHighlights
+                    const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=15');
+                    // بنية GetHighlights تشبه GetLivenow
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                    renderMatchList(events, false);
+                }
             } catch (error) {
-                console.error("خطأ في جلب المباريات:", error);
+                app.innerHTML = `<div class="error-msg">⛔ Erreur de chargement: ${error.message}</div>`;
+                console.error(error);
             }
         }
 
-        // تشغيل الدوال
-        fetchTeams();
-        fetchMatches();
+        // ----------------------------------------------
+        // 5. NAVIGATION & INIT
+        // ----------------------------------------------
+
+        // تبديل التبويبات
+        document.querySelectorAll('.nav-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                const view = this.dataset.view;
+                loadView(view);
+            });
+        });
+
+        // زر العودة إلى الصفحة الرئيسية (من خلال الضغط على اسم الموقع)
+        document.getElementById('home-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            const activeTab = document.querySelector('.nav-tabs .active');
+            if (activeTab) {
+                loadView(activeTab.dataset.view);
+            } else {
+                loadView('live');
+            }
+        });
+
+        // تحميل العرض الافتراضي (المباشر)
+        loadView('live');
+
+        // تحديث المباريات المباشرة كل 30 ثانية (اختياري)
+        setInterval(() => {
+            const activeTab = document.querySelector('.nav-tabs .active');
+            if (activeTab && activeTab.dataset.view === 'live') {
+                loadView('live');
+            }
+        }, 30000);
+
+        // ----------------------------------------------
+        // 6. EXPOSE GLOBALLY (for debugging)
+        // ----------------------------------------------
+        window.loadView = loadView;
+        window.showEventDetails = showEventDetails;
     </script>
+
 </body>
 </html>
