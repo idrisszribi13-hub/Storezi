@@ -275,15 +275,9 @@
             margin-right: 6px;
         }
         @keyframes blink {
-            0% {
-                opacity: 1;
-            }
-            50% {
-                opacity: 0.4;
-            }
-            100% {
-                opacity: 1;
-            }
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
         }
         .back-btn {
             background: #1f2937;
@@ -586,30 +580,13 @@
             color: #00e676;
         }
         @media (max-width: 480px) {
-            .team-name {
-                font-size: 12px;
-            }
-            .team-score {
-                font-size: 18px;
-            }
-            .team-crest {
-                width: 26px;
-                height: 26px;
-            }
-            .nav-tabs button {
-                font-size: 12px;
-                padding: 6px 10px;
-            }
-            .market-tabs button {
-                font-size: 10px;
-                padding: 3px 8px;
-            }
-            .match-card {
-                padding: 12px;
-            }
-            .timeline-event {
-                font-size: 11px;
-            }
+            .team-name { font-size: 12px; }
+            .team-score { font-size: 18px; }
+            .team-crest { width: 26px; height: 26px; }
+            .nav-tabs button { font-size: 12px; padding: 6px 10px; }
+            .market-tabs button { font-size: 10px; padding: 3px 8px; }
+            .match-card { padding: 12px; }
+            .timeline-event { font-size: 11px; }
         }
     </style>
 </head>
@@ -675,29 +652,30 @@
         // 1. CONFIGURATION
         // ============================================================
         const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
+        const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b'; // clé api-sports
 
         // ============================================================
         // 2. STATE
         // ============================================================
         let currentView = 'live';
         let currentDay = 0;
-        let currentMatchId = null; // null = liste, number = détails
+        let currentMatchId = null;
         let eventsCache = {};
         let isUpdating = false;
 
-        // Intervalles
-        let listRefreshInterval = null; // pour rafraîchir les listes en silence
-        let detailRefreshInterval = null; // pour rafraîchir les détails en silence
+        let listRefreshInterval = null;
+        let detailRefreshInterval = null;
 
-        // Cache des cotes précédentes pour les flèches
         let previousOdds = {};
 
-        // Bet Slip
         let betSlip = [];
         const betSlipEl = document.getElementById('betSlip');
         const betSlipItemsEl = document.getElementById('betSlipItems');
         const betTotalEl = document.getElementById('betTotal');
         const betCountEl = document.getElementById('betCount');
+
+        // Cache pour les logos (teamId -> logoUrl)
+        const logoCache = {};
 
         // ============================================================
         // 3. HELPERS
@@ -713,10 +691,58 @@
             return await response.json();
         }
 
+        // Appel à l'API Sports pour récupérer le logo d'une équipe par son nom
+        async function fetchTeamLogo(teamName) {
+            // Vérifier le cache
+            if (logoCache[teamName]) return logoCache[teamName];
+
+            try {
+                const url = `https://v3.football.api-sports.io/teams?search=${encodeURIComponent(teamName)}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'x-apisports-key': API_SPORTS_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) return null;
+                const data = await response.json();
+                if (data.response && data.response.length > 0) {
+                    const logo = data.response[0].team.logo;
+                    logoCache[teamName] = logo;
+                    return logo;
+                }
+                return null;
+            } catch (e) {
+                console.warn('Erreur lors de la récupération du logo pour', teamName, e);
+                return null;
+            }
+        }
+
+        // Appel à l'API Sports pour récupérer le logo d'une ligue par son nom
+        async function fetchLeagueLogo(leagueName) {
+            // On peut aussi mettre en cache mais on ne le fait pas pour simplifier
+            try {
+                const url = `https://v3.football.api-sports.io/leagues?search=${encodeURIComponent(leagueName)}`;
+                const response = await fetch(url, {
+                    headers: {
+                        'x-apisports-key': API_SPORTS_KEY,
+                        'Content-Type': 'application/json'
+                    }
+                });
+                if (!response.ok) return null;
+                const data = await response.json();
+                if (data.response && data.response.length > 0) {
+                    return data.response[0].league.logo;
+                }
+                return null;
+            } catch (e) {
+                console.warn('Erreur lors de la récupération du logo de la ligue', leagueName, e);
+                return null;
+            }
+        }
+
         function extractOdds(markets) {
-            let odds1 = '-',
-                oddsX = '-',
-                odds2 = '-';
+            let odds1 = '-', oddsX = '-', odds2 = '-';
             if (!markets) return { odds1, oddsX, odds2 };
             const market = markets.find(m => m.Id === 1 || m.MarketId === 1);
             if (market && market.Items) {
@@ -789,7 +815,7 @@
         }
 
         // ============================================================
-        // 4. BET SLIP
+        // 4. BET SLIP (identique)
         // ============================================================
         function updateBetSlipUI() {
             if (betSlip.length === 0) {
@@ -846,18 +872,34 @@
         });
 
         // ============================================================
-        // 5. RENDER FUNCTIONS
+        // 5. RENDER FUNCTIONS (avec logos depuis API Sports)
         // ============================================================
         const app = document.getElementById('app');
 
-        function renderMatchList(events, type = 'live', preserveScroll = false) {
+        async function renderMatchList(events, type = 'live', preserveScroll = false) {
             if (!events || events.length === 0) {
                 app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
                 return;
             }
 
+            // Pour chaque match, on va récupérer les logos en arrière-plan
+            // On prépare un tableau de promesses
+            const matchesWithLogos = await Promise.all(events.map(async (match) => {
+                const comps = match.Competitors || [];
+                const homeName = comps[0]?.Name || 'Home';
+                const awayName = comps[1]?.Name || 'Away';
+                // Récupérer les logos depuis API Sports
+                const homeLogo = await fetchTeamLogo(homeName);
+                const awayLogo = await fetchTeamLogo(awayName);
+                // Récupérer le logo de la ligue (optionnel)
+                const leagueName = match.ChampName || match.CategoryName || '';
+                const leagueLogo = leagueName ? await fetchLeagueLogo(leagueName) : null;
+                return { ...match, homeLogo, awayLogo, leagueLogo };
+            }));
+
+            // Maintenant on construit le HTML
             let html = '';
-            events.forEach(match => {
+            matchesWithLogos.forEach(match => {
                 const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
                 let timeDisplay;
                 if (type === 'live' && isLive) {
@@ -871,11 +913,11 @@
                 const league = match.ChampName || match.CategoryName || 'Championnat';
                 const matchId = match.Id;
 
-                const { home, away } = getCompetitorsWithCrests(match);
+                const homeName = match.Competitors?.[0]?.Name || 'Home';
+                const awayName = match.Competitors?.[1]?.Name || 'Away';
                 const { odds1, oddsX, odds2 } = extractOdds(match.Items);
 
-                let label = '',
-                    cardClass = '';
+                let label = '', cardClass = '';
                 if (type === 'live' && isLive) {
                     label = '<span class="live-label">EN DIRECT</span>';
                     cardClass = '';
@@ -887,25 +929,31 @@
                     cardClass = 'coming';
                 }
 
-                const homeCrestHtml = home.crest ?
-                    `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">` :
-                    home.Name.substring(0, 2).toUpperCase();
-                const awayCrestHtml = away.crest ?
-                    `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">` :
-                    away.Name.substring(0, 2).toUpperCase();
+                // Utiliser les logos récupérés, sinon fallback
+                const homeCrestHtml = match.homeLogo ?
+                    `<img src="${match.homeLogo}" alt="${homeName}" loading="lazy" onerror="this.style.display='none'">` :
+                    homeName.substring(0, 2).toUpperCase();
+                const awayCrestHtml = match.awayLogo ?
+                    `<img src="${match.awayLogo}" alt="${awayName}" loading="lazy" onerror="this.style.display='none'">` :
+                    awayName.substring(0, 2).toUpperCase();
+
+                // Afficher le logo de la ligue si disponible
+                const leagueHtml = match.leagueLogo ?
+                    `<img src="${match.leagueLogo}" style="height:16px; vertical-align:middle; margin-right:4px;">` :
+                    '';
 
                 html += `
                         <div class="match-card ${cardClass}" data-matchid="${matchId}">
                             <div class="match-header">
                                 ${label}
                                 <span class="match-time">${timeDisplay}</span>
-                                <span class="match-league">${league}</span>
+                                <span class="match-league">${leagueHtml} ${league}</span>
                             </div>
                             <div class="score-line">
                                 <div class="team-block home">
                                     <div class="team-crest">${homeCrestHtml}</div>
                                     <div class="team-info">
-                                        <span class="team-name">${home.Name}</span>
+                                        <span class="team-name">${homeName}</span>
                                         <span class="team-score">${scores[0] || '0'}</span>
                                     </div>
                                 </div>
@@ -913,21 +961,21 @@
                                 <div class="team-block away">
                                     <div class="team-crest">${awayCrestHtml}</div>
                                     <div class="team-info">
-                                        <span class="team-name">${away.Name}</span>
+                                        <span class="team-name">${awayName}</span>
                                         <span class="team-score">${scores[1] || '0'}</span>
                                     </div>
                                 </div>
                             </div>
                             <div class="odds-row">
-                                <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${homeName} vs ${awayName}">
                                     <div class="label">1</div>
                                     <div class="value" id="odd-1-${matchId}">${odds1}</div>
                                 </div>
-                                <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${homeName} vs ${awayName}">
                                     <div class="label">X</div>
                                     <div class="value highlight" id="odd-X-${matchId}">${oddsX}</div>
                                 </div>
-                                <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${homeName} vs ${awayName}">
                                     <div class="label">2</div>
                                     <div class="value" id="odd-2-${matchId}">${odds2}</div>
                                 </div>
@@ -940,6 +988,7 @@
             app.innerHTML = html;
             if (preserveScroll) { window.scrollTo(0, scrollY); }
 
+            // Attacher les événements
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.closest('.odd-item')) return;
@@ -964,16 +1013,14 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW (SILENT UPDATE)
+        // 6. DETAILS VIEW (inchangé, mais on pourrait aussi ajouter les logos)
         // ============================================================
         async function showEventDetails(matchId) {
             try {
-                // Arrêter le rafraîchissement des listes
                 if (listRefreshInterval) {
                     clearInterval(listRefreshInterval);
                     listRefreshInterval = null;
                 }
-                // Arrêter l'ancien détail s'il existe
                 if (detailRefreshInterval) {
                     clearInterval(detailRefreshInterval);
                     detailRefreshInterval = null;
@@ -982,10 +1029,8 @@
                 currentMatchId = matchId;
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
 
-                // Charger une première fois
                 await loadMatchDetails(matchId);
 
-                // Lancer le rafraîchissement silencieux des détails (toutes les 5s)
                 detailRefreshInterval = setInterval(() => {
                     loadMatchDetails(matchId, true);
                 }, 5000);
@@ -998,7 +1043,6 @@
 
         async function loadMatchDetails(matchId, silent = false) {
             try {
-                // 1. Détails du match (marchés)
                 const detailData = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
                 const result = detailData?.Result;
                 if (!result) {
@@ -1015,7 +1059,6 @@
                 const scores = liveScore.split(':');
                 const liveTime = result.LiveCurrentTime || '';
 
-                // 2. Timeline (si live)
                 let timelineHtml = '';
                 let matchStatus = '';
                 if (isLive) {
@@ -1032,15 +1075,13 @@
                             const evTime = ev.time ? `${ev.time}'` : '--';
                             let icon = '•';
                             let cls = '';
-                            if (ev.type === 'goal') { icon = '⚽';
-                                cls = 'event-goal'; } else if (ev.type === 'card' && ev.card === 'yellow') { icon =
-                                    '🟨';
-                                cls = 'event-card-yellow'; } else if (ev.type === 'card' && ev.card === 'red') { icon =
-                                    '🟥';
-                                cls = 'event-card-red'; } else if (ev.type === 'substitution') { icon = '🔄';
-                                cls = 'event-sub'; } else if (ev.type === 'shotontarget') { icon = '🎯'; } else if (ev
-                                    .type === 'corner') { icon = '🚩';
-                                cls = 'event-corner'; } else if (ev.type === 'offside') { icon = '🚫'; }
+                            if (ev.type === 'goal') { icon = '⚽'; cls = 'event-goal'; }
+                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-card-yellow'; }
+                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-card-red'; }
+                            else if (ev.type === 'substitution') { icon = '🔄'; cls = 'event-sub'; }
+                            else if (ev.type === 'shotontarget') { icon = '🎯'; }
+                            else if (ev.type === 'corner') { icon = '🚩'; cls = 'event-corner'; }
+                            else if (ev.type === 'offside') { icon = '🚫'; }
                             const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
                             const playerName = ev.player?.name || '';
                             const desc = ev.name || ev.type || '';
@@ -1069,7 +1110,6 @@
                     }
                 }
 
-                // 3. Score en direct
                 const scoreHtml = `
                         <div class="live-score-update">
                             <span class="score-badge">🏠 <span class="home-score">${scores[0] || '0'}</span> - <span class="away-score">${scores[1] || '0'}</span> 🏃</span>
@@ -1078,7 +1118,6 @@
                         </div>
                     `;
 
-                // 4. Group markets by type
                 const marketGroups = result.MarketGroups || [];
                 const grouped = groupMarketsByType(marketGroups);
                 const tabNames = Object.keys(grouped);
@@ -1094,7 +1133,6 @@
                     'correctscore': 'Correct Score'
                 };
 
-                // 5. Build HTML
                 let html = `
                         <button class="back-btn" id="backToList">← Retour</button>
                         <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
@@ -1103,7 +1141,6 @@
                         ${timelineHtml}
                     `;
 
-                // Market tabs
                 if (tabNames.length > 0) {
                     html += `<div class="market-tabs" id="marketTabs">`;
                     tabNames.forEach((key, index) => {
@@ -1112,7 +1149,6 @@
                     });
                     html += `</div>`;
 
-                    // Market content
                     tabNames.forEach((key, index) => {
                         const groups = grouped[key];
                         html += `<div class="market-group ${index === 0 ? 'active' : ''}" data-group="${key}">`;
@@ -1142,7 +1178,6 @@
 
                 app.innerHTML = html;
 
-                // Market tabs switching
                 document.querySelectorAll('#marketTabs button').forEach(btn => {
                     btn.addEventListener('click', function() {
                         document.querySelectorAll('#marketTabs button').forEach(b => b.classList.remove('active'));
@@ -1153,20 +1188,16 @@
                     });
                 });
 
-                // Back button
                 document.getElementById('backToList').addEventListener('click', () => {
-                    // Arrêter le rafraîchissement des détails
                     if (detailRefreshInterval) {
                         clearInterval(detailRefreshInterval);
                         detailRefreshInterval = null;
                     }
                     currentMatchId = null;
-                    // Redémarrer le rafraîchissement des listes
                     startListRefresh();
                     loadView(currentView, true);
                 });
 
-                // Market items to bet slip
                 document.querySelectorAll('.market-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const match = this.dataset.match;
@@ -1189,14 +1220,13 @@
         }
 
         // ============================================================
-        // 7. LOAD VIEWS (LISTES)
+        // 7. LOAD VIEWS (inchangé)
         // ============================================================
         async function loadView(view, preserveScroll = false) {
             if (isUpdating) return;
             isUpdating = true;
 
             try {
-                // Si on est en mode détails, on ne recharge pas la liste
                 if (currentMatchId) {
                     isUpdating = false;
                     return;
@@ -1208,7 +1238,7 @@
 
                 if (eventsCache[cacheKey]) {
                     events = eventsCache[cacheKey];
-                    renderMatchList(events, view, preserveScroll);
+                    await renderMatchList(events, view, preserveScroll);
                     isUpdating = false;
                     return;
                 }
@@ -1235,7 +1265,7 @@
                 }
 
                 eventsCache[cacheKey] = events;
-                renderMatchList(events, view, preserveScroll);
+                await renderMatchList(events, view, preserveScroll);
 
             } catch (error) {
                 if (!preserveScroll) {
@@ -1253,10 +1283,9 @@
         }
 
         // ============================================================
-        // 8. SILENT REFRESH DES LISTES
+        // 8. SILENT REFRESH
         // ============================================================
         async function silentListRefresh() {
-            // Ne pas rafraîchir si on est dans les détails
             if (currentMatchId) return;
             if (isUpdating) return;
 
@@ -1286,8 +1315,7 @@
 
                 if (events.length > 0) {
                     eventsCache[cacheKey] = events;
-                    // Mettre à jour silencieusement l'affichage
-                    renderMatchList(events, view, true);
+                    await renderMatchList(events, view, true);
                 }
 
             } catch (error) {
@@ -1300,7 +1328,6 @@
                 clearInterval(listRefreshInterval);
                 listRefreshInterval = null;
             }
-            // Rafraîchir les listes toutes les 10 secondes (silencieusement)
             listRefreshInterval = setInterval(silentListRefresh, 10000);
         }
 
@@ -1308,12 +1335,10 @@
         // 9. NAVIGATION & INIT
         // ============================================================
 
-        // Onglets principaux
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                // Si on est dans les détails, on les quitte
                 if (currentMatchId) {
                     if (detailRefreshInterval) {
                         clearInterval(detailRefreshInterval);
@@ -1326,7 +1351,6 @@
             });
         });
 
-        // Sélecteur de jours
         document.querySelectorAll('.days-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.days-tabs button').forEach(b => b.classList.remove('active'));
@@ -1346,7 +1370,6 @@
             });
         });
 
-        // Retour à l'accueil
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
             if (currentMatchId) {
@@ -1361,13 +1384,9 @@
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
-        // Démarrer le rafraîchissement des listes
         startListRefresh();
-
-        // Chargement initial
         loadView('live');
 
-        // Exposer les fonctions globalement pour débogage
         window.loadView = loadView;
         window.showEventDetails = showEventDetails;
         window.silentListRefresh = silentListRefresh;
