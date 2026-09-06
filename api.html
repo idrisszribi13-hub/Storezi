@@ -3,19 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Goal 216 - Live Widgets</title>
+    <title>Goal 216 - Live Score & Odds</title>
     <style>
+        /* ========== RESET & BASE ========== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
         }
         body {
             background: #0b0e13;
             color: #f0f3f7;
-            font-family: system-ui, -apple-system, sans-serif;
             padding: 12px;
+            min-height: 100vh;
         }
+
+        /* ========== HEADER ========== */
         .header {
             display: flex;
             justify-content: space-between;
@@ -25,24 +29,296 @@
             margin-bottom: 15px;
         }
         .header h1 {
-            font-size: 22px;
+            font-size: 24px;
             font-weight: 700;
             color: #00e676;
+            cursor: pointer;
+            letter-spacing: -0.5px;
+        }
+        .header h1 span {
+            color: #f0f3f7;
         }
         .badge {
             background: #1f2937;
-            padding: 4px 12px;
+            padding: 4px 14px;
             border-radius: 20px;
             font-size: 11px;
             color: #9ca3af;
+            font-weight: 500;
         }
-        .widget-container {
+
+        /* ========== TABS ========== */
+        .nav-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 18px;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .nav-tabs button {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 8px 16px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .nav-tabs button.active {
+            background: #00e676;
+            color: #0b0e13;
+        }
+        .nav-tabs button:hover {
+            background: #1f2937;
+            color: #f0f3f7;
+        }
+
+        /* ========== MATCH CARDS ========== */
+        .match-card {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #dc2626;
+            cursor: pointer;
+            transition: 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+        .match-card.coming {
+            border-left-color: #fbbf24;
+        }
+        .match-card.top-event {
+            border-left-color: #8b5cf6;
+        }
+        .match-card:hover {
+            background: #1a202a;
+            transform: scale(1.005);
+        }
+
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .match-league {
+            font-weight: 500;
+            background: #1f2937;
+            padding: 2px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+        .match-time {
+            font-weight: 600;
+            color: #fbbf24;
+            background: rgba(251, 191, 36, 0.1);
+            padding: 2px 10px;
+            border-radius: 12px;
+        }
+
+        /* Score line */
+        .score-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 6px 0 10px 0;
+        }
+        .team-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 42%;
+        }
+        .team-block.away {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+        .team-crest {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f0f3f7;
+            overflow: hidden;
+        }
+        .team-crest img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .team-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .team-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .team-score {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .team-block.away .team-info {
+            align-items: flex-end;
+        }
+
+        .vs-dash {
+            color: #4b5563;
+            font-weight: 300;
+            font-size: 18px;
+            padding: 0 6px;
+        }
+
+        /* Odds row */
+        .odds-row {
+            display: flex;
+            justify-content: space-around;
+            background: #1e2530;
+            border-radius: 8px;
+            padding: 6px 0;
+            margin-top: 6px;
+        }
+        .odd-item {
+            text-align: center;
+            flex: 1;
+        }
+        .odd-item .label {
+            font-size: 10px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .odd-item .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #facc15;
+        }
+        .odd-item .value.highlight {
+            color: #34d399;
+        }
+
+        /* Labels */
+        .live-label {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+            animation: blink 1.2s infinite;
+        }
+        .top-label {
+            display: inline-block;
+            background: #8b5cf6;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+        .coming-label {
+            display: inline-block;
+            background: #fbbf24;
+            color: #0b0e13;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+        @keyframes blink {
+            0% { opacity: 1; }
+            50% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        /* ========== DETAILS VIEW ========== */
+        .back-btn {
+            background: #1f2937;
+            border: none;
+            color: #f0f3f7;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .back-btn:hover {
+            background: #374151;
+        }
+        .match-detail-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .match-detail-sub {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+
+        .market-group {
             background: #14181f;
             border-radius: 12px;
             padding: 16px;
-            min-height: 200px;
-            margin-bottom: 16px;
+            margin-bottom: 12px;
         }
+        .market-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+        .market-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .market-item {
+            background: #1e2530;
+            padding: 8px 12px;
+            border-radius: 8px;
+            flex: 1 0 calc(33% - 8px);
+            text-align: center;
+            min-width: 70px;
+        }
+        .market-item .name {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .market-item .price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #facc15;
+        }
+
+        /* ========== LOADING & ERROR ========== */
         .loading {
             text-align: center;
             padding: 40px;
@@ -55,7 +331,16 @@
             color: #fca5a5;
             text-align: center;
             font-size: 14px;
+            word-break: break-word;
         }
+        .error-msg .error-detail {
+            font-size: 12px;
+            color: #f87171;
+            margin-top: 8px;
+            display: block;
+        }
+
+        /* ========== FOOTER ========== */
         .footer-menu {
             display: flex;
             justify-content: space-around;
@@ -74,18 +359,32 @@
         .footer-menu .active {
             color: #00e676;
         }
+
+        /* ========== RESPONSIVE ========== */
+        @media (max-width: 480px) {
+            .team-name { font-size: 12px; }
+            .team-score { font-size: 18px; }
+            .team-crest { width: 26px; height: 26px; }
+            .nav-tabs button { font-size: 12px; padding: 6px 10px; }
+            .match-card { padding: 12px; }
+        }
     </style>
 </head>
 <body>
 
     <div class="header">
-        <h1>⚽ goal216</h1>
+        <h1 id="home-link">⚽ goal<span>216</span></h1>
         <span class="badge">LIVE</span>
     </div>
 
-    <!-- حاوية الـ Widgets -->
-    <div id="widget-container" class="widget-container">
-        <div class="loading">⏳ Chargement des widgets...</div>
+    <div class="nav-tabs" id="navTabs">
+        <button class="active" data-view="live">🔴 EN DIRECT</button>
+        <button data-view="top">⭐ TOP EVENTS</button>
+        <button data-view="coming">📅 À VENIR</button>
+    </div>
+
+    <div id="app">
+        <div class="loading">⏳ Chargement...</div>
     </div>
 
     <div class="footer-menu">
@@ -96,45 +395,302 @@
         <span>📺 Casino en Direct</span>
     </div>
 
-    <!-- ========================================================= -->
-    <!-- تحميل Widget Loader من الموقع الأصلي -->
-    <!-- ========================================================= -->
-    <script src="https://widgets.biahostod.com/46de729d1ad0ad36c0c780838303c0c4/widgetloader" n="SIR"></script>
-
-    <!-- ========================================================= -->
-    <!-- كود تهيئة الـ Widgets باستخدام نفس معاملات الموقع الأصلي -->
-    <!-- ========================================================= -->
     <script>
-        // انتظار تحميل الـ Widgets
-        window.SIR = window.SIR || function() {};
-        window.SIR.q = window.SIR.q || [];
+        // ============================================================
+        // 1. CONFIGURATION
+        // ============================================================
 
-        // تعريف الـ Widgets مع نفس الإعدادات التي وجدتها في الموقع الأصلي
-        window.SIR.q.push(['addWidget', '#widget-container', {
-            // معرّف المباراة (Arsenal vs Chelsea – يمكنك تغييره)
-            matchId: 72221232,
-            // اللغة والمنطقة (نفسها من طلباتك)
-            language: 'fr',
-            countryCode: 'TN',
-            // تفعيل الميزات المتقدمة
-            widgetSharing: true,
-            // استخدام ترخيص الموقع الأصلي
-            // هذا يعمل فقط على نطاق goal216.com
-            licensingUrl: 'https://widgets.biahostod.com/ee11c256d1a9bbc530b4a3380dae8698/licensing'
-        }]);
+        // 🔥 REMPLACEZ avec l'URL de votre Edge Function Supabase
+        const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
 
-        // عند تحميل الصفحة، نطلب من الـ Widgets التحديث
-        document.addEventListener('DOMContentLoaded', function() {
-            // إذا كان الـ Widgets جاهزاً، نطلب التحقق
-            if (window.SIR && window.SIR.check) {
-                window.SIR.check();
+        const BASE_PARAMS = 'timezoneOffset=-60&langId=39&skinName=dreamswin365_21&configId=1&culture=fr-FR&countryCode=TN&deviceType=Mobile&numformat=en&integration=betrebels';
+
+        // ============================================================
+        // 2. HELPERS
+        // ============================================================
+
+        function buildProxyUrl(endpoint, extraParams = '') {
+            let url = `${PROXY_URL}?endpoint=${endpoint}&${BASE_PARAMS}`;
+            if (extraParams) url += `&${extraParams}`;
+            return url;
+        }
+
+        async function fetchFromProxy(endpoint, extraParams = '') {
+            const url = buildProxyUrl(endpoint, extraParams);
+            const response = await fetch(url);
+            if (!response.ok) {
+                let errorText = '';
+                try {
+                    const errJson = await response.json();
+                    errorText = errJson.error || errJson.details || response.statusText;
+                } catch (e) {
+                    errorText = response.statusText;
+                }
+                throw new Error(`HTTP ${response.status}: ${errorText}`);
             }
+            return await response.json();
+        }
+
+        // Extraire les cotes 1x2
+        function extractOdds(markets) {
+            let odds1 = '-', oddsX = '-', odds2 = '-';
+            if (!markets || !Array.isArray(markets)) return { odds1, oddsX, odds2 };
+            const market = markets.find(m => (m.Id === 1 || m.MarketId === 1));
+            if (market && market.Items && Array.isArray(market.Items)) {
+                const items = market.Items;
+                const o1 = items.find(i => i.SelectionTypeId === 1);
+                const oX = items.find(i => i.SelectionTypeId === 2);
+                const o2 = items.find(i => i.SelectionTypeId === 3);
+                odds1 = o1 ? (o1.Price || o1.odds || '-') : odds1;
+                oddsX = oX ? (oX.Price || oX.odds || '-') : oddsX;
+                odds2 = o2 ? (o2.Price || o2.odds || '-') : odds2;
+            }
+            return { odds1, oddsX, odds2 };
+        }
+
+        // Construire l'URL du logo à partir du champ Logo ou du nom du club
+        function getCrestUrl(competitor) {
+            if (!competitor) return null;
+            // Si le champ Logo est présent, on l'utilise
+            if (competitor.Logo) {
+                // On essaie plusieurs formats possibles
+                return `https://img.sportradar.com/ls/crest/32/${competitor.Logo}.png`;
+            }
+            // Si on a un ID, on peut essayer de construire un URL basé sur l'ID
+            if (competitor.Id) {
+                // Certains IDs sont numériques, on peut essayer un autre pattern
+                return `https://img.sportradar.com/ls/crest/32/${competitor.Id}.png`;
+            }
+            return null;
+        }
+
+        // Obtenir les deux compétiteurs avec leurs logos
+        function getCompetitorsWithCrests(match) {
+            const comps = match.Competitors || [];
+            const home = comps[0] || { Name: 'Home', Id: null };
+            const away = comps[1] || { Name: 'Away', Id: null };
+            return {
+                home: { ...home, crest: getCrestUrl(home) },
+                away: { ...away, crest: getCrestUrl(away) }
+            };
+        }
+
+        // ============================================================
+        // 3. RENDER FUNCTIONS
+        // ============================================================
+
+        const app = document.getElementById('app');
+
+        function renderMatchList(events, type = 'live') {
+            if (!events || events.length === 0) {
+                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
+                return;
+            }
+
+            let html = '';
+            events.forEach(match => {
+                const time = match.LiveCurrentTime || match.EventDate?.split('T')[1]?.slice(0,5) || '--';
+                const score = match.LiveScore || '0:0';
+                const scores = score.split(':');
+                const league = match.ChampName || match.CategoryName || 'Championnat';
+                const matchId = match.Id;
+
+                const { home, away } = getCompetitorsWithCrests(match);
+                const { odds1, oddsX, odds2 } = extractOdds(match.Items);
+
+                let label = '';
+                let cardClass = '';
+                if (type === 'live' && match.IsLiveEvent) {
+                    label = '<span class="live-label">EN DIRECT</span>';
+                    cardClass = '';
+                } else if (type === 'top') {
+                    label = '<span class="top-label">⭐ TOP</span>';
+                    cardClass = 'top-event';
+                } else {
+                    label = '<span class="coming-label">À VENIR</span>';
+                    cardClass = 'coming';
+                }
+
+                // Construction de l'affichage des équipes avec logos
+                const homeCrestHtml = home.crest
+                    ? `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">`
+                    : home.Name.substring(0, 2).toUpperCase();
+                const awayCrestHtml = away.crest
+                    ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
+                    : away.Name.substring(0, 2).toUpperCase();
+
+                html += `
+                    <div class="match-card ${cardClass}" data-matchid="${matchId}">
+                        <div class="match-header">
+                            <span>${label}</span>
+                            <span class="match-time">${time}</span>
+                            <span class="match-league">${league}</span>
+                        </div>
+                        <div class="score-line">
+                            <div class="team-block home">
+                                <div class="team-crest">${homeCrestHtml}</div>
+                                <div class="team-info">
+                                    <span class="team-name">${home.Name}</span>
+                                    <span class="team-score">${scores[0] || '0'}</span>
+                                </div>
+                            </div>
+                            <span class="vs-dash">⚡</span>
+                            <div class="team-block away">
+                                <div class="team-crest">${awayCrestHtml}</div>
+                                <div class="team-info">
+                                    <span class="team-name">${away.Name}</span>
+                                    <span class="team-score">${scores[1] || '0'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="odds-row">
+                            <div class="odd-item">
+                                <div class="label">1</div>
+                                <div class="value">${odds1}</div>
+                            </div>
+                            <div class="odd-item">
+                                <div class="label">X</div>
+                                <div class="value highlight">${oddsX}</div>
+                            </div>
+                            <div class="odd-item">
+                                <div class="label">2</div>
+                                <div class="value">${odds2}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            app.innerHTML = html;
+
+            // Click sur une carte pour voir les détails
+            document.querySelectorAll('.match-card').forEach(card => {
+                card.addEventListener('click', function() {
+                    const matchId = this.dataset.matchid;
+                    if (matchId) {
+                        showEventDetails(matchId);
+                    }
+                });
+            });
+        }
+
+        // Détails du match
+        async function showEventDetails(matchId) {
+            try {
+                app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
+                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
+                const result = data?.Result;
+                if (!result) {
+                    app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables pour ce match.</div>`;
+                    return;
+                }
+
+                const homeTeam = result.Competitors?.[0]?.Name || 'Home';
+                const awayTeam = result.Competitors?.[1]?.Name || 'Away';
+                const league = result.ChampName || result.CategoryName || 'Ligue';
+                const date = result.EventDate || '';
+
+                let html = `
+                    <button class="back-btn" id="backToList">← Retour</button>
+                    <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
+                    <div class="match-detail-sub">${league} | ${date}</div>
+                `;
+
+                const marketGroups = result.MarketGroups || [];
+                marketGroups.forEach(group => {
+                    if (!group.Items || group.Items.length === 0) return;
+                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
+                    group.Items.forEach(market => {
+                        if (!market.Items || market.Items.length === 0) return;
+                        const items = market.Items.slice(0, 8);
+                        items.forEach(item => {
+                            const name = item.Name || item.ShortName || '—';
+                            const price = item.Price || '-';
+                            html += `
+                                <div class="market-item">
+                                    <div class="name">${name}</div>
+                                    <div class="price">${price}</div>
+                                </div>
+                            `;
+                        });
+                    });
+                    html += `</div></div>`;
+                });
+
+                app.innerHTML = html;
+
+                document.getElementById('backToList').addEventListener('click', () => {
+                    const activeTab = document.querySelector('.nav-tabs .active');
+                    loadView(activeTab ? activeTab.dataset.view : 'live');
+                });
+
+            } catch (error) {
+                app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                console.error(error);
+            }
+        }
+
+        // ============================================================
+        // 4. LOAD VIEWS
+        // ============================================================
+
+        async function loadView(view) {
+            app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
+            try {
+                let events = [];
+                if (view === 'live') {
+                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                    renderMatchList(events, 'live');
+                } else if (view === 'top') {
+                    const data = await fetchFromProxy('GetTopEvents', '');
+                    events = data?.Result?.Events || [];
+                    renderMatchList(events, 'top');
+                } else if (view === 'coming') {
+                    const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=15');
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                    renderMatchList(events, 'coming');
+                }
+            } catch (error) {
+                app.innerHTML = `
+                    <div class="error-msg">
+                        ⛔ Erreur de chargement: ${error.message}
+                        <span class="error-detail">Vérifiez que le Proxy est déployé et que l'URL est correcte.</span>
+                    </div>
+                `;
+                console.error(error);
+            }
+        }
+
+        // ============================================================
+        // 5. NAVIGATION & INIT
+        // ============================================================
+
+        document.querySelectorAll('.nav-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                loadView(this.dataset.view);
+            });
         });
 
-        // مراقبة الأخطاء
-        console.log('🚀 Widgets initialisés avec le licensing de goal216.com');
-        console.log('⚠️ ATTENTION: Ce code ne fonctionne que sur le domaine goal216.com');
-    </script>
+        document.getElementById('home-link').addEventListener('click', function(e) {
+            e.preventDefault();
+            const activeTab = document.querySelector('.nav-tabs .active');
+            loadView(activeTab ? activeTab.dataset.view : 'live');
+        });
 
+        loadView('live');
+
+        setInterval(() => {
+            const activeTab = document.querySelector('.nav-tabs .active');
+            if (activeTab && activeTab.dataset.view === 'live') {
+                loadView('live');
+            }
+        }, 30000);
+
+        window.loadView = loadView;
+        window.showEventDetails = showEventDetails;
+    </script>
 </body>
 </html>
