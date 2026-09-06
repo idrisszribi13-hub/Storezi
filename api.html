@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Goal 216 - Live & Coming</title>
+    <title>Goal 216 - Live & Top Events</title>
     <style>
-        /* ---------- Reset & Base ---------- */
+        /* --- نفس الـ Styles السابقة --- */
         * {
             margin: 0;
             padding: 0;
@@ -16,15 +16,8 @@
             background: #0b0e13;
             color: #f0f3f7;
             padding: 12px;
-            direction: ltr;
             min-height: 100vh;
         }
-        a {
-            color: inherit;
-            text-decoration: none;
-        }
-
-        /* ---------- Header ---------- */
         .header {
             display: flex;
             justify-content: space-between;
@@ -46,14 +39,13 @@
             font-size: 12px;
             color: #9ca3af;
         }
-
-        /* ---------- Navigation Tabs ---------- */
         .nav-tabs {
             display: flex;
             gap: 8px;
             margin-bottom: 16px;
             border-bottom: 1px solid #1f2937;
             padding-bottom: 8px;
+            flex-wrap: wrap;
         }
         .nav-tabs button {
             background: transparent;
@@ -65,6 +57,7 @@
             cursor: pointer;
             border-radius: 20px;
             transition: 0.2s;
+            white-space: nowrap;
         }
         .nav-tabs button.active {
             background: #00e676;
@@ -74,8 +67,6 @@
             background: #1f2937;
             color: #f0f3f7;
         }
-
-        /* ---------- Match Cards ---------- */
         .match-card {
             background: #14181f;
             border-radius: 12px;
@@ -88,16 +79,20 @@
         .match-card.coming {
             border-left-color: #fbbf24;
         }
+        .match-card.top-event {
+            border-left-color: #8b5cf6;
+        }
         .match-card:hover {
             background: #1a202a;
         }
-
         .match-header {
             display: flex;
             justify-content: space-between;
             font-size: 12px;
             color: #9ca3af;
             margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
         }
         .match-time {
             font-weight: 600;
@@ -109,7 +104,6 @@
             text-overflow: ellipsis;
             max-width: 60%;
         }
-
         .score-line {
             display: flex;
             justify-content: space-between;
@@ -140,7 +134,6 @@
             font-weight: 300;
             padding: 0 4px;
         }
-
         .odds-row {
             display: flex;
             justify-content: space-around;
@@ -167,8 +160,6 @@
         .odd-item .value.highlight {
             color: #34d399;
         }
-
-        /* ---------- Loading & Error ---------- */
         .loading {
             text-align: center;
             padding: 40px;
@@ -182,8 +173,6 @@
             text-align: center;
             font-size: 14px;
         }
-
-        /* ---------- Back Button ---------- */
         .back-btn {
             background: #1f2937;
             border: none;
@@ -198,8 +187,6 @@
         .back-btn:hover {
             background: #374151;
         }
-
-        /* ---------- Event Details (Markets) ---------- */
         .market-group {
             background: #14181f;
             border-radius: 12px;
@@ -234,8 +221,6 @@
             font-weight: 700;
             color: #facc15;
         }
-
-        /* ---------- Footer ---------- */
         .footer-menu {
             display: flex;
             justify-content: space-around;
@@ -254,8 +239,6 @@
         .footer-menu .active {
             color: #00e676;
         }
-
-        /* ---------- Utilities ---------- */
         .hidden {
             display: none !important;
         }
@@ -270,34 +253,43 @@
             margin-right: 8px;
             animation: blink 1.2s infinite;
         }
+        .top-label {
+            display: inline-block;
+            background: #8b5cf6;
+            color: white;
+            font-size: 10px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 8px;
+        }
         @keyframes blink {
             0% { opacity: 1; }
             50% { opacity: 0.4; }
             100% { opacity: 1; }
         }
+        .sport-icon {
+            margin-right: 4px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header -->
     <div class="header">
         <h1 id="home-link">⚽ goal216</h1>
         <span class="badge">LIVE</span>
     </div>
 
-    <!-- Navigation Tabs -->
     <div class="nav-tabs" id="navTabs">
         <button class="active" data-view="live">🔴 EN DIRECT</button>
+        <button data-view="top">⭐ TOP EVENTS</button>
         <button data-view="coming">📅 À VENIR</button>
     </div>
 
-    <!-- Main Content Area -->
     <div id="app">
-        <!-- سيتم ملؤها ديناميكياً -->
         <div class="loading">⏳ Chargement...</div>
     </div>
 
-    <!-- Footer -->
     <div class="footer-menu">
         <span class="active">📋 Menu</span>
         <span>🏟️ Sport</span>
@@ -312,16 +304,14 @@
         // ----------------------------------------------
 
         // 🔥 استبدل هذا الرابط بالرابط الفعلي لـ Edge Function الخاص بك في Supabase
-        const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
+        const PROXY_URL = 'https://<your-project-ref>.supabase.co/functions/v1/altenar-proxy';
 
-        // المعاملات الثابتة (نفسها من الطلبات الأصلية)
         const BASE_PARAMS = 'timezoneOffset=-60&langId=39&skinName=dreamswin365_21&configId=1&culture=fr-FR&countryCode=TN&deviceType=Mobile&numformat=en&integration=betrebels';
 
         // ----------------------------------------------
         // 2. HELPERS
         // ----------------------------------------------
 
-        // دالة لبناء الرابط الكامل للـ Proxy
         function buildProxyUrl(endpoint, extraParams = '') {
             let url = `${PROXY_URL}?endpoint=${endpoint}&${BASE_PARAMS}`;
             if (extraParams) {
@@ -330,7 +320,6 @@
             return url;
         }
 
-        // دالة لجلب البيانات من الـ Proxy
         async function fetchFromProxy(endpoint, extraParams = '') {
             const url = buildProxyUrl(endpoint, extraParams);
             const response = await fetch(url);
@@ -340,19 +329,18 @@
             return await response.json();
         }
 
-        // استخراج الاحتمالات من الـ Market (1x2)
         function extractOdds(markets) {
             let odds1 = '-', oddsX = '-', odds2 = '-';
             if (!markets) return { odds1, oddsX, odds2 };
-            const market = markets.find(m => m.Id === 1);
+            const market = markets.find(m => m.Id === 1 || m.MarketId === 1);
             if (market && market.Items) {
                 const items = market.Items;
                 const o1 = items.find(i => i.SelectionTypeId === 1);
                 const oX = items.find(i => i.SelectionTypeId === 2);
                 const o2 = items.find(i => i.SelectionTypeId === 3);
-                odds1 = o1 ? o1.Price : odds1;
-                oddsX = oX ? oX.Price : oddsX;
-                odds2 = o2 ? o2.Price : odds2;
+                odds1 = o1 ? o1.Price || o1.odds : odds1;
+                oddsX = oX ? oX.Price || oX.odds : oddsX;
+                odds2 = o2 ? o2.Price || o2.odds : odds2;
             }
             return { odds1, oddsX, odds2 };
         }
@@ -363,15 +351,15 @@
 
         const app = document.getElementById('app');
 
-        // عرض قائمة المباريات (مباشرة أو قادمة)
-        function renderMatchList(events, isLive = true) {
+        function renderMatchList(events, type = 'live') {
             if (!events || events.length === 0) {
-                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé.</div>`;
+                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
                 return;
             }
 
             let html = '';
             events.forEach(match => {
+                const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
                 const time = match.LiveCurrentTime || match.EventDate?.split('T')[1]?.slice(0,5) || '--';
                 const score = match.LiveScore || '0:0';
                 const scores = score.split(':');
@@ -382,13 +370,23 @@
 
                 const { odds1, oddsX, odds2 } = extractOdds(match.Items);
 
-                const liveClass = isLive ? 'live-label' : 'coming-label';
-                const cardClass = isLive ? '' : 'coming';
+                let label = '';
+                let cardClass = '';
+                if (type === 'live' && isLive) {
+                    label = '<span class="live-label">EN DIRECT</span>';
+                    cardClass = '';
+                } else if (type === 'top') {
+                    label = '<span class="top-label">⭐ TOP</span>';
+                    cardClass = 'top-event';
+                } else {
+                    label = '<span class="live-label" style="background:#fbbf24;color:#0b0e13;">À VENIR</span>';
+                    cardClass = 'coming';
+                }
 
                 html += `
                     <div class="match-card ${cardClass}" data-matchid="${matchId}">
                         <div class="match-header">
-                            <span class="${liveClass}">${isLive ? 'EN DIRECT' : 'À VENIR'}</span>
+                            ${label}
                             <span class="match-time">${time}</span>
                             <span class="match-league">${league}</span>
                         </div>
@@ -423,7 +421,6 @@
 
             app.innerHTML = html;
 
-            // إضافة مستمعي النقر على البطاقات لعرض التفاصيل
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function() {
                     const matchId = this.dataset.matchid;
@@ -434,11 +431,10 @@
             });
         }
 
-        // عرض تفاصيل المباراة (جميع الأسواق)
+        // عرض تفاصيل المباراة (نفس الكود السابق)
         async function showEventDetails(matchId) {
             try {
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
-                // جلب تفاصيل المباراة
                 const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
                 const result = data?.Result;
                 if (!result) {
@@ -459,14 +455,12 @@
                     </div>
                 `;
 
-                // عرض مجموعات الأسواق
                 const marketGroups = result.MarketGroups || [];
                 marketGroups.forEach(group => {
                     if (!group.Items || group.Items.length === 0) return;
                     html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
                     group.Items.forEach(market => {
                         if (!market.Items || market.Items.length === 0) return;
-                        // نأخذ أول 3 عناصر فقط للتجميل (يمكن عرض الكل)
                         const items = market.Items.slice(0, 6);
                         items.forEach(item => {
                             const name = item.Name || item.ShortName || '—';
@@ -484,13 +478,10 @@
 
                 app.innerHTML = html;
 
-                // إعادة زر الرجوع
                 document.getElementById('backToList').addEventListener('click', () => {
-                    // إعادة تحميل العرض الحالي (يعتمد على التبويب النشط)
                     const activeTab = document.querySelector('.nav-tabs .active');
                     if (activeTab) {
-                        const view = activeTab.dataset.view;
-                        loadView(view);
+                        loadView(activeTab.dataset.view);
                     } else {
                         loadView('live');
                     }
@@ -503,7 +494,7 @@
         }
 
         // ----------------------------------------------
-        // 4. LOAD VIEWS (Live / Coming)
+        // 4. LOAD VIEWS
         // ----------------------------------------------
 
         async function loadView(view) {
@@ -511,18 +502,17 @@
             try {
                 let events = [];
                 if (view === 'live') {
-                    // جلب المباريات المباشرة
                     const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
                     events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, true);
+                    renderMatchList(events, 'live');
+                } else if (view === 'top') {
+                    const data = await fetchFromProxy('GetTopEvents', 'presetName=default&eventCount=10');
+                    events = data?.Result?.Events || [];
+                    renderMatchList(events, 'top');
                 } else if (view === 'coming') {
-                    // جلب المباريات القادمة (نستخدم GetHighlights كما في الطلب)
-                    // لكن قد لا يعطي نفس النتيجة، يمكن استخدام GetEvents مع فلتر زمني
-                    // ولكن حسب الطلب، لدينا GetHighlights
                     const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=15');
-                    // بنية GetHighlights تشبه GetLivenow
                     events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, false);
+                    renderMatchList(events, 'coming');
                 }
             } catch (error) {
                 app.innerHTML = `<div class="error-msg">⛔ Erreur de chargement: ${error.message}</div>`;
@@ -534,7 +524,6 @@
         // 5. NAVIGATION & INIT
         // ----------------------------------------------
 
-        // تبديل التبويبات
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
@@ -544,7 +533,6 @@
             });
         });
 
-        // زر العودة إلى الصفحة الرئيسية (من خلال الضغط على اسم الموقع)
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
             const activeTab = document.querySelector('.nav-tabs .active');
@@ -558,7 +546,7 @@
         // تحميل العرض الافتراضي (المباشر)
         loadView('live');
 
-        // تحديث المباريات المباشرة كل 30 ثانية (اختياري)
+        // تحديث المباريات المباشرة كل 30 ثانية
         setInterval(() => {
             const activeTab = document.querySelector('.nav-tabs .active');
             if (activeTab && activeTab.dataset.view === 'live') {
@@ -566,9 +554,6 @@
             }
         }, 30000);
 
-        // ----------------------------------------------
-        // 6. EXPOSE GLOBALLY (for debugging)
-        // ----------------------------------------------
         window.loadView = loadView;
         window.showEventDetails = showEventDetails;
     </script>
