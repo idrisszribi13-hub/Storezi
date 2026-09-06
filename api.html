@@ -7,10 +7,16 @@
     <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #0b0e13; color: #f0f3f7; padding: 12px; min-height: 100vh; }
+        body { background: #0b0e13; color: #f0f3f7; padding: 12px; min-height: 100vh; padding-bottom: 80px; }
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
         .header h1 { font-size: 22px; font-weight: 700; color: #00e676; cursor: pointer; }
         .badge { background: #1f2937; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #9ca3af; }
+
+        /* ===== DAYS TABS ===== */
+        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; }
+        .days-tabs button.active { background: #00e676; color: #0b0e13; }
+        .days-tabs button:hover { background: #1f2937; color: #f0f3f7; }
 
         /* ===== TABS ===== */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; flex-wrap: wrap; }
@@ -65,7 +71,7 @@
         .market-item .name { font-size: 11px; color: #9ca3af; }
         .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
 
-        /* ===== BET SLIP (SIDEBAR) ===== */
+        /* ===== BET SLIP ===== */
         .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
         .bet-slip-toggle:hover { transform: scale(1.05); }
         .bet-slip-toggle .badge { position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
@@ -80,12 +86,10 @@
         .bet-slip-total { display: flex; justify-content: space-between; padding: 12px 0; font-weight: 600; border-top: 1px solid #222; margin-top: 8px; }
         .place-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 8px; }
 
-        /* ===== LOADING & ERROR ===== */
         .loading { text-align: center; padding: 40px; color: #6b7280; }
         .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; word-break: break-word; }
         .error-msg .error-detail { font-size: 12px; color: #f87171; margin-top: 8px; display: block; }
 
-        /* ===== FOOTER ===== */
         .footer-menu { display: flex; justify-content: space-around; background: #0f131a; padding: 12px 0; border-top: 1px solid #222; margin-top: 20px; position: sticky; bottom: 0; }
         .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; }
         .footer-menu .active { color: #00e676; }
@@ -106,6 +110,18 @@
         <span class="badge">LIVE</span>
     </div>
 
+    <!-- Day Selector -->
+    <div class="days-tabs" id="daysTabs">
+        <button class="active" data-day="today">Aujourd'hui</button>
+        <button data-day="1">Lun 7/9</button>
+        <button data-day="2">Mar 8/9</button>
+        <button data-day="3">Mer 9/9</button>
+        <button data-day="4">Jeu 10/9</button>
+        <button data-day="5">Ven 11/9</button>
+        <button data-day="6">Sam 12/9</button>
+        <button data-day="7">Dim 13/9</button>
+    </div>
+
     <div class="nav-tabs" id="navTabs">
         <button class="active" data-view="live">🔴 EN DIRECT</button>
         <button data-view="top">⭐ TOP EVENTS</button>
@@ -116,13 +132,11 @@
         <div class="loading">⏳ Chargement...</div>
     </div>
 
-    <!-- Bet Slip Toggle Button -->
     <button class="bet-slip-toggle" id="betSlipToggle">
         🧾
         <span class="badge" id="betCount">0</span>
     </button>
 
-    <!-- Bet Slip Panel -->
     <div class="bet-slip" id="betSlip">
         <div class="header">
             <h3>📋 FICHE DE PARI</h3>
@@ -153,7 +167,24 @@
         const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
 
         // ============================================================
-        // 2. HELPERS
+        // 2. STATE
+        // ============================================================
+        let currentView = 'live';
+        let currentDay = 'today';
+        let currentMatchId = null; // null = liste, number = détails
+        let eventsCache = {};
+        let detailsCache = {};
+        let isUpdating = false;
+
+        // Bet Slip
+        let betSlip = [];
+        const betSlipEl = document.getElementById('betSlip');
+        const betSlipItemsEl = document.getElementById('betSlipItems');
+        const betTotalEl = document.getElementById('betTotal');
+        const betCountEl = document.getElementById('betCount');
+
+        // ============================================================
+        // 3. HELPERS
         // ============================================================
         async function fetchFromProxy(endpoint, extraParams = '') {
             let url = `${PROXY_URL}?endpoint=${endpoint}`;
@@ -196,15 +227,27 @@
             return { home: { ...home, crest: getCrestUrl(home) }, away: { ...away, crest: getCrestUrl(away) } };
         }
 
-        // ============================================================
-        // 3. BET SLIP STATE
-        // ============================================================
-        let betSlip = [];
-        const betSlipEl = document.getElementById('betSlip');
-        const betSlipItemsEl = document.getElementById('betSlipItems');
-        const betTotalEl = document.getElementById('betTotal');
-        const betCountEl = document.getElementById('betCount');
+        function getDateRange(day) {
+            const now = new Date();
+            let start = new Date(now);
+            if (day === 'today') {
+                start.setHours(0,0,0,0);
+            } else {
+                const days = parseInt(day);
+                start.setDate(now.getDate() + days);
+                start.setHours(0,0,0,0);
+            }
+            const end = new Date(start);
+            end.setDate(start.getDate() + 1);
+            return {
+                start: start.toISOString(),
+                end: end.toISOString()
+            };
+        }
 
+        // ============================================================
+        // 4. BET SLIP
+        // ============================================================
         function updateBetSlipUI() {
             if (betSlip.length === 0) {
                 betSlipItemsEl.innerHTML = '<p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>';
@@ -242,7 +285,6 @@
         function addToBetSlip(matchName, selection, price) {
             betSlip.push({ match: matchName, selection, price });
             updateBetSlipUI();
-            // Ouvrir automatiquement le slip si ce n'est pas déjà fait
             betSlipEl.classList.add('open');
         }
 
@@ -261,11 +303,11 @@
         });
 
         // ============================================================
-        // 4. RENDER FUNCTIONS
+        // 5. RENDER FUNCTIONS
         // ============================================================
         const app = document.getElementById('app');
 
-        function renderMatchList(events, type = 'live') {
+        function renderMatchList(events, type = 'live', preserveScroll = false) {
             if (!events || events.length === 0) {
                 app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
                 return;
@@ -344,19 +386,26 @@
                 `;
             });
 
+            // حفظ موضع التمرير قبل التحديث
+            const scrollY = preserveScroll ? window.scrollY : 0;
+
             app.innerHTML = html;
 
-            // Ajouter les événements de clic sur les cartes (pour voir les détails)
+            // استعادة موضع التمرير
+            if (preserveScroll) {
+                window.scrollTo(0, scrollY);
+            }
+
+            // Événements sur les cartes
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
-                    // Si le clic est sur un élément de cote, ne pas ouvrir les détails
                     if (e.target.closest('.odd-item')) return;
                     const matchId = this.dataset.matchid;
                     if (matchId) showEventDetails(matchId);
                 });
             });
 
-            // Ajouter les événements de clic sur les cotes pour le slip
+            // Événements sur les cotes
             document.querySelectorAll('.odd-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -373,10 +422,11 @@
         }
 
         // ============================================================
-        // 5. DETAILS VIEW (avec ajout au slip)
+        // 6. DETAILS VIEW
         // ============================================================
         async function showEventDetails(matchId) {
             try {
+                currentMatchId = matchId;
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
                 const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
                 const result = data?.Result;
@@ -396,7 +446,6 @@
                     <div class="match-detail-sub">${league} | ${date}</div>
                 `;
 
-                // عرض الأسواق (مع إمكانية إضافة كل عروض السوق إلى القسيمة)
                 const marketGroups = result.MarketGroups || [];
                 marketGroups.forEach(group => {
                     if (!group.Items || group.Items.length === 0) return;
@@ -421,13 +470,11 @@
 
                 app.innerHTML = html;
 
-                // إضافة حدث للعودة
                 document.getElementById('backToList').addEventListener('click', () => {
-                    const activeTab = document.querySelector('.nav-tabs .active');
-                    loadView(activeTab ? activeTab.dataset.view : 'live');
+                    currentMatchId = null;
+                    loadView(currentView, true);
                 });
 
-                // إضافة حدث لإضافة إلى القسيمة من تفاصيل المباراة
                 document.querySelectorAll('.market-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const match = this.dataset.match;
@@ -448,61 +495,184 @@
         }
 
         // ============================================================
-        // 6. LOAD VIEWS
+        // 7. LOAD VIEWS (avec mise en cache et mise à jour silencieuse)
         // ============================================================
-        async function loadView(view) {
-            app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
+        async function loadView(view, preserveScroll = false) {
+            if (isUpdating) return;
+            isUpdating = true;
+
             try {
+                currentView = view;
+
+                // Si on est dans les détails, on ne recharge pas la liste
+                if (currentMatchId) {
+                    isUpdating = false;
+                    return;
+                }
+
                 let events = [];
+                let cacheKey = `${view}_${currentDay}`;
+
+                // Vérifier le cache
+                if (eventsCache[cacheKey]) {
+                    events = eventsCache[cacheKey];
+                    renderMatchList(events, view, preserveScroll);
+                    isUpdating = false;
+                    return;
+                }
+
+                app.innerHTML = '<div class="loading">⏳ Chargement...</div>';
+
                 if (view === 'live') {
                     const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
                     events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, 'live');
                 } else if (view === 'top') {
                     const data = await fetchFromProxy('GetTopEvents', '');
                     events = data?.Result?.Events || [];
-                    renderMatchList(events, 'top');
                 } else if (view === 'coming') {
-                    const data = await fetchFromProxy('GetHighlights', 'sportId=1&showAllEvents=false&count=10');
-                    events = data?.Result?.Items?.[0]?.Events || [];
-                    renderMatchList(events, 'coming');
+                    // Utiliser GetMenuBySport pour les jours
+                    const range = getDateRange(currentDay);
+                    const data = await fetchFromProxy('GetMenuBySport', 
+                        `sportId=1&period=periodall&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
+                    );
+                    // La structure de GetMenuBySport est différente
+                    // On va chercher les événements dans la réponse
+                    if (data?.Result) {
+                        // Parcourir les catégories et championnats pour récupérer les matchs
+                        const items = data.Result['0']?.Items || [];
+                        const allEvents = [];
+                        items.forEach(category => {
+                            if (category.Items) {
+                                category.Items.forEach(champ => {
+                                    if (champ.Events) {
+                                        allEvents.push(...champ.Events);
+                                    }
+                                });
+                            }
+                        });
+                        events = allEvents;
+                    }
                 }
+
+                // Mettre en cache
+                eventsCache[cacheKey] = events;
+                renderMatchList(events, view, preserveScroll);
+
             } catch (error) {
-                app.innerHTML = `
-                    <div class="error-msg">
-                        ⛔ Erreur de chargement: ${error.message}
-                        <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
-                    </div>
-                `;
+                if (!preserveScroll) {
+                    app.innerHTML = `
+                        <div class="error-msg">
+                            ⛔ Erreur de chargement: ${error.message}
+                            <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
+                        </div>
+                    `;
+                }
                 console.error(error);
+            }
+
+            isUpdating = false;
+        }
+
+        // ============================================================
+        // 8. SILENT REFRESH (en arrière-plan)
+        // ============================================================
+        async function silentRefresh() {
+            if (isUpdating) return;
+            if (currentMatchId) return; // Ne pas rafraîchir si on est dans les détails
+
+            try {
+                const view = currentView;
+                const cacheKey = `${view}_${currentDay}`;
+                let events = [];
+
+                if (view === 'live') {
+                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                } else if (view === 'top') {
+                    const data = await fetchFromProxy('GetTopEvents', '');
+                    events = data?.Result?.Events || [];
+                } else if (view === 'coming') {
+                    const range = getDateRange(currentDay);
+                    const data = await fetchFromProxy('GetMenuBySport',
+                        `sportId=1&period=periodall&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
+                    );
+                    if (data?.Result) {
+                        const items = data.Result['0']?.Items || [];
+                        const allEvents = [];
+                        items.forEach(category => {
+                            if (category.Items) {
+                                category.Items.forEach(champ => {
+                                    if (champ.Events) {
+                                        allEvents.push(...champ.Events);
+                                    }
+                                });
+                            }
+                        });
+                        events = allEvents;
+                    }
+                }
+
+                // Mettre à jour le cache
+                eventsCache[cacheKey] = events;
+
+                // Mettre à jour l'interface seulement si on est toujours sur la même vue
+                if (currentView === view && !currentMatchId) {
+                    renderMatchList(events, view, true);
+                }
+
+            } catch (error) {
+                console.error('Silent refresh error:', error);
             }
         }
 
         // ============================================================
-        // 7. NAVIGATION & INIT
+        // 9. NAVIGATION & INIT
         // ============================================================
+
+        // Onglets principaux
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
+                currentMatchId = null;
                 loadView(this.dataset.view);
             });
         });
 
+        // Sélecteur de jours
+        document.querySelectorAll('.days-tabs button').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.days-tabs button').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                currentDay = this.dataset.day;
+                currentMatchId = null;
+                // Effacer le cache pour ce jour
+                const cacheKey = `${currentView}_${currentDay}`;
+                delete eventsCache[cacheKey];
+                loadView(currentView);
+            });
+        });
+
+        // Retour à l'accueil
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
+            currentMatchId = null;
             const activeTab = document.querySelector('.nav-tabs .active');
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
+        // Chargement initial
         loadView('live');
 
-        setInterval(() => {
-            const activeTab = document.querySelector('.nav-tabs .active');
-            if (activeTab && activeTab.dataset.view === 'live') {
-                loadView('live');
-            }
-        }, 30000);
+        // ============================================================
+        // 10. SILENT REFRESH (toutes les 30 secondes en arrière-plan)
+        // ============================================================
+        setInterval(silentRefresh, 30000);
+
+        // Exposer pour débogage
+        window.loadView = loadView;
+        window.showEventDetails = showEventDetails;
+        window.silentRefresh = silentRefresh;
     </script>
 </body>
-    </html>
+</html>
