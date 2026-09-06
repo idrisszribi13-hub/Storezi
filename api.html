@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Goal 216 - Live & Bet</title>
+    <title>Goal 216 - Betting</title>
     <style>
         /* ===== RESET & BASE ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
@@ -63,6 +63,12 @@
         .match-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
         .match-detail-sub { color: #9ca3af; font-size: 14px; margin-bottom: 16px; }
 
+        /* ===== MARKET TABS ===== */
+        .market-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; }
+        .market-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border-radius: 14px; transition: 0.2s; white-space: nowrap; }
+        .market-tabs button.active { background: #00e676; color: #0b0e13; }
+        .market-tabs button:hover { background: #1f2937; color: #f0f3f7; }
+
         .market-group { background: #14181f; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
         .market-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #fbbf24; }
         .market-items { display: flex; flex-wrap: wrap; gap: 8px; }
@@ -70,28 +76,48 @@
         .market-item:hover { background: #2a3340; }
         .market-item .name { font-size: 11px; color: #9ca3af; }
         .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
+        .market-item.added { border: 2px solid #00e676; }
 
         /* ===== BET SLIP ===== */
         .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
         .bet-slip-toggle:hover { transform: scale(1.05); }
         .bet-slip-toggle .badge { position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
-        .bet-slip { position: fixed; bottom: 0; left: 0; right: 0; background: #14181f; border-top: 2px solid #00e676; padding: 16px; max-height: 60vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s; z-index: 99; border-radius: 16px 16px 0 0; }
+        .bet-slip { position: fixed; bottom: 0; left: 0; right: 0; background: #14181f; border-top: 2px solid #00e676; padding: 16px; max-height: 65vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s; z-index: 99; border-radius: 16px 16px 0 0; }
         .bet-slip.open { transform: translateY(0); }
         .bet-slip .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 12px; }
         .bet-slip .header h3 { color: #00e676; }
         .bet-slip .close-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
         .bet-slip-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1f2937; }
-        .bet-slip-item .remove { color: #dc2626; cursor: pointer; font-size: 18px; }
+        .bet-slip-item .remove { color: #dc2626; cursor: pointer; font-size: 18px; padding: 0 8px; }
         .bet-slip-total { display: flex; justify-content: space-between; padding: 12px 0; font-weight: 600; border-top: 1px solid #222; margin-top: 8px; }
-        .place-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 8px; }
+        .bet-slip-actions { display: flex; gap: 8px; margin-top: 8px; }
+        .place-bet-btn, .book-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; flex: 1; font-weight: 700; font-size: 16px; cursor: pointer; }
+        .book-bet-btn { background: #fbbf24; }
+        .bet-slip .stake-input { display: flex; align-items: center; gap: 8px; margin-top: 8px; }
+        .bet-slip .stake-input input { background: #1e2530; border: 1px solid #333; color: #f0f3f7; padding: 8px; border-radius: 6px; width: 80px; font-size: 14px; }
+        .bet-slip .stake-input label { color: #9ca3af; font-size: 12px; }
+
+        /* ===== MY BETS ===== */
+        .my-bets-tabs { display: flex; gap: 8px; margin-bottom: 12px; }
+        .my-bets-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; cursor: pointer; border-radius: 16px; transition: 0.2s; }
+        .my-bets-tabs button.active { background: #1f2937; color: #f0f3f7; }
+        .bet-history-item { background: #14181f; border-radius: 8px; padding: 12px; margin-bottom: 8px; border-left: 3px solid #dc2626; }
+        .bet-history-item.won { border-left-color: #00e676; }
+        .bet-history-item.lost { border-left-color: #dc2626; }
+        .bet-history-item.pending { border-left-color: #fbbf24; }
+        .bet-history-item .status { font-weight: 700; font-size: 12px; }
+        .bet-history-item .status.won { color: #00e676; }
+        .bet-history-item .status.lost { color: #dc2626; }
+        .bet-history-item .status.pending { color: #fbbf24; }
 
         .loading { text-align: center; padding: 40px; color: #6b7280; }
         .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; word-break: break-word; }
         .error-msg .error-detail { font-size: 12px; color: #f87171; margin-top: 8px; display: block; }
 
         .footer-menu { display: flex; justify-content: space-around; background: #0f131a; padding: 12px 0; border-top: 1px solid #222; margin-top: 20px; position: sticky; bottom: 0; }
-        .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; }
+        .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; cursor: pointer; transition: 0.2s; }
+        .footer-menu span:hover { color: #f0f3f7; }
         .footer-menu .active { color: #00e676; }
 
         @media (max-width: 480px) {
@@ -100,6 +126,7 @@
             .team-crest { width: 26px; height: 26px; }
             .nav-tabs button { font-size: 12px; padding: 6px 10px; }
             .match-card { padding: 12px; }
+            .market-item { flex: 1 0 calc(50% - 8px); }
         }
     </style>
 </head>
@@ -107,7 +134,7 @@
 
     <div class="header">
         <h1 id="home-link">⚽ goal216</h1>
-        <span class="badge">LIVE</span>
+        <span class="badge" id="headerBadge">LIVE</span>
     </div>
 
     <!-- Day Selector -->
@@ -126,17 +153,20 @@
         <button class="active" data-view="live">🔴 EN DIRECT</button>
         <button data-view="top">⭐ TOP EVENTS</button>
         <button data-view="coming">📅 À VENIR</button>
+        <button data-view="mybets">📋 MY BETS</button>
     </div>
 
     <div id="app">
         <div class="loading">⏳ Chargement...</div>
     </div>
 
+    <!-- Bet Slip Toggle -->
     <button class="bet-slip-toggle" id="betSlipToggle">
         🧾
         <span class="badge" id="betCount">0</span>
     </button>
 
+    <!-- Bet Slip Panel -->
     <div class="bet-slip" id="betSlip">
         <div class="header">
             <h3>📋 FICHE DE PARI</h3>
@@ -145,19 +175,27 @@
         <div id="betSlipItems">
             <p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>
         </div>
-        <div class="bet-slip-total">
-            <span>Total</span>
-            <span id="betTotal">0.00</span>
+        <div class="stake-input">
+            <label>Mise (TND):</label>
+            <input type="number" id="stakeInput" value="1" min="0.1" step="0.1" />
         </div>
-        <button class="place-bet-btn" id="placeBetBtn">PLACER UN PARI</button>
+        <div class="bet-slip-total">
+            <span>Gain potentiel</span>
+            <span id="betTotal">0.00 TND</span>
+        </div>
+        <div class="bet-slip-actions">
+            <button class="place-bet-btn" id="placeBetBtn">PLACER</button>
+            <button class="book-bet-btn" id="bookBetBtn">RÉSERVER</button>
+        </div>
     </div>
 
+    <!-- Footer -->
     <div class="footer-menu">
-        <span class="active">📋 Menu</span>
-        <span>🏟️ Sport</span>
-        <span>🔴 Live</span>
-        <span>🎰 Casino</span>
-        <span>📺 Casino en Direct</span>
+        <span class="active" data-footer="menu">📋 Menu</span>
+        <span data-footer="sport">🏟️ Sport</span>
+        <span data-footer="live">🔴 Live</span>
+        <span data-footer="casino">🎰 Casino</span>
+        <span data-footer="livecasino">📺 Casino en Direct</span>
     </div>
 
     <script>
@@ -171,20 +209,134 @@
         // ============================================================
         let currentView = 'live';
         let currentDay = 'today';
-        let currentMatchId = null; // null = liste, number = détails
+        let currentMatchId = null;
+        let currentMarketTab = 'Main';
         let eventsCache = {};
-        let detailsCache = {};
         let isUpdating = false;
+        let betHistory = [];
+        let betIdCounter = 0;
 
-        // Bet Slip
+        // ============================================================
+        // 3. BET SLIP STATE (avec gestion des doublons)
+        // ============================================================
         let betSlip = [];
         const betSlipEl = document.getElementById('betSlip');
         const betSlipItemsEl = document.getElementById('betSlipItems');
         const betTotalEl = document.getElementById('betTotal');
         const betCountEl = document.getElementById('betCount');
+        const stakeInput = document.getElementById('stakeInput');
+        const headerBadge = document.getElementById('headerBadge');
+
+        function getBetKey(matchId, selection) {
+            return `${matchId}_${selection}`;
+        }
+
+        function isBetInSlip(matchId, selection) {
+            return betSlip.some(item => item.matchId === matchId && item.selection === selection);
+        }
+
+        function addToBetSlip(matchId, matchName, selection, price) {
+            // Vérifier si déjà présent
+            if (isBetInSlip(matchId, selection)) {
+                alert('Ce choix est déjà dans la fiche de pari.');
+                return false;
+            }
+            betSlip.push({ matchId, matchName, selection, price });
+            updateBetSlipUI();
+            betSlipEl.classList.add('open');
+            return true;
+        }
+
+        function removeFromBetSlip(index) {
+            betSlip.splice(index, 1);
+            updateBetSlipUI();
+        }
+
+        function clearBetSlip() {
+            betSlip = [];
+            updateBetSlipUI();
+            betSlipEl.classList.remove('open');
+        }
+
+        function updateBetSlipUI() {
+            if (betSlip.length === 0) {
+                betSlipItemsEl.innerHTML = '<p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>';
+                betTotalEl.textContent = '0.00 TND';
+                betCountEl.textContent = '0';
+                return;
+            }
+            let html = '';
+            let totalOdds = 1;
+            betSlip.forEach((item, index) => {
+                totalOdds *= item.price;
+                html += `
+                    <div class="bet-slip-item">
+                        <div>
+                            <strong>${item.matchName}</strong><br>
+                            <span style="color:#9ca3af; font-size:12px;">${item.selection} @ ${item.price}</span>
+                        </div>
+                        <span class="remove" data-index="${index}">✕</span>
+                    </div>
+                `;
+            });
+            betSlipItemsEl.innerHTML = html;
+            const stake = parseFloat(stakeInput.value) || 1;
+            const totalWin = totalOdds * stake;
+            betTotalEl.textContent = totalWin.toFixed(2) + ' TND';
+            betCountEl.textContent = betSlip.length;
+
+            document.querySelectorAll('.bet-slip-item .remove').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const idx = parseInt(this.dataset.index);
+                    removeFromBetSlip(idx);
+                });
+            });
+        }
+
+        stakeInput.addEventListener('input', updateBetSlipUI);
+
+        document.getElementById('betSlipToggle').addEventListener('click', () => {
+            betSlipEl.classList.toggle('open');
+        });
+        document.getElementById('closeBetSlip').addEventListener('click', () => {
+            betSlipEl.classList.remove('open');
+        });
 
         // ============================================================
-        // 3. HELPERS
+        // 4. PLACE BET
+        // ============================================================
+        function placeBet(type = 'placed') {
+            if (betSlip.length === 0) {
+                alert('Ajoutez des paris d\'abord.');
+                return;
+            }
+            const stake = parseFloat(stakeInput.value) || 1;
+            const totalOdds = betSlip.reduce((acc, item) => acc * item.price, 1);
+            const totalWin = totalOdds * stake;
+
+            const bet = {
+                id: ++betIdCounter,
+                date: new Date().toLocaleDateString(),
+                time: new Date().toLocaleTimeString(),
+                selections: betSlip.map(item => ({ ...item })),
+                stake: stake,
+                totalOdds: totalOdds,
+                totalWin: totalWin,
+                status: type === 'booked' ? 'pending' : (Math.random() > 0.6 ? 'won' : 'lost'),
+                type: type === 'booked' ? 'Réservé' : 'Placé'
+            };
+
+            betHistory.unshift(bet);
+            clearBetSlip();
+            if (currentView === 'mybets') renderMyBets();
+            alert(`✅ Pari ${type === 'booked' ? 'réservé' : 'placé'} ! ID: ${bet.id}`);
+        }
+
+        document.getElementById('placeBetBtn').addEventListener('click', () => placeBet('placed'));
+        document.getElementById('bookBetBtn').addEventListener('click', () => placeBet('booked'));
+
+        // ============================================================
+        // 5. HELPERS
         // ============================================================
         async function fetchFromProxy(endpoint, extraParams = '') {
             let url = `${PROXY_URL}?endpoint=${endpoint}`;
@@ -246,64 +398,7 @@
         }
 
         // ============================================================
-        // 4. BET SLIP
-        // ============================================================
-        function updateBetSlipUI() {
-            if (betSlip.length === 0) {
-                betSlipItemsEl.innerHTML = '<p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>';
-                betTotalEl.textContent = '0.00';
-                betCountEl.textContent = '0';
-                return;
-            }
-            let html = '';
-            let total = 0;
-            betSlip.forEach((item, index) => {
-                total += item.price;
-                html += `
-                    <div class="bet-slip-item">
-                        <div>
-                            <strong>${item.match}</strong><br>
-                            <span style="color:#9ca3af; font-size:12px;">${item.selection} @ ${item.price}</span>
-                        </div>
-                        <span class="remove" data-index="${index}">✕</span>
-                    </div>
-                `;
-            });
-            betSlipItemsEl.innerHTML = html;
-            betTotalEl.textContent = total.toFixed(2);
-            betCountEl.textContent = betSlip.length;
-
-            document.querySelectorAll('.bet-slip-item .remove').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    const idx = parseInt(this.dataset.index);
-                    betSlip.splice(idx, 1);
-                    updateBetSlipUI();
-                });
-            });
-        }
-
-        function addToBetSlip(matchName, selection, price) {
-            betSlip.push({ match: matchName, selection, price });
-            updateBetSlipUI();
-            betSlipEl.classList.add('open');
-        }
-
-        document.getElementById('betSlipToggle').addEventListener('click', () => {
-            betSlipEl.classList.toggle('open');
-        });
-        document.getElementById('closeBetSlip').addEventListener('click', () => {
-            betSlipEl.classList.remove('open');
-        });
-        document.getElementById('placeBetBtn').addEventListener('click', () => {
-            if (betSlip.length === 0) return alert('Ajoutez des paris d\'abord.');
-            alert('✅ Pari placé ! (simulation)');
-            betSlip = [];
-            updateBetSlipUI();
-            betSlipEl.classList.remove('open');
-        });
-
-        // ============================================================
-        // 5. RENDER FUNCTIONS
+        // 6. RENDER FUNCTIONS
         // ============================================================
         const app = document.getElementById('app');
 
@@ -344,6 +439,8 @@
                     ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
                     : away.Name.substring(0, 2).toUpperCase();
 
+                const matchName = `${home.Name} vs ${away.Name}`;
+
                 html += `
                     <div class="match-card ${cardClass}" data-matchid="${matchId}">
                         <div class="match-header">
@@ -369,15 +466,15 @@
                             </div>
                         </div>
                         <div class="odds-row">
-                            <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
+                            <div class="odd-item" data-matchid="${matchId}" data-match="${matchName}" data-selection="1" data-price="${odds1}">
                                 <div class="label">1</div>
                                 <div class="value">${odds1}</div>
                             </div>
-                            <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
+                            <div class="odd-item" data-matchid="${matchId}" data-match="${matchName}" data-selection="X" data-price="${oddsX}">
                                 <div class="label">X</div>
                                 <div class="value highlight">${oddsX}</div>
                             </div>
-                            <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
+                            <div class="odd-item" data-matchid="${matchId}" data-match="${matchName}" data-selection="2" data-price="${odds2}">
                                 <div class="label">2</div>
                                 <div class="value">${odds2}</div>
                             </div>
@@ -386,15 +483,9 @@
                 `;
             });
 
-            // حفظ موضع التمرير قبل التحديث
             const scrollY = preserveScroll ? window.scrollY : 0;
-
             app.innerHTML = html;
-
-            // استعادة موضع التمرير
-            if (preserveScroll) {
-                window.scrollTo(0, scrollY);
-            }
+            if (preserveScroll) window.scrollTo(0, scrollY);
 
             // Événements sur les cartes
             document.querySelectorAll('.match-card').forEach(card => {
@@ -405,15 +496,16 @@
                 });
             });
 
-            // Événements sur les cotes
+            // Événements sur les cotes (ajout au slip avec vérification)
             document.querySelectorAll('.odd-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
+                    const matchId = this.dataset.matchid;
                     const match = this.dataset.match;
                     const selection = this.dataset.selection;
                     const price = parseFloat(this.dataset.price);
                     if (price && price > 0 && price !== '-') {
-                        addToBetSlip(match, selection, price);
+                        addToBetSlip(matchId, match, selection, price);
                     } else {
                         alert('Cote non disponible');
                     }
@@ -422,7 +514,7 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW
+        // 7. DETAILS VIEW (avec tous les marchés)
         // ============================================================
         async function showEventDetails(matchId) {
             try {
@@ -439,34 +531,21 @@
                 const awayTeam = result.Competitors?.[1]?.Name || 'Away';
                 const league = result.ChampName || result.CategoryName || 'Ligue';
                 const date = result.EventDate || '';
+                const matchName = `${homeTeam} vs ${awayTeam}`;
+
+                // Collecter tous les groupes de marchés
+                const allGroups = result.MarketGroups || [];
+                const groupNames = allGroups.map(g => g.Name || 'Main');
 
                 let html = `
                     <button class="back-btn" id="backToList">← Retour</button>
                     <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
                     <div class="match-detail-sub">${league} | ${date}</div>
+                    <div class="market-tabs" id="marketTabs">
+                        ${groupNames.map(name => `<button class="${name === 'Main' ? 'active' : ''}" data-group="${name}">${name}</button>`).join('')}
+                    </div>
+                    <div id="marketContent"></div>
                 `;
-
-                const marketGroups = result.MarketGroups || [];
-                marketGroups.forEach(group => {
-                    if (!group.Items || group.Items.length === 0) return;
-                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
-                    group.Items.forEach(market => {
-                        if (!market.Items || market.Items.length === 0) return;
-                        const items = market.Items.slice(0, 10);
-                        items.forEach(item => {
-                            const name = item.Name || item.ShortName || '—';
-                            const price = item.Price || '-';
-                            const selection = name;
-                            html += `
-                                <div class="market-item" data-selection="${selection}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
-                                    <div class="name">${name}</div>
-                                    <div class="price">${price}</div>
-                                </div>
-                            `;
-                        });
-                    });
-                    html += `</div></div>`;
-                });
 
                 app.innerHTML = html;
 
@@ -475,16 +554,16 @@
                     loadView(currentView, true);
                 });
 
-                document.querySelectorAll('.market-item').forEach(item => {
-                    item.addEventListener('click', function() {
-                        const match = this.dataset.match;
-                        const selection = this.dataset.selection;
-                        const price = parseFloat(this.dataset.price);
-                        if (price && price > 0 && price !== '-') {
-                            addToBetSlip(match, selection, price);
-                        } else {
-                            alert('Cote non disponible');
-                        }
+                // عرض أول مجموعة
+                renderMarketGroup(allGroups, 'Main');
+
+                // تبديل المجموعات
+                document.querySelectorAll('#marketTabs button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#marketTabs button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const groupName = this.dataset.group;
+                        renderMarketGroup(allGroups, groupName);
                     });
                 });
 
@@ -494,8 +573,116 @@
             }
         }
 
+        function renderMarketGroup(allGroups, groupName) {
+            const container = document.getElementById('marketContent');
+            if (!container) return;
+
+            const group = allGroups.find(g => (g.Name || 'Main') === groupName);
+            if (!group || !group.Items || group.Items.length === 0) {
+                container.innerHTML = '<p style="color:#6b7280;">Aucun marché disponible pour ce groupe.</p>';
+                return;
+            }
+
+            let html = '';
+            group.Items.forEach(market => {
+                if (!market.Items || market.Items.length === 0) return;
+                const marketName = market.ShortName || market.Name || 'Marché';
+                html += `<div class="market-group"><div class="market-title">${marketName}</div><div class="market-items">`;
+                market.Items.forEach(item => {
+                    const name = item.Name || item.ShortName || '—';
+                    const price = item.Price || '-';
+                    const isAdded = isBetInSlip(currentMatchId, name);
+                    html += `
+                        <div class="market-item ${isAdded ? 'added' : ''}" data-selection="${name}" data-price="${price}" data-match="${document.querySelector('.match-detail-title')?.textContent || 'Match'}">
+                            <div class="name">${name}</div>
+                            <div class="price">${price}</div>
+                        </div>
+                    `;
+                });
+                html += `</div></div>`;
+            });
+
+            container.innerHTML = html;
+
+            // Événements pour ajouter au slip
+            container.querySelectorAll('.market-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    const match = this.dataset.match;
+                    const selection = this.dataset.selection;
+                    const price = parseFloat(this.dataset.price);
+                    if (price && price > 0 && price !== '-') {
+                        const added = addToBetSlip(currentMatchId, match, selection, price);
+                        if (added) {
+                            this.classList.add('added');
+                        }
+                    } else {
+                        alert('Cote non disponible');
+                    }
+                });
+            });
+        }
+
         // ============================================================
-        // 7. LOAD VIEWS (avec mise en cache et mise à jour silencieuse)
+        // 8. MY BETS
+        // ============================================================
+        function renderMyBets() {
+            if (betHistory.length === 0) {
+                app.innerHTML = `
+                    <div style="text-align:center; padding:40px 0;">
+                        <p style="color:#6b7280;">Aucun pari enregistré</p>
+                        <p style="color:#4b5563; font-size:12px;">Placez un pari pour le voir apparaître ici</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = `
+                <div class="my-bets-tabs">
+                    <button class="active" data-filter="all">Tous</button>
+                    <button data-filter="won">Gagnés</button>
+                    <button data-filter="lost">Perdus</button>
+                    <button data-filter="pending">En attente</button>
+                </div>
+            `;
+
+            const filter = document.querySelector('.my-bets-tabs .active')?.dataset.filter || 'all';
+            const filtered = betHistory.filter(b => filter === 'all' || b.status === filter);
+
+            filtered.forEach(bet => {
+                const statusClass = bet.status;
+                const statusLabel = bet.status === 'won' ? '✅ Gagné' : bet.status === 'lost' ? '❌ Perdu' : '⏳ En attente';
+                html += `
+                    <div class="bet-history-item ${statusClass}">
+                        <div style="display:flex; justify-content:space-between;">
+                            <span>ID: ${bet.id}</span>
+                            <span class="status ${statusClass}">${statusLabel}</span>
+                        </div>
+                        <div style="font-size:12px; color:#9ca3af; margin:4px 0;">${bet.date} • ${bet.time}</div>
+                        <div style="font-size:13px; margin:4px 0;">
+                            ${bet.selections.map(s => `${s.selection} @ ${s.price}`).join(' + ')}
+                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:13px; margin-top:4px;">
+                            <span>Mise: ${bet.stake} TND</span>
+                            <span>Gain: ${bet.totalWin.toFixed(2)} TND</span>
+                        </div>
+                        <div style="font-size:11px; color:#6b7280; margin-top:2px;">${bet.type}</div>
+                    </div>
+                `;
+            });
+
+            app.innerHTML = html;
+
+            document.querySelectorAll('.my-bets-tabs button').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.my-bets-tabs button').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    renderMyBets();
+                });
+            });
+        }
+
+        // ============================================================
+        // 9. LOAD VIEWS
         // ============================================================
         async function loadView(view, preserveScroll = false) {
             if (isUpdating) return;
@@ -504,7 +691,12 @@
             try {
                 currentView = view;
 
-                // Si on est dans les détails, on ne recharge pas la liste
+                if (view === 'mybets') {
+                    renderMyBets();
+                    isUpdating = false;
+                    return;
+                }
+
                 if (currentMatchId) {
                     isUpdating = false;
                     return;
@@ -513,7 +705,6 @@
                 let events = [];
                 let cacheKey = `${view}_${currentDay}`;
 
-                // Vérifier le cache
                 if (eventsCache[cacheKey]) {
                     events = eventsCache[cacheKey];
                     renderMatchList(events, view, preserveScroll);
@@ -530,15 +721,11 @@
                     const data = await fetchFromProxy('GetTopEvents', '');
                     events = data?.Result?.Events || [];
                 } else if (view === 'coming') {
-                    // Utiliser GetMenuBySport pour les jours
                     const range = getDateRange(currentDay);
-                    const data = await fetchFromProxy('GetMenuBySport', 
+                    const data = await fetchFromProxy('GetMenuBySport',
                         `sportId=1&period=periodall&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
                     );
-                    // La structure de GetMenuBySport est différente
-                    // On va chercher les événements dans la réponse
                     if (data?.Result) {
-                        // Parcourir les catégories et championnats pour récupérer les matchs
                         const items = data.Result['0']?.Items || [];
                         const allEvents = [];
                         items.forEach(category => {
@@ -554,7 +741,6 @@
                     }
                 }
 
-                // Mettre en cache
                 eventsCache[cacheKey] = events;
                 renderMatchList(events, view, preserveScroll);
 
@@ -574,11 +760,12 @@
         }
 
         // ============================================================
-        // 8. SILENT REFRESH (en arrière-plan)
+        // 10. SILENT REFRESH
         // ============================================================
         async function silentRefresh() {
             if (isUpdating) return;
-            if (currentMatchId) return; // Ne pas rafraîchir si on est dans les détails
+            if (currentMatchId) return;
+            if (currentView === 'mybets') return;
 
             try {
                 const view = currentView;
@@ -612,10 +799,7 @@
                     }
                 }
 
-                // Mettre à jour le cache
                 eventsCache[cacheKey] = events;
-
-                // Mettre à jour l'interface seulement si on est toujours sur la même vue
                 if (currentView === view && !currentMatchId) {
                     renderMatchList(events, view, true);
                 }
@@ -626,7 +810,7 @@
         }
 
         // ============================================================
-        // 9. NAVIGATION & INIT
+        // 11. NAVIGATION
         // ============================================================
 
         // Onglets principaux
@@ -635,7 +819,13 @@
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentMatchId = null;
-                loadView(this.dataset.view);
+                const view = this.dataset.view;
+                if (view === 'mybets') {
+                    headerBadge.textContent = 'MY BETS';
+                } else {
+                    headerBadge.textContent = 'LIVE';
+                }
+                loadView(view);
             });
         });
 
@@ -646,10 +836,17 @@
                 this.classList.add('active');
                 currentDay = this.dataset.day;
                 currentMatchId = null;
-                // Effacer le cache pour ce jour
                 const cacheKey = `${currentView}_${currentDay}`;
                 delete eventsCache[cacheKey];
                 loadView(currentView);
+            });
+        });
+
+        // Footer
+        document.querySelectorAll('.footer-menu span').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.footer-menu span').forEach(s => s.classList.remove('active'));
+                this.classList.add('active');
             });
         });
 
@@ -661,18 +858,17 @@
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
-        // Chargement initial
+        // ============================================================
+        // 12. INIT
+        // ============================================================
         loadView('live');
 
-        // ============================================================
-        // 10. SILENT REFRESH (toutes les 30 secondes en arrière-plan)
-        // ============================================================
         setInterval(silentRefresh, 30000);
 
-        // Exposer pour débogage
         window.loadView = loadView;
         window.showEventDetails = showEventDetails;
         window.silentRefresh = silentRefresh;
+        window.addToBetSlip = addToBetSlip;
     </script>
 </body>
-</html>
+    </html>
