@@ -3,40 +3,43 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title>Goal 216 - Live Scores</title>
+    <title>Goal 216 - Live Score & Odds</title>
     <style>
-        /* ===== RESET ===== */
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
         body { background: #0b0e13; color: #f0f3f7; padding: 12px; min-height: 100vh; padding-bottom: 80px; }
-        
-        /* ===== HEADER ===== */
         .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
-        .header h1 { font-size: 24px; font-weight: 700; color: #00e676; cursor: pointer; }
-        .badge { background: #1f2937; padding: 4px 12px; border-radius: 20px; font-size: 11px; color: #9ca3af; }
+        .header h1 { font-size: 22px; font-weight: 700; color: #00e676; cursor: pointer; }
+        .badge { background: #1f2937; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #9ca3af; }
 
-        /* ===== DAYS TABS ===== */
-        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-wrap: nowrap; }
-        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; flex-shrink: 0; }
+        /* Days Tabs */
+        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
+        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; }
         .days-tabs button.active { background: #00e676; color: #0b0e13; }
         .days-tabs button:hover { background: #1f2937; color: #f0f3f7; }
 
-        /* ===== MAIN TABS ===== */
+        /* Main Tabs */
         .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; flex-wrap: wrap; }
         .nav-tabs button { background: transparent; border: none; color: #9ca3af; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: 0.2s; white-space: nowrap; }
         .nav-tabs button.active { background: #00e676; color: #0b0e13; }
         .nav-tabs button:hover { background: #1f2937; color: #f0f3f7; }
 
-        /* ===== MATCH CARD ===== */
+        /* Market Tabs (inside details) */
+        .market-tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; }
+        .market-tabs button { background: #1f2937; border: none; color: #9ca3af; padding: 4px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border-radius: 12px; transition: 0.2s; white-space: nowrap; }
+        .market-tabs button.active { background: #00e676; color: #0b0e13; }
+        .market-tabs button:hover { background: #374151; color: #f0f3f7; }
+
+        /* Match Cards */
         .match-card { background: #14181f; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; border-left: 4px solid #dc2626; cursor: pointer; transition: 0.2s; }
         .match-card.coming { border-left-color: #fbbf24; }
         .match-card.top-event { border-left-color: #8b5cf6; }
         .match-card:hover { background: #1a202a; }
 
-        .match-header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #9ca3af; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
-        .match-time { font-weight: 600; color: #fbbf24; background: rgba(251,191,36,0.1); padding: 2px 10px; border-radius: 12px; }
-        .match-league { background: #1f2937; padding: 2px 10px; border-radius: 12px; font-size: 10px; text-transform: uppercase; letter-spacing: 0.3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 50%; }
+        .match-header { display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
+        .match-time { font-weight: 600; color: #fbbf24; }
+        .match-league { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; background: #1f2937; padding: 0 8px; border-radius: 10px; }
 
-        .score-line { display: flex; justify-content: space-between; align-items: center; padding: 6px 0 10px 0; }
+        .score-line { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; padding: 4px 0 8px 0; }
         .team-block { display: flex; align-items: center; gap: 10px; max-width: 42%; }
         .team-block.away { flex-direction: row-reverse; text-align: right; }
         .team-crest { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #f0f3f7; overflow: hidden; }
@@ -47,25 +50,31 @@
         .team-block.away .team-info { align-items: flex-end; }
         .vs-dash { color: #4b5563; font-weight: 300; font-size: 18px; padding: 0 6px; }
 
-        .odds-row { display: flex; justify-content: space-around; background: #1e2530; border-radius: 8px; padding: 6px 0; margin-top: 6px; }
-        .odd-item { text-align: center; flex: 1; cursor: pointer; padding: 4px 0; border-radius: 4px; transition: 0.2s; }
+        /* Odds Row with arrows */
+        .odds-row { display: flex; justify-content: space-around; background: #1e2530; border-radius: 8px; padding: 8px 0; margin-top: 6px; }
+        .odd-item { text-align: center; flex: 1; cursor: pointer; padding: 4px 0; border-radius: 4px; transition: 0.2s; position: relative; }
         .odd-item:hover { background: #2a3340; }
         .odd-item .label { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; }
-        .odd-item .value { font-size: 15px; font-weight: 700; color: #facc15; }
+        .odd-item .value { font-size: 15px; font-weight: 700; color: #facc15; transition: 0.3s; }
         .odd-item .value.highlight { color: #34d399; }
+        .odd-item .arrow { font-size: 12px; margin-left: 2px; display: inline-block; transition: 0.3s; }
+        .odd-item .arrow.up { color: #34d399; }
+        .odd-item .arrow.down { color: #dc2626; }
 
         .live-label { display: inline-block; background: #dc2626; color: white; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; animation: blink 1.2s infinite; }
         .top-label { display: inline-block; background: #8b5cf6; color: white; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
         .coming-label { display: inline-block; background: #fbbf24; color: #0b0e13; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* ===== DETAILS VIEW ===== */
+        /* Details View */
         .back-btn { background: #1f2937; border: none; color: #f0f3f7; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 16px; display: inline-block; }
         .back-btn:hover { background: #374151; }
         .match-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
         .match-detail-sub { color: #9ca3af; font-size: 14px; margin-bottom: 16px; }
 
-        .market-group { background: #14181f; border-radius: 12px; padding: 16px; margin-bottom: 12px; }
+        /* Market Groups (tabs content) */
+        .market-group { background: #14181f; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: none; }
+        .market-group.active { display: block; }
         .market-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #fbbf24; }
         .market-items { display: flex; flex-wrap: wrap; gap: 8px; }
         .market-item { background: #1e2530; padding: 8px 12px; border-radius: 8px; flex: 1 0 calc(33% - 8px); text-align: center; min-width: 70px; cursor: pointer; transition: 0.2s; }
@@ -73,19 +82,28 @@
         .market-item .name { font-size: 11px; color: #9ca3af; }
         .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
 
-        /* ===== TIMELINE ===== */
-        .timeline-container { background: #14181f; border-radius: 12px; padding: 16px; margin-top: 12px; max-height: 300px; overflow-y: auto; }
-        .timeline-event { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #1f2937; font-size: 13px; }
-        .timeline-event .time { color: #fbbf24; font-weight: 600; min-width: 40px; }
-        .timeline-event .icon { width: 24px; text-align: center; }
+        /* Timeline */
+        .timeline-container { background: #14181f; border-radius: 12px; padding: 16px; margin-top: 12px; max-height: 250px; overflow-y: auto; }
+        .timeline-event { display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid #1f2937; font-size: 12px; }
+        .timeline-event .time { color: #fbbf24; font-weight: 600; min-width: 35px; }
+        .timeline-event .icon { width: 20px; text-align: center; }
         .timeline-event .desc { flex: 1; }
+        .timeline-event .team-name { font-weight: 500; }
         .event-goal { color: #34d399; }
-        .event-yellow { color: #facc15; }
-        .event-red { color: #dc2626; }
+        .event-card-yellow { color: #facc15; }
+        .event-card-red { color: #dc2626; }
         .event-sub { color: #60a5fa; }
+        .event-corner { color: #a78bfa; }
 
-        /* ===== BET SLIP ===== */
+        /* Live Score Update */
+        .live-score-update { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
+        .live-score-update .score-badge { background: #1f2937; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; }
+        .live-score-update .score-badge .home-score { color: #34d399; }
+        .live-score-update .score-badge .away-score { color: #facc15; }
+
+        /* Bet Slip */
         .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
+        .bet-slip-toggle:hover { transform: scale(1.05); }
         .bet-slip-toggle .badge { position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
 
         .bet-slip { position: fixed; bottom: 0; left: 0; right: 0; background: #14181f; border-top: 2px solid #00e676; padding: 16px; max-height: 60vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s; z-index: 99; border-radius: 16px 16px 0 0; }
@@ -99,22 +117,21 @@
         .place-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 8px; }
 
         .loading { text-align: center; padding: 40px; color: #6b7280; }
-        .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; }
+        .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; word-break: break-word; }
+        .error-msg .error-detail { font-size: 12px; color: #f87171; margin-top: 8px; display: block; }
+
         .footer-menu { display: flex; justify-content: space-around; background: #0f131a; padding: 12px 0; border-top: 1px solid #222; margin-top: 20px; position: sticky; bottom: 0; }
         .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; }
         .footer-menu .active { color: #00e676; }
-
-        /* ===== LEAGUE GROUP ===== */
-        .league-group { margin-bottom: 16px; }
-        .league-group-title { font-size: 16px; font-weight: 700; color: #fbbf24; padding: 8px 0 12px 0; border-bottom: 1px solid #1f2937; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
-        .league-group-title .country-flag { font-size: 18px; }
 
         @media (max-width: 480px) {
             .team-name { font-size: 12px; }
             .team-score { font-size: 18px; }
             .team-crest { width: 26px; height: 26px; }
             .nav-tabs button { font-size: 12px; padding: 6px 10px; }
+            .market-tabs button { font-size: 10px; padding: 3px 8px; }
             .match-card { padding: 12px; }
+            .timeline-event { font-size: 11px; }
         }
     </style>
 </head>
@@ -122,9 +139,10 @@
 
     <div class="header">
         <h1 id="home-link">⚽ goal216</h1>
-        <span class="badge" id="liveBadge">LIVE</span>
+        <span class="badge">LIVE</span>
     </div>
 
+    <!-- Day Selector -->
     <div class="days-tabs" id="daysTabs">
         <button class="active" data-day="0">Aujourd'hui</button>
         <button data-day="1">Lun 7/9</button>
@@ -146,17 +164,23 @@
         <div class="loading">⏳ Chargement...</div>
     </div>
 
-    <!-- Bet Slip -->
     <button class="bet-slip-toggle" id="betSlipToggle">
-        🧾 <span class="badge" id="betCount">0</span>
+        🧾
+        <span class="badge" id="betCount">0</span>
     </button>
+
     <div class="bet-slip" id="betSlip">
         <div class="header">
             <h3>📋 FICHE DE PARI</h3>
             <button class="close-btn" id="closeBetSlip">✕</button>
         </div>
-        <div id="betSlipItems"><p style="color:#6b7280;text-align:center;padding:20px 0;">Aucun pari sélectionné</p></div>
-        <div class="bet-slip-total"><span>Total</span><span id="betTotal">0.00</span></div>
+        <div id="betSlipItems">
+            <p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>
+        </div>
+        <div class="bet-slip-total">
+            <span>Total</span>
+            <span id="betTotal">0.00</span>
+        </div>
         <button class="place-bet-btn" id="placeBetBtn">PLACER UN PARI</button>
     </div>
 
@@ -182,10 +206,11 @@
         let currentMatchId = null;
         let eventsCache = {};
         let isUpdating = false;
-        let betSlip = [];
+        let liveUpdateInterval = null;
+        let previousOdds = {};
 
-        // DOM refs
-        const app = document.getElementById('app');
+        // Bet Slip
+        let betSlip = [];
         const betSlipEl = document.getElementById('betSlip');
         const betSlipItemsEl = document.getElementById('betSlipItems');
         const betTotalEl = document.getElementById('betTotal');
@@ -232,10 +257,7 @@
             const comps = match.Competitors || [];
             const home = comps[0] || { Name: 'Home', Id: null };
             const away = comps[1] || { Name: 'Away', Id: null };
-            return {
-                home: { ...home, crest: getCrestUrl(home) },
-                away: { ...away, crest: getCrestUrl(away) }
-            };
+            return { home: { ...home, crest: getCrestUrl(home) }, away: { ...away, crest: getCrestUrl(away) } };
         }
 
         function getDateRange(dayOffset) {
@@ -254,8 +276,34 @@
             try {
                 const d = new Date(eventDate);
                 if (isNaN(d.getTime())) return '--:--';
-                return String(d.getHours()).padStart(2, '0') + 'h' + String(d.getMinutes()).padStart(2, '0');
+                const h = String(d.getHours()).padStart(2, '0');
+                const m = String(d.getMinutes()).padStart(2, '0');
+                return `${h}h${m}`;
             } catch (e) { return '--:--'; }
+        }
+
+        // Group markets by type for tabs
+        function groupMarketsByType(marketGroups) {
+            const groups = {};
+            const typeMap = {
+                'Main': 'main',
+                'Popular': 'popular',
+                '1st Half': '1sthalf',
+                '2nd Half': '2ndhalf',
+                'Combo': 'combo',
+                'Corners': 'corners',
+                'Bookings': 'bookings',
+                'Teams': 'teams',
+                'Correct Score': 'correctscore'
+            };
+
+            marketGroups.forEach(group => {
+                const key = typeMap[group.Name] || group.Name.toLowerCase().replace(/ /g, '');
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(group);
+            });
+
+            return groups;
         }
 
         // ============================================================
@@ -263,17 +311,21 @@
         // ============================================================
         function updateBetSlipUI() {
             if (betSlip.length === 0) {
-                betSlipItemsEl.innerHTML = '<p style="color:#6b7280;text-align:center;padding:20px 0;">Aucun pari sélectionné</p>';
+                betSlipItemsEl.innerHTML = '<p style="color:#6b7280; text-align:center; padding:20px 0;">Aucun pari sélectionné</p>';
                 betTotalEl.textContent = '0.00';
                 betCountEl.textContent = '0';
                 return;
             }
-            let html = '', total = 0;
+            let html = '';
+            let total = 0;
             betSlip.forEach((item, index) => {
                 total += item.price;
                 html += `
                     <div class="bet-slip-item">
-                        <div><strong>${item.match}</strong><br><span style="color:#9ca3af;font-size:12px;">${item.selection} @ ${item.price}</span></div>
+                        <div>
+                            <strong>${item.match}</strong><br>
+                            <span style="color:#9ca3af; font-size:12px;">${item.selection} @ ${item.price}</span>
+                        </div>
                         <span class="remove" data-index="${index}">✕</span>
                     </div>
                 `;
@@ -284,7 +336,8 @@
 
             document.querySelectorAll('.bet-slip-item .remove').forEach(btn => {
                 btn.addEventListener('click', function() {
-                    betSlip.splice(parseInt(this.dataset.index), 1);
+                    const idx = parseInt(this.dataset.index);
+                    betSlip.splice(idx, 1);
                     updateBetSlipUI();
                 });
             });
@@ -296,8 +349,12 @@
             betSlipEl.classList.add('open');
         }
 
-        document.getElementById('betSlipToggle').addEventListener('click', () => betSlipEl.classList.toggle('open'));
-        document.getElementById('closeBetSlip').addEventListener('click', () => betSlipEl.classList.remove('open'));
+        document.getElementById('betSlipToggle').addEventListener('click', () => {
+            betSlipEl.classList.toggle('open');
+        });
+        document.getElementById('closeBetSlip').addEventListener('click', () => {
+            betSlipEl.classList.remove('open');
+        });
         document.getElementById('placeBetBtn').addEventListener('click', () => {
             if (betSlip.length === 0) return alert('Ajoutez des paris d\'abord.');
             alert('✅ Pari placé ! (simulation)');
@@ -307,117 +364,104 @@
         });
 
         // ============================================================
-        // 5. RENDER - Match List avec regroupement par ligue
+        // 5. RENDER FUNCTIONS
         // ============================================================
+        const app = document.getElementById('app');
+
         function renderMatchList(events, type = 'live', preserveScroll = false) {
             if (!events || events.length === 0) {
-                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé.</div>`;
+                app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
                 return;
             }
 
-            // Grouper par ligue (ChampName)
-            const groups = {};
-            events.forEach(match => {
-                const league = match.ChampName || match.CategoryName || 'Autre';
-                if (!groups[league]) groups[league] = [];
-                groups[league].push(match);
-            });
-
             let html = '';
-            const sortedLeagues = Object.keys(groups).sort();
+            events.forEach(match => {
+                const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
+                let timeDisplay;
+                if (type === 'live' && isLive) {
+                    timeDisplay = match.LiveCurrentTime || '--';
+                } else {
+                    timeDisplay = extractTime24(match.EventDate);
+                }
 
-            sortedLeagues.forEach(league => {
-                const matches = groups[league];
-                html += `<div class="league-group"><div class="league-group-title">🏆 ${league}</div>`;
+                const score = match.LiveScore || '0:0';
+                const scores = score.split(':');
+                const league = match.ChampName || match.CategoryName || 'Championnat';
+                const matchId = match.Id;
 
-                matches.forEach(match => {
-                    const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
-                    let timeDisplay;
-                    if (type === 'live' && isLive) {
-                        timeDisplay = match.LiveCurrentTime || '--';
-                    } else {
-                        timeDisplay = extractTime24(match.EventDate);
-                    }
+                const { home, away } = getCompetitorsWithCrests(match);
+                const { odds1, oddsX, odds2 } = extractOdds(match.Items);
 
-                    const score = match.LiveScore || '0:0';
-                    const scores = score.split(':');
-                    const matchId = match.Id;
-                    const { home, away } = getCompetitorsWithCrests(match);
-                    const { odds1, oddsX, odds2 } = extractOdds(match.Items);
+                let label = '', cardClass = '';
+                if (type === 'live' && isLive) {
+                    label = '<span class="live-label">EN DIRECT</span>';
+                    cardClass = '';
+                } else if (type === 'top') {
+                    label = '<span class="top-label">⭐ TOP</span>';
+                    cardClass = 'top-event';
+                } else {
+                    label = '<span class="coming-label">À VENIR</span>';
+                    cardClass = 'coming';
+                }
 
-                    let label = '', cardClass = '';
-                    if (type === 'live' && isLive) {
-                        label = '<span class="live-label">EN DIRECT</span>';
-                        cardClass = '';
-                    } else if (type === 'top') {
-                        label = '<span class="top-label">⭐ TOP</span>';
-                        cardClass = 'top-event';
-                    } else {
-                        label = '<span class="coming-label">À VENIR</span>';
-                        cardClass = 'coming';
-                    }
+                const homeCrestHtml = home.crest
+                    ? `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">`
+                    : home.Name.substring(0, 2).toUpperCase();
+                const awayCrestHtml = away.crest
+                    ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
+                    : away.Name.substring(0, 2).toUpperCase();
 
-                    const homeCrest = home.crest
-                        ? `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">`
-                        : home.Name.substring(0, 2).toUpperCase();
-                    const awayCrest = away.crest
-                        ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
-                        : away.Name.substring(0, 2).toUpperCase();
-
-                    html += `
-                        <div class="match-card ${cardClass}" data-matchid="${matchId}">
-                            <div class="match-header">
-                                ${label}
-                                <span class="match-time">${timeDisplay}</span>
-                            </div>
-                            <div class="score-line">
-                                <div class="team-block home">
-                                    <div class="team-crest">${homeCrest}</div>
-                                    <div class="team-info">
-                                        <span class="team-name">${home.Name}</span>
-                                        <span class="team-score">${scores[0] || '0'}</span>
-                                    </div>
-                                </div>
-                                <span class="vs-dash">⚡</span>
-                                <div class="team-block away">
-                                    <div class="team-crest">${awayCrest}</div>
-                                    <div class="team-info">
-                                        <span class="team-name">${away.Name}</span>
-                                        <span class="team-score">${scores[1] || '0'}</span>
-                                    </div>
+                html += `
+                    <div class="match-card ${cardClass}" data-matchid="${matchId}">
+                        <div class="match-header">
+                            ${label}
+                            <span class="match-time">${timeDisplay}</span>
+                            <span class="match-league">${league}</span>
+                        </div>
+                        <div class="score-line">
+                            <div class="team-block home">
+                                <div class="team-crest">${homeCrestHtml}</div>
+                                <div class="team-info">
+                                    <span class="team-name">${home.Name}</span>
+                                    <span class="team-score">${scores[0] || '0'}</span>
                                 </div>
                             </div>
-                            <div class="odds-row">
-                                <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
-                                    <div class="label">1</div>
-                                    <div class="value">${odds1}</div>
-                                </div>
-                                <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
-                                    <div class="label">X</div>
-                                    <div class="value highlight">${oddsX}</div>
-                                </div>
-                                <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
-                                    <div class="label">2</div>
-                                    <div class="value">${odds2}</div>
+                            <span class="vs-dash">⚡</span>
+                            <div class="team-block away">
+                                <div class="team-crest">${awayCrestHtml}</div>
+                                <div class="team-info">
+                                    <span class="team-name">${away.Name}</span>
+                                    <span class="team-score">${scores[1] || '0'}</span>
                                 </div>
                             </div>
                         </div>
-                    `;
-                });
-
-                html += `</div>`;
+                        <div class="odds-row">
+                            <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="label">1</div>
+                                <div class="value" id="odd-1-${matchId}">${odds1}</div>
+                            </div>
+                            <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="label">X</div>
+                                <div class="value highlight" id="odd-X-${matchId}">${oddsX}</div>
+                            </div>
+                            <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
+                                <div class="label">2</div>
+                                <div class="value" id="odd-2-${matchId}">${odds2}</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
             });
 
             const scrollY = preserveScroll ? window.scrollY : 0;
             app.innerHTML = html;
-            if (preserveScroll) window.scrollTo(0, scrollY);
+            if (preserveScroll) { window.scrollTo(0, scrollY); }
 
-            // Click events
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.closest('.odd-item')) return;
-                    const mid = this.dataset.matchid;
-                    if (mid) showEventDetails(mid);
+                    const matchId = this.dataset.matchid;
+                    if (matchId) showEventDetails(matchId);
                 });
             });
 
@@ -437,18 +481,42 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW avec Timeline
+        // 6. DETAILS VIEW with LIVE UPDATE
         // ============================================================
+        let detailUpdateInterval = null;
+
         async function showEventDetails(matchId) {
             try {
+                // Arrêter l'ancien intervalle si existant
+                if (detailUpdateInterval) {
+                    clearInterval(detailUpdateInterval);
+                    detailUpdateInterval = null;
+                }
+
                 currentMatchId = matchId;
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
 
-                // Récupérer les détails du match
-                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
-                const result = data?.Result;
+                // Charger les détails
+                await loadMatchDetails(matchId);
+
+                // Lancer la mise à jour en direct toutes les 5 secondes
+                detailUpdateInterval = setInterval(() => {
+                    loadMatchDetails(matchId, true);
+                }, 5000);
+
+            } catch (error) {
+                app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                console.error(error);
+            }
+        }
+
+        async function loadMatchDetails(matchId, silent = false) {
+            try {
+                // 1. Détails du match (marchés)
+                const detailData = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
+                const result = detailData?.Result;
                 if (!result) {
-                    app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables.</div>`;
+                    if (!silent) app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables.</div>`;
                     return;
                 }
 
@@ -457,88 +525,157 @@
                 const league = result.ChampName || result.CategoryName || 'Ligue';
                 const date = result.EventDate || '';
                 const isLive = result.IsLiveEvent;
+                const liveScore = result.LiveScore || '0:0';
+                const scores = liveScore.split(':');
+                const liveTime = result.LiveCurrentTime || '';
 
-                let html = `
-                    <button class="back-btn" id="backToList">← Retour</button>
-                    <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
-                    <div class="match-detail-sub">${league} | ${date}</div>
-                `;
-
-                // Si match live, charger timeline
+                // 2. Timeline (si live)
+                let timelineHtml = '';
+                let matchStatus = '';
                 if (isLive) {
                     try {
                         const timelineData = await fetchFromProxy('match_timeline', matchId);
                         const events = timelineData?.doc?.[0]?.data?.events || [];
                         const matchInfo = timelineData?.doc?.[0]?.data?.match || {};
-                        const status = matchInfo?.status?.name || 'En direct';
-                        const played = matchInfo?.timeinfo?.played || 0;
-                        const timeDisplay = played ? Math.floor(played / 60) + '\'' : '';
+                        matchStatus = matchInfo?.status?.name || 'En direct';
+                        const time = matchInfo?.timeinfo?.played ? Math.floor(matchInfo.timeinfo.played / 60) + '\'' : '';
 
-                        html += `
-                            <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${status}</span>
-                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${timeDisplay}</span>
-                            </div>
-                            <div class="timeline-container">
-                                <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements</div>
-                        `;
-
-                        const recent = events.slice(-20).reverse();
-                        recent.forEach(ev => {
-                            const evTime = ev.time ? ev.time + '\'' : '--';
-                            let icon = '•', cls = '';
+                        const recentEvents = events.slice(-15).reverse();
+                        let evHtml = '';
+                        recentEvents.forEach(ev => {
+                            const evTime = ev.time ? `${ev.time}'` : '--';
+                            let icon = '•';
+                            let cls = '';
                             if (ev.type === 'goal') { icon = '⚽'; cls = 'event-goal'; }
-                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-yellow'; }
-                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-red'; }
+                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-card-yellow'; }
+                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-card-red'; }
                             else if (ev.type === 'substitution') { icon = '🔄'; cls = 'event-sub'; }
                             else if (ev.type === 'shotontarget') { icon = '🎯'; }
-                            else if (ev.type === 'corner') { icon = '🚩'; }
+                            else if (ev.type === 'corner') { icon = '🚩'; cls = 'event-corner'; }
+                            else if (ev.type === 'offside') { icon = '🚫'; }
                             const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
                             const playerName = ev.player?.name || '';
                             const desc = ev.name || ev.type || '';
-                            html += `
+                            evHtml += `
                                 <div class="timeline-event">
                                     <span class="time">${evTime}</span>
                                     <span class="icon ${cls}">${icon}</span>
-                                    <span class="desc">${teamName ? `<span style="font-weight:500;">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
+                                    <span class="desc">${teamName ? `<span class="team-name">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
                                 </div>
                             `;
                         });
 
-                        html += `</div>`;
+                        timelineHtml = `
+                            <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${matchStatus}</span>
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${time}</span>
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">🏆 ${league}</span>
+                            </div>
+                            <div class="timeline-container">
+                                <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements</div>
+                                ${evHtml || '<div style="color:#6b7280;">Aucun événement récent</div>'}
+                            </div>
+                        `;
                     } catch (e) {
                         console.warn('Timeline non disponible:', e);
                     }
                 }
 
-                // Marchés
+                // 3. Score en direct
+                const scoreHtml = `
+                    <div class="live-score-update">
+                        <span class="score-badge">🏠 <span class="home-score">${scores[0] || '0'}</span> - <span class="away-score">${scores[1] || '0'}</span> 🏃</span>
+                        ${liveTime ? `<span class="score-badge">⏱️ ${liveTime}</span>` : ''}
+                        ${matchStatus ? `<span class="score-badge">${matchStatus}</span>` : ''}
+                    </div>
+                `;
+
+                // 4. Group markets by type
                 const marketGroups = result.MarketGroups || [];
-                marketGroups.forEach(group => {
-                    if (!group.Items || group.Items.length === 0) return;
-                    html += `<div class="market-group"><div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
-                    group.Items.forEach(market => {
-                        if (!market.Items || market.Items.length === 0) return;
-                        market.Items.slice(0, 10).forEach(item => {
-                            const name = item.Name || item.ShortName || '—';
-                            const price = item.Price || '-';
-                            html += `
-                                <div class="market-item" data-selection="${name}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
-                                    <div class="name">${name}</div>
-                                    <div class="price">${price}</div>
-                                </div>
-                            `;
-                        });
+                const grouped = groupMarketsByType(marketGroups);
+                const tabNames = Object.keys(grouped);
+                const tabMap = {
+                    'main': 'Main',
+                    'popular': 'Popular',
+                    '1sthalf': '1st Half',
+                    '2ndhalf': '2nd Half',
+                    'combo': 'Combo',
+                    'corners': 'Corners',
+                    'bookings': 'Bookings',
+                    'teams': 'Teams',
+                    'correctscore': 'Correct Score'
+                };
+
+                // 5. Build HTML
+                let html = `
+                    <button class="back-btn" id="backToList">← Retour</button>
+                    <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
+                    <div class="match-detail-sub">${league} | ${date}</div>
+                    ${scoreHtml}
+                    ${timelineHtml}
+                `;
+
+                // Market tabs
+                if (tabNames.length > 0) {
+                    html += `<div class="market-tabs" id="marketTabs">`;
+                    tabNames.forEach((key, index) => {
+                        const label = tabMap[key] || key.charAt(0).toUpperCase() + key.slice(1);
+                        html += `<button class="${index === 0 ? 'active' : ''}" data-tab="${key}">${label}</button>`;
                     });
-                    html += `</div></div>`;
-                });
+                    html += `</div>`;
+
+                    // Market content
+                    tabNames.forEach((key, index) => {
+                        const groups = grouped[key];
+                        html += `<div class="market-group ${index === 0 ? 'active' : ''}" data-group="${key}">`;
+                        groups.forEach(group => {
+                            if (!group.Items || group.Items.length === 0) return;
+                            html += `<div class="market-title">${group.Name || 'Marché'}</div><div class="market-items">`;
+                            group.Items.forEach(market => {
+                                if (!market.Items || market.Items.length === 0) return;
+                                const items = market.Items.slice(0, 12);
+                                items.forEach(item => {
+                                    const name = item.Name || item.ShortName || '—';
+                                    const price = item.Price || '-';
+                                    const selection = name;
+                                    html += `
+                                        <div class="market-item" data-selection="${selection}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
+                                            <div class="name">${name}</div>
+                                            <div class="price">${price}</div>
+                                        </div>
+                                    `;
+                                });
+                            });
+                            html += `</div>`;
+                        });
+                        html += `</div>`;
+                    });
+                }
 
                 app.innerHTML = html;
 
+                // Market tabs switching
+                document.querySelectorAll('#marketTabs button').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        document.querySelectorAll('#marketTabs button').forEach(b => b.classList.remove('active'));
+                        this.classList.add('active');
+                        const tab = this.dataset.tab;
+                        document.querySelectorAll('.market-group').forEach(g => g.classList.remove('active'));
+                        document.querySelector(`.market-group[data-group="${tab}"]`)?.classList.add('active');
+                    });
+                });
+
+                // Back button
                 document.getElementById('backToList').addEventListener('click', () => {
+                    if (detailUpdateInterval) {
+                        clearInterval(detailUpdateInterval);
+                        detailUpdateInterval = null;
+                    }
                     currentMatchId = null;
                     loadView(currentView, true);
                 });
 
+                // Market items to bet slip
                 document.querySelectorAll('.market-item').forEach(item => {
                     item.addEventListener('click', function() {
                         const match = this.dataset.match;
@@ -553,7 +690,9 @@
                 });
 
             } catch (error) {
-                app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                if (!silent) {
+                    app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                }
                 console.error(error);
             }
         }
@@ -566,11 +705,20 @@
             isUpdating = true;
 
             try {
+                // Arrêter l'intervalle de mise à jour des détails
+                if (detailUpdateInterval) {
+                    clearInterval(detailUpdateInterval);
+                    detailUpdateInterval = null;
+                }
+
                 currentView = view;
-                if (currentMatchId) { isUpdating = false; return; }
+                if (currentMatchId) {
+                    isUpdating = false;
+                    return;
+                }
 
                 let events = [];
-                const cacheKey = `${view}_${currentDay}`;
+                let cacheKey = `${view}_${currentDay}`;
 
                 if (eventsCache[cacheKey]) {
                     events = eventsCache[cacheKey];
@@ -605,7 +753,12 @@
 
             } catch (error) {
                 if (!preserveScroll) {
-                    app.innerHTML = `<div class="error-msg">⛔ Erreur: ${error.message}</div>`;
+                    app.innerHTML = `
+                        <div class="error-msg">
+                            ⛔ Erreur de chargement: ${error.message}
+                            <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
+                        </div>
+                    `;
                 }
                 console.error(error);
             }
@@ -614,47 +767,7 @@
         }
 
         // ============================================================
-        // 8. SILENT REFRESH
-        // ============================================================
-        async function silentRefresh() {
-            if (isUpdating || currentMatchId) return;
-
-            try {
-                const view = currentView;
-                const cacheKey = `${view}_${currentDay}`;
-                let events = [];
-
-                if (view === 'live') {
-                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
-                    events = data?.Result?.Items?.[0]?.Events || [];
-                } else if (view === 'top') {
-                    const data = await fetchFromProxy('GetTopEvents', '');
-                    events = data?.Result?.Events || [];
-                } else if (view === 'upcoming') {
-                    if (currentDay === 0) {
-                        const data = await fetchFromProxy('GetUpcoming', 'sportId=1&showAllEvents=false&count=15');
-                        events = data?.Result?.Items?.[0]?.Events || [];
-                    } else {
-                        const range = getDateRange(currentDay);
-                        const data = await fetchFromProxy('GetEvents',
-                            `sportids=1&categoryids=0&champids=0&period=perioddate&outrightsDisplay=none&marketTypeIds=1,16,11&couponType=0&marketGroupId=0&group=AllEvents&withLive=false&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
-                        );
-                        events = data?.Result?.Items?.[0]?.Events || [];
-                    }
-                }
-
-                eventsCache[cacheKey] = events;
-                if (currentView === view && !currentMatchId) {
-                    renderMatchList(events, view, true);
-                }
-
-            } catch (error) {
-                console.error('Silent refresh error:', error);
-            }
-        }
-
-        // ============================================================
-        // 9. NAVIGATION
+        // 8. NAVIGATION & INIT
         // ============================================================
 
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
@@ -672,7 +785,8 @@
                 this.classList.add('active');
                 currentDay = parseInt(this.dataset.day);
                 currentMatchId = null;
-                delete eventsCache[`${currentView}_${currentDay}`];
+                const cacheKey = `${currentView}_${currentDay}`;
+                delete eventsCache[cacheKey];
                 loadView(currentView);
             });
         });
@@ -680,18 +794,31 @@
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
             currentMatchId = null;
+            if (detailUpdateInterval) {
+                clearInterval(detailUpdateInterval);
+                detailUpdateInterval = null;
+            }
             const activeTab = document.querySelector('.nav-tabs .active');
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
-        // ============================================================
-        // 10. INIT
-        // ============================================================
+        // Chargement initial
         loadView('live');
-        setInterval(silentRefresh, 30000);
+
+        // Refresh toutes les 10s pour les vues listes
+        setInterval(() => {
+            if (!currentMatchId) {
+                const activeTab = document.querySelector('.nav-tabs .active');
+                if (activeTab && activeTab.dataset.view === 'live') {
+                    const cacheKey = `${currentView}_${currentDay}`;
+                    delete eventsCache[cacheKey];
+                    loadView(currentView, true);
+                }
+            }
+        }, 10000);
 
         window.loadView = loadView;
         window.showEventDetails = showEventDetails;
     </script>
 </body>
-</html>
+    </html>
