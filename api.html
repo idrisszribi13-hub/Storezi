@@ -57,7 +57,7 @@
         .coming-label { display: inline-block; background: #fbbf24; color: #0b0e13; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
 
-        /* ===== DETAILS VIEW ===== */
+        /* ===== DETAILS VIEW (Match Timeline) ===== */
         .back-btn { background: #1f2937; border: none; color: #f0f3f7; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 16px; display: inline-block; }
         .back-btn:hover { background: #374151; }
         .match-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
@@ -70,6 +70,18 @@
         .market-item:hover { background: #2a3340; }
         .market-item .name { font-size: 11px; color: #9ca3af; }
         .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
+
+        /* Timeline Events */
+        .timeline-container { background: #14181f; border-radius: 12px; padding: 16px; margin-top: 12px; max-height: 300px; overflow-y: auto; }
+        .timeline-event { display: flex; align-items: center; gap: 12px; padding: 6px 0; border-bottom: 1px solid #1f2937; font-size: 13px; }
+        .timeline-event .time { color: #fbbf24; font-weight: 600; min-width: 40px; }
+        .timeline-event .icon { width: 24px; text-align: center; }
+        .timeline-event .desc { flex: 1; }
+        .timeline-event .team-name { font-weight: 500; }
+        .event-goal { color: #34d399; }
+        .event-card-yellow { color: #facc15; }
+        .event-card-red { color: #dc2626; }
+        .event-sub { color: #60a5fa; }
 
         /* ===== BET SLIP ===== */
         .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
@@ -100,6 +112,7 @@
             .team-crest { width: 26px; height: 26px; }
             .nav-tabs button { font-size: 12px; padding: 6px 10px; }
             .match-card { padding: 12px; }
+            .timeline-event { font-size: 12px; }
         }
     </style>
 </head>
@@ -110,7 +123,7 @@
         <span class="badge">LIVE</span>
     </div>
 
-    <!-- Day Selector -->
+    <!-- Day Selector (pour À VENIR) -->
     <div class="days-tabs" id="daysTabs">
         <button class="active" data-day="0">Aujourd'hui</button>
         <button data-day="1">Lun 7/9</button>
@@ -170,7 +183,7 @@
         // 2. STATE
         // ============================================================
         let currentView = 'live';
-        let currentDay = 0; // 0 = aujourd'hui, 1 = demain, etc.
+        let currentDay = 0;
         let currentMatchId = null;
         let eventsCache = {};
         let isUpdating = false;
@@ -240,9 +253,28 @@
             };
         }
 
-        function formatDate(dateStr) {
+        // Convertir l'heure au format 24h (HH:MM)
+        function formatTime24(dateStr) {
+            if (!dateStr) return '--:--';
             const d = new Date(dateStr);
-            return d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+            if (isNaN(d.getTime())) return '--:--';
+            const h = String(d.getHours()).padStart(2, '0');
+            const m = String(d.getMinutes()).padStart(2, '0');
+            return `${h}h${m}`;
+        }
+
+        // Extraire l'heure d'une chaîne de type "2026-09-06T15:30:00Z"
+        function extractTime24(eventDate) {
+            if (!eventDate) return '--:--';
+            try {
+                const d = new Date(eventDate);
+                if (isNaN(d.getTime())) return '--:--';
+                const h = String(d.getHours()).padStart(2, '0');
+                const m = String(d.getMinutes()).padStart(2, '0');
+                return `${h}h${m}`;
+            } catch (e) {
+                return '--:--';
+            }
         }
 
         // ============================================================
@@ -307,6 +339,7 @@
         // ============================================================
         const app = document.getElementById('app');
 
+        // Afficher une liste de matchs (avec temps 24h)
         function renderMatchList(events, type = 'live', preserveScroll = false) {
             if (!events || events.length === 0) {
                 app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé pour cette catégorie.</div>`;
@@ -316,7 +349,15 @@
             let html = '';
             events.forEach(match => {
                 const isLive = match.LiveCurrentTime && match.LiveCurrentTime !== '0';
-                const time = match.LiveCurrentTime || match.EventDate?.split('T')[1]?.slice(0,5) || '--';
+                // Temps: si live, afficher le temps de jeu, sinon l'heure 24h
+                let timeDisplay;
+                if (type === 'live' && isLive) {
+                    timeDisplay = match.LiveCurrentTime || '--';
+                } else {
+                    // Pour les matchs à venir, utiliser le format 24h
+                    timeDisplay = extractTime24(match.EventDate);
+                }
+
                 const score = match.LiveScore || '0:0';
                 const scores = score.split(':');
                 const league = match.ChampName || match.CategoryName || 'Championnat';
@@ -348,7 +389,7 @@
                     <div class="match-card ${cardClass}" data-matchid="${matchId}">
                         <div class="match-header">
                             ${label}
-                            <span class="match-time">${time}</span>
+                            <span class="match-time">${timeDisplay}</span>
                             <span class="match-league">${league}</span>
                         </div>
                         <div class="score-line">
@@ -386,17 +427,13 @@
                 `;
             });
 
-            // حفظ موضع التمرير قبل التحديث
             const scrollY = preserveScroll ? window.scrollY : 0;
-
             app.innerHTML = html;
-
-            // استعادة موضع التمرير
             if (preserveScroll) {
                 window.scrollTo(0, scrollY);
             }
 
-            // Événements sur les cartes
+            // Clic sur carte => détails
             document.querySelectorAll('.match-card').forEach(card => {
                 card.addEventListener('click', function(e) {
                     if (e.target.closest('.odd-item')) return;
@@ -405,7 +442,7 @@
                 });
             });
 
-            // Événements sur les cotes
+            // Clic sur cotes => slip
             document.querySelectorAll('.odd-item').forEach(item => {
                 item.addEventListener('click', function(e) {
                     e.stopPropagation();
@@ -422,14 +459,16 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW
+        // 6. DETAILS VIEW avec TIMELINE (pour matchs live)
         // ============================================================
         async function showEventDetails(matchId) {
             try {
                 currentMatchId = matchId;
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
-                const data = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
-                const result = data?.Result;
+
+                // 1. Récupérer les détails du match (marchés)
+                const detailData = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
+                const result = detailData?.Result;
                 if (!result) {
                     app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables pour ce match.</div>`;
                     return;
@@ -439,6 +478,7 @@
                 const awayTeam = result.Competitors?.[1]?.Name || 'Away';
                 const league = result.ChampName || result.CategoryName || 'Ligue';
                 const date = result.EventDate || '';
+                const isLive = result.IsLiveEvent;
 
                 let html = `
                     <button class="back-btn" id="backToList">← Retour</button>
@@ -446,6 +486,55 @@
                     <div class="match-detail-sub">${league} | ${date}</div>
                 `;
 
+                // 2. Si match live, charger le timeline
+                if (isLive) {
+                    try {
+                        const timelineData = await fetchFromProxy('match_timeline', matchId);
+                        const events = timelineData?.doc?.[0]?.data?.events || [];
+                        const matchInfo = timelineData?.doc?.[0]?.data?.match || {};
+                        const status = matchInfo?.status?.name || 'En direct';
+                        const time = matchInfo?.timeinfo?.played ? Math.floor(matchInfo.timeinfo.played / 60) + '\'' : '';
+
+                        html += `
+                            <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${status}</span>
+                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${time}</span>
+                            </div>
+                            <div class="timeline-container">
+                                <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements récents</div>
+                        `;
+
+                        // Afficher les 20 derniers événements
+                        const recentEvents = events.slice(-20).reverse();
+                        recentEvents.forEach(ev => {
+                            const evTime = ev.time ? `${ev.time}'` : '--';
+                            let icon = '•';
+                            let cls = '';
+                            if (ev.type === 'goal') { icon = '⚽'; cls = 'event-goal'; }
+                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-card-yellow'; }
+                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-card-red'; }
+                            else if (ev.type === 'substitution') { icon = '🔄'; cls = 'event-sub'; }
+                            else if (ev.type === 'shotontarget') { icon = '🎯'; }
+                            else if (ev.type === 'corner') { icon = '🚩'; }
+                            const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
+                            const playerName = ev.player?.name || '';
+                            const desc = ev.name || ev.type || '';
+                            html += `
+                                <div class="timeline-event">
+                                    <span class="time">${evTime}</span>
+                                    <span class="icon ${cls}">${icon}</span>
+                                    <span class="desc">${teamName ? `<span class="team-name">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
+                                </div>
+                            `;
+                        });
+
+                        html += `</div>`;
+                    } catch (e) {
+                        console.warn('Timeline non disponible:', e);
+                    }
+                }
+
+                // 3. Afficher les marchés (comme avant)
                 const marketGroups = result.MarketGroups || [];
                 marketGroups.forEach(group => {
                     if (!group.Items || group.Items.length === 0) return;
@@ -503,7 +592,6 @@
 
             try {
                 currentView = view;
-
                 if (currentMatchId) {
                     isUpdating = false;
                     return;
@@ -528,13 +616,10 @@
                     const data = await fetchFromProxy('GetTopEvents', '');
                     events = data?.Result?.Events || [];
                 } else if (view === 'upcoming') {
-                    // Utiliser GetUpcoming pour les jours à venir
                     if (currentDay === 0) {
-                        // Aujourd'hui - utiliser GetUpcoming avec les paramètres par défaut
                         const data = await fetchFromProxy('GetUpcoming', 'sportId=1&showAllEvents=false&count=15');
                         events = data?.Result?.Items?.[0]?.Events || [];
                     } else {
-                        // Jours suivants - utiliser GetEvents avec des dates spécifiques
                         const range = getDateRange(currentDay);
                         const data = await fetchFromProxy('GetEvents',
                             `sportids=1&categoryids=0&champids=0&period=perioddate&outrightsDisplay=none&marketTypeIds=1,16,11&couponType=0&marketGroupId=0&group=AllEvents&withLive=false&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
@@ -593,7 +678,6 @@
                 }
 
                 eventsCache[cacheKey] = events;
-
                 if (currentView === view && !currentMatchId) {
                     renderMatchList(events, view, true);
                 }
@@ -607,7 +691,6 @@
         // 9. NAVIGATION & INIT
         // ============================================================
 
-        // Onglets principaux
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
@@ -617,7 +700,6 @@
             });
         });
 
-        // Sélecteur de jours
         document.querySelectorAll('.days-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.days-tabs button').forEach(b => b.classList.remove('active'));
@@ -630,7 +712,6 @@
             });
         });
 
-        // Retour à l'accueil
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
             currentMatchId = null;
@@ -641,9 +722,7 @@
         // Chargement initial
         loadView('live');
 
-        // ============================================================
-        // 10. SILENT REFRESH
-        // ============================================================
+        // Refresh toutes les 30s
         setInterval(silentRefresh, 30000);
 
         window.loadView = loadView;
@@ -651,4 +730,4 @@
         window.silentRefresh = silentRefresh;
     </script>
 </body>
-    </html>
+</html>
