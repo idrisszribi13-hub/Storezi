@@ -5,133 +5,611 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>Goal 216 - Live Score & Odds</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif; }
-        body { background: #0b0e13; color: #f0f3f7; padding: 12px; min-height: 100vh; padding-bottom: 80px; }
-        .header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 15px; border-bottom: 1px solid #222; margin-bottom: 15px; }
-        .header h1 { font-size: 22px; font-weight: 700; color: #00e676; cursor: pointer; }
-        .badge { background: #1f2937; padding: 4px 10px; border-radius: 20px; font-size: 12px; color: #9ca3af; }
-
-        /* Days Tabs */
-        .days-tabs { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; }
-        .days-tabs button { background: transparent; border: none; color: #9ca3af; padding: 6px 14px; font-size: 12px; font-weight: 500; cursor: pointer; border-radius: 16px; transition: 0.2s; white-space: nowrap; }
-        .days-tabs button.active { background: #00e676; color: #0b0e13; }
-        .days-tabs button:hover { background: #1f2937; color: #f0f3f7; }
-
-        /* Main Tabs */
-        .nav-tabs { display: flex; gap: 8px; margin-bottom: 16px; border-bottom: 1px solid #1f2937; padding-bottom: 8px; flex-wrap: wrap; }
-        .nav-tabs button { background: transparent; border: none; color: #9ca3af; padding: 8px 16px; font-size: 14px; font-weight: 600; cursor: pointer; border-radius: 20px; transition: 0.2s; white-space: nowrap; }
-        .nav-tabs button.active { background: #00e676; color: #0b0e13; }
-        .nav-tabs button:hover { background: #1f2937; color: #f0f3f7; }
-
-        /* Market Tabs (inside details) */
-        .market-tabs { display: flex; gap: 4px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 4px; flex-wrap: wrap; }
-        .market-tabs button { background: #1f2937; border: none; color: #9ca3af; padding: 4px 12px; font-size: 11px; font-weight: 500; cursor: pointer; border-radius: 12px; transition: 0.2s; white-space: nowrap; }
-        .market-tabs button.active { background: #00e676; color: #0b0e13; }
-        .market-tabs button:hover { background: #374151; color: #f0f3f7; }
-
-        /* Match Cards */
-        .match-card { background: #14181f; border-radius: 12px; padding: 14px 16px; margin-bottom: 12px; border-left: 4px solid #dc2626; cursor: pointer; transition: 0.2s; }
-        .match-card.coming { border-left-color: #fbbf24; }
-        .match-card.top-event { border-left-color: #8b5cf6; }
-        .match-card:hover { background: #1a202a; }
-
-        .match-header { display: flex; justify-content: space-between; font-size: 12px; color: #9ca3af; margin-bottom: 8px; flex-wrap: wrap; gap: 4px; }
-        .match-time { font-weight: 600; color: #fbbf24; }
-        .match-league { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 60%; background: #1f2937; padding: 0 8px; border-radius: 10px; }
-
-        .score-line { display: flex; justify-content: space-between; align-items: center; font-size: 18px; font-weight: 600; padding: 4px 0 8px 0; }
-        .team-block { display: flex; align-items: center; gap: 10px; max-width: 42%; }
-        .team-block.away { flex-direction: row-reverse; text-align: right; }
-        .team-crest { width: 32px; height: 32px; flex-shrink: 0; border-radius: 50%; background: #1f2937; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 700; color: #f0f3f7; overflow: hidden; }
-        .team-crest img { width: 100%; height: 100%; object-fit: contain; }
-        .team-info { display: flex; flex-direction: column; min-width: 0; }
-        .team-name { font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .team-score { font-size: 22px; font-weight: 700; line-height: 1.2; }
-        .team-block.away .team-info { align-items: flex-end; }
-        .vs-dash { color: #4b5563; font-weight: 300; font-size: 18px; padding: 0 6px; }
-
-        /* Odds Row with arrows */
-        .odds-row { display: flex; justify-content: space-around; background: #1e2530; border-radius: 8px; padding: 8px 0; margin-top: 6px; }
-        .odd-item { text-align: center; flex: 1; cursor: pointer; padding: 4px 0; border-radius: 4px; transition: 0.2s; position: relative; }
-        .odd-item:hover { background: #2a3340; }
-        .odd-item .label { font-size: 10px; color: #6b7280; font-weight: 600; text-transform: uppercase; }
-        .odd-item .value { font-size: 15px; font-weight: 700; color: #facc15; transition: 0.3s; }
-        .odd-item .value.highlight { color: #34d399; }
-        .odd-item .arrow { font-size: 12px; margin-left: 2px; display: inline-block; transition: 0.3s; }
-        .odd-item .arrow.up { color: #34d399; }
-        .odd-item .arrow.down { color: #dc2626; }
-
-        .live-label { display: inline-block; background: #dc2626; color: white; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; animation: blink 1.2s infinite; }
-        .top-label { display: inline-block; background: #8b5cf6; color: white; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
-        .coming-label { display: inline-block; background: #fbbf24; color: #0b0e13; font-size: 9px; font-weight: bold; padding: 2px 8px; border-radius: 4px; margin-right: 6px; }
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.4; } 100% { opacity: 1; } }
-
-        /* Details View */
-        .back-btn { background: #1f2937; border: none; color: #f0f3f7; padding: 6px 14px; border-radius: 20px; font-size: 14px; cursor: pointer; margin-bottom: 16px; display: inline-block; }
-        .back-btn:hover { background: #374151; }
-        .match-detail-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
-        .match-detail-sub { color: #9ca3af; font-size: 14px; margin-bottom: 16px; }
-
-        /* Market Groups (tabs content) */
-        .market-group { background: #14181f; border-radius: 12px; padding: 16px; margin-bottom: 12px; display: none; }
-        .market-group.active { display: block; }
-        .market-title { font-size: 15px; font-weight: 600; margin-bottom: 10px; color: #fbbf24; }
-        .market-items { display: flex; flex-wrap: wrap; gap: 8px; }
-        .market-item { background: #1e2530; padding: 8px 12px; border-radius: 8px; flex: 1 0 calc(33% - 8px); text-align: center; min-width: 70px; cursor: pointer; transition: 0.2s; }
-        .market-item:hover { background: #2a3340; }
-        .market-item .name { font-size: 11px; color: #9ca3af; }
-        .market-item .price { font-size: 15px; font-weight: 700; color: #facc15; }
-
-        /* Timeline */
-        .timeline-container { background: #14181f; border-radius: 12px; padding: 16px; margin-top: 12px; max-height: 250px; overflow-y: auto; }
-        .timeline-event { display: flex; align-items: center; gap: 12px; padding: 4px 0; border-bottom: 1px solid #1f2937; font-size: 12px; }
-        .timeline-event .time { color: #fbbf24; font-weight: 600; min-width: 35px; }
-        .timeline-event .icon { width: 20px; text-align: center; }
-        .timeline-event .desc { flex: 1; }
-        .timeline-event .team-name { font-weight: 500; }
-        .event-goal { color: #34d399; }
-        .event-card-yellow { color: #facc15; }
-        .event-card-red { color: #dc2626; }
-        .event-sub { color: #60a5fa; }
-        .event-corner { color: #a78bfa; }
-
-        /* Live Score Update */
-        .live-score-update { display: flex; gap: 12px; margin-bottom: 12px; flex-wrap: wrap; }
-        .live-score-update .score-badge { background: #1f2937; padding: 4px 12px; border-radius: 12px; font-size: 14px; font-weight: 600; }
-        .live-score-update .score-badge .home-score { color: #34d399; }
-        .live-score-update .score-badge .away-score { color: #facc15; }
-
-        /* Bet Slip */
-        .bet-slip-toggle { position: fixed; bottom: 70px; right: 16px; background: #00e676; color: #0b0e13; border: none; border-radius: 50%; width: 56px; height: 56px; font-size: 24px; font-weight: bold; cursor: pointer; box-shadow: 0 4px 12px rgba(0,230,118,0.4); z-index: 100; transition: 0.3s; }
-        .bet-slip-toggle:hover { transform: scale(1.05); }
-        .bet-slip-toggle .badge { position: absolute; top: -6px; right: -6px; background: #dc2626; color: white; border-radius: 50%; width: 22px; height: 22px; font-size: 12px; display: flex; align-items: center; justify-content: center; }
-
-        .bet-slip { position: fixed; bottom: 0; left: 0; right: 0; background: #14181f; border-top: 2px solid #00e676; padding: 16px; max-height: 60vh; overflow-y: auto; transform: translateY(100%); transition: 0.3s; z-index: 99; border-radius: 16px 16px 0 0; }
-        .bet-slip.open { transform: translateY(0); }
-        .bet-slip .header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #222; padding-bottom: 8px; margin-bottom: 12px; }
-        .bet-slip .header h3 { color: #00e676; }
-        .bet-slip .close-btn { background: none; border: none; color: #9ca3af; font-size: 20px; cursor: pointer; }
-        .bet-slip-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #1f2937; }
-        .bet-slip-item .remove { color: #dc2626; cursor: pointer; font-size: 18px; }
-        .bet-slip-total { display: flex; justify-content: space-between; padding: 12px 0; font-weight: 600; border-top: 1px solid #222; margin-top: 8px; }
-        .place-bet-btn { background: #00e676; color: #0b0e13; border: none; padding: 12px; border-radius: 8px; width: 100%; font-weight: 700; font-size: 16px; cursor: pointer; margin-top: 8px; }
-
-        .loading { text-align: center; padding: 40px; color: #6b7280; }
-        .error-msg { background: #7f1d1d; padding: 15px; border-radius: 8px; color: #fca5a5; text-align: center; font-size: 14px; word-break: break-word; }
-        .error-msg .error-detail { font-size: 12px; color: #f87171; margin-top: 8px; display: block; }
-
-        .footer-menu { display: flex; justify-content: space-around; background: #0f131a; padding: 12px 0; border-top: 1px solid #222; margin-top: 20px; position: sticky; bottom: 0; }
-        .footer-menu span { color: #6b7280; font-size: 14px; font-weight: 500; }
-        .footer-menu .active { color: #00e676; }
-
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+        }
+        body {
+            background: #0b0e13;
+            color: #f0f3f7;
+            padding: 12px;
+            min-height: 100vh;
+            padding-bottom: 80px;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #222;
+            margin-bottom: 15px;
+        }
+        .header h1 {
+            font-size: 22px;
+            font-weight: 700;
+            color: #00e676;
+            cursor: pointer;
+        }
+        .badge {
+            background: #1f2937;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            color: #9ca3af;
+        }
+        .days-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+        }
+        .days-tabs button {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 6px 14px;
+            font-size: 12px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 16px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .days-tabs button.active {
+            background: #00e676;
+            color: #0b0e13;
+        }
+        .days-tabs button:hover {
+            background: #1f2937;
+            color: #f0f3f7;
+        }
+        .nav-tabs {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid #1f2937;
+            padding-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .nav-tabs button {
+            background: transparent;
+            border: none;
+            color: #9ca3af;
+            padding: 8px 16px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 20px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .nav-tabs button.active {
+            background: #00e676;
+            color: #0b0e13;
+        }
+        .nav-tabs button:hover {
+            background: #1f2937;
+            color: #f0f3f7;
+        }
+        .match-card {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+            border-left: 4px solid #dc2626;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .match-card.coming {
+            border-left-color: #fbbf24;
+        }
+        .match-card.top-event {
+            border-left-color: #8b5cf6;
+        }
+        .match-card:hover {
+            background: #1a202a;
+        }
+        .match-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+        .match-time {
+            font-weight: 600;
+            color: #fbbf24;
+        }
+        .match-league {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 60%;
+            background: #1f2937;
+            padding: 0 8px;
+            border-radius: 10px;
+        }
+        .score-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 18px;
+            font-weight: 600;
+            padding: 4px 0 8px 0;
+        }
+        .team-block {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            max-width: 42%;
+        }
+        .team-block.away {
+            flex-direction: row-reverse;
+            text-align: right;
+        }
+        .team-crest {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            background: #1f2937;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #f0f3f7;
+            overflow: hidden;
+        }
+        .team-crest img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        .team-info {
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+        }
+        .team-name {
+            font-size: 14px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .team-score {
+            font-size: 22px;
+            font-weight: 700;
+            line-height: 1.2;
+        }
+        .team-block.away .team-info {
+            align-items: flex-end;
+        }
+        .vs-dash {
+            color: #4b5563;
+            font-weight: 300;
+            font-size: 18px;
+            padding: 0 6px;
+        }
+        .odds-row {
+            display: flex;
+            justify-content: space-around;
+            background: #1e2530;
+            border-radius: 8px;
+            padding: 8px 0;
+            margin-top: 6px;
+        }
+        .odd-item {
+            text-align: center;
+            flex: 1;
+            cursor: pointer;
+            padding: 4px 0;
+            border-radius: 4px;
+            transition: 0.2s;
+        }
+        .odd-item:hover {
+            background: #2a3340;
+        }
+        .odd-item .label {
+            font-size: 10px;
+            color: #6b7280;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .odd-item .value {
+            font-size: 15px;
+            font-weight: 700;
+            color: #facc15;
+            transition: 0.3s;
+        }
+        .odd-item .value.highlight {
+            color: #34d399;
+        }
+        .odd-item .arrow {
+            font-size: 12px;
+            margin-left: 2px;
+            display: inline-block;
+            transition: 0.3s;
+        }
+        .odd-item .arrow.up {
+            color: #34d399;
+        }
+        .odd-item .arrow.down {
+            color: #dc2626;
+        }
+        .live-label {
+            display: inline-block;
+            background: #dc2626;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+            animation: blink 1.2s infinite;
+        }
+        .top-label {
+            display: inline-block;
+            background: #8b5cf6;
+            color: white;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+        .coming-label {
+            display: inline-block;
+            background: #fbbf24;
+            color: #0b0e13;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 2px 8px;
+            border-radius: 4px;
+            margin-right: 6px;
+        }
+        @keyframes blink {
+            0% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.4;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+        .back-btn {
+            background: #1f2937;
+            border: none;
+            color: #f0f3f7;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 16px;
+            display: inline-block;
+        }
+        .back-btn:hover {
+            background: #374151;
+        }
+        .match-detail-title {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+        .match-detail-sub {
+            color: #9ca3af;
+            font-size: 14px;
+            margin-bottom: 16px;
+        }
+        .market-tabs {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 12px;
+            overflow-x: auto;
+            padding-bottom: 4px;
+            flex-wrap: wrap;
+        }
+        .market-tabs button {
+            background: #1f2937;
+            border: none;
+            color: #9ca3af;
+            padding: 4px 12px;
+            font-size: 11px;
+            font-weight: 500;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: 0.2s;
+            white-space: nowrap;
+        }
+        .market-tabs button.active {
+            background: #00e676;
+            color: #0b0e13;
+        }
+        .market-tabs button:hover {
+            background: #374151;
+            color: #f0f3f7;
+        }
+        .market-group {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: none;
+        }
+        .market-group.active {
+            display: block;
+        }
+        .market-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #fbbf24;
+        }
+        .market-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .market-item {
+            background: #1e2530;
+            padding: 8px 12px;
+            border-radius: 8px;
+            flex: 1 0 calc(33% - 8px);
+            text-align: center;
+            min-width: 70px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .market-item:hover {
+            background: #2a3340;
+        }
+        .market-item .name {
+            font-size: 11px;
+            color: #9ca3af;
+        }
+        .market-item .price {
+            font-size: 15px;
+            font-weight: 700;
+            color: #facc15;
+        }
+        .timeline-container {
+            background: #14181f;
+            border-radius: 12px;
+            padding: 16px;
+            margin-top: 12px;
+            max-height: 250px;
+            overflow-y: auto;
+        }
+        .timeline-event {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 4px 0;
+            border-bottom: 1px solid #1f2937;
+            font-size: 12px;
+        }
+        .timeline-event .time {
+            color: #fbbf24;
+            font-weight: 600;
+            min-width: 35px;
+        }
+        .timeline-event .icon {
+            width: 20px;
+            text-align: center;
+        }
+        .timeline-event .desc {
+            flex: 1;
+        }
+        .timeline-event .team-name {
+            font-weight: 500;
+        }
+        .event-goal {
+            color: #34d399;
+        }
+        .event-card-yellow {
+            color: #facc15;
+        }
+        .event-card-red {
+            color: #dc2626;
+        }
+        .event-sub {
+            color: #60a5fa;
+        }
+        .event-corner {
+            color: #a78bfa;
+        }
+        .live-score-update {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+        }
+        .live-score-update .score-badge {
+            background: #1f2937;
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 600;
+        }
+        .live-score-update .score-badge .home-score {
+            color: #34d399;
+        }
+        .live-score-update .score-badge .away-score {
+            color: #facc15;
+        }
+        .bet-slip-toggle {
+            position: fixed;
+            bottom: 70px;
+            right: 16px;
+            background: #00e676;
+            color: #0b0e13;
+            border: none;
+            border-radius: 50%;
+            width: 56px;
+            height: 56px;
+            font-size: 24px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 230, 118, 0.4);
+            z-index: 100;
+            transition: 0.3s;
+        }
+        .bet-slip-toggle:hover {
+            transform: scale(1.05);
+        }
+        .bet-slip-toggle .badge {
+            position: absolute;
+            top: -6px;
+            right: -6px;
+            background: #dc2626;
+            color: white;
+            border-radius: 50%;
+            width: 22px;
+            height: 22px;
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .bet-slip {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #14181f;
+            border-top: 2px solid #00e676;
+            padding: 16px;
+            max-height: 60vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: 0.3s;
+            z-index: 99;
+            border-radius: 16px 16px 0 0;
+        }
+        .bet-slip.open {
+            transform: translateY(0);
+        }
+        .bet-slip .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #222;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .bet-slip .header h3 {
+            color: #00e676;
+        }
+        .bet-slip .close-btn {
+            background: none;
+            border: none;
+            color: #9ca3af;
+            font-size: 20px;
+            cursor: pointer;
+        }
+        .bet-slip-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #1f2937;
+        }
+        .bet-slip-item .remove {
+            color: #dc2626;
+            cursor: pointer;
+            font-size: 18px;
+        }
+        .bet-slip-total {
+            display: flex;
+            justify-content: space-between;
+            padding: 12px 0;
+            font-weight: 600;
+            border-top: 1px solid #222;
+            margin-top: 8px;
+        }
+        .place-bet-btn {
+            background: #00e676;
+            color: #0b0e13;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            width: 100%;
+            font-weight: 700;
+            font-size: 16px;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6b7280;
+        }
+        .error-msg {
+            background: #7f1d1d;
+            padding: 15px;
+            border-radius: 8px;
+            color: #fca5a5;
+            text-align: center;
+            font-size: 14px;
+            word-break: break-word;
+        }
+        .error-msg .error-detail {
+            font-size: 12px;
+            color: #f87171;
+            margin-top: 8px;
+            display: block;
+        }
+        .footer-menu {
+            display: flex;
+            justify-content: space-around;
+            background: #0f131a;
+            padding: 12px 0;
+            border-top: 1px solid #222;
+            margin-top: 20px;
+            position: sticky;
+            bottom: 0;
+        }
+        .footer-menu span {
+            color: #6b7280;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        .footer-menu .active {
+            color: #00e676;
+        }
         @media (max-width: 480px) {
-            .team-name { font-size: 12px; }
-            .team-score { font-size: 18px; }
-            .team-crest { width: 26px; height: 26px; }
-            .nav-tabs button { font-size: 12px; padding: 6px 10px; }
-            .market-tabs button { font-size: 10px; padding: 3px 8px; }
-            .match-card { padding: 12px; }
-            .timeline-event { font-size: 11px; }
+            .team-name {
+                font-size: 12px;
+            }
+            .team-score {
+                font-size: 18px;
+            }
+            .team-crest {
+                width: 26px;
+                height: 26px;
+            }
+            .nav-tabs button {
+                font-size: 12px;
+                padding: 6px 10px;
+            }
+            .market-tabs button {
+                font-size: 10px;
+                padding: 3px 8px;
+            }
+            .match-card {
+                padding: 12px;
+            }
+            .timeline-event {
+                font-size: 11px;
+            }
         }
     </style>
 </head>
@@ -203,10 +681,15 @@
         // ============================================================
         let currentView = 'live';
         let currentDay = 0;
-        let currentMatchId = null;
+        let currentMatchId = null; // null = liste, number = détails
         let eventsCache = {};
         let isUpdating = false;
-        let liveUpdateInterval = null;
+
+        // Intervalles
+        let listRefreshInterval = null; // pour rafraîchir les listes en silence
+        let detailRefreshInterval = null; // pour rafraîchir les détails en silence
+
+        // Cache des cotes précédentes pour les flèches
         let previousOdds = {};
 
         // Bet Slip
@@ -231,7 +714,9 @@
         }
 
         function extractOdds(markets) {
-            let odds1 = '-', oddsX = '-', odds2 = '-';
+            let odds1 = '-',
+                oddsX = '-',
+                odds2 = '-';
             if (!markets) return { odds1, oddsX, odds2 };
             const market = markets.find(m => m.Id === 1 || m.MarketId === 1);
             if (market && market.Items) {
@@ -282,7 +767,6 @@
             } catch (e) { return '--:--'; }
         }
 
-        // Group markets by type for tabs
         function groupMarketsByType(marketGroups) {
             const groups = {};
             const typeMap = {
@@ -296,13 +780,11 @@
                 'Teams': 'teams',
                 'Correct Score': 'correctscore'
             };
-
             marketGroups.forEach(group => {
                 const key = typeMap[group.Name] || group.Name.toLowerCase().replace(/ /g, '');
                 if (!groups[key]) groups[key] = [];
                 groups[key].push(group);
             });
-
             return groups;
         }
 
@@ -321,14 +803,14 @@
             betSlip.forEach((item, index) => {
                 total += item.price;
                 html += `
-                    <div class="bet-slip-item">
-                        <div>
-                            <strong>${item.match}</strong><br>
-                            <span style="color:#9ca3af; font-size:12px;">${item.selection} @ ${item.price}</span>
+                        <div class="bet-slip-item">
+                            <div>
+                                <strong>${item.match}</strong><br>
+                                <span style="color:#9ca3af; font-size:12px;">${item.selection} @ ${item.price}</span>
+                            </div>
+                            <span class="remove" data-index="${index}">✕</span>
                         </div>
-                        <span class="remove" data-index="${index}">✕</span>
-                    </div>
-                `;
+                    `;
             });
             betSlipItemsEl.innerHTML = html;
             betTotalEl.textContent = total.toFixed(2);
@@ -392,7 +874,8 @@
                 const { home, away } = getCompetitorsWithCrests(match);
                 const { odds1, oddsX, odds2 } = extractOdds(match.Items);
 
-                let label = '', cardClass = '';
+                let label = '',
+                    cardClass = '';
                 if (type === 'live' && isLive) {
                     label = '<span class="live-label">EN DIRECT</span>';
                     cardClass = '';
@@ -404,53 +887,53 @@
                     cardClass = 'coming';
                 }
 
-                const homeCrestHtml = home.crest
-                    ? `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">`
-                    : home.Name.substring(0, 2).toUpperCase();
-                const awayCrestHtml = away.crest
-                    ? `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">`
-                    : away.Name.substring(0, 2).toUpperCase();
+                const homeCrestHtml = home.crest ?
+                    `<img src="${home.crest}" alt="${home.Name}" loading="lazy" onerror="this.style.display='none'">` :
+                    home.Name.substring(0, 2).toUpperCase();
+                const awayCrestHtml = away.crest ?
+                    `<img src="${away.crest}" alt="${away.Name}" loading="lazy" onerror="this.style.display='none'">` :
+                    away.Name.substring(0, 2).toUpperCase();
 
                 html += `
-                    <div class="match-card ${cardClass}" data-matchid="${matchId}">
-                        <div class="match-header">
-                            ${label}
-                            <span class="match-time">${timeDisplay}</span>
-                            <span class="match-league">${league}</span>
-                        </div>
-                        <div class="score-line">
-                            <div class="team-block home">
-                                <div class="team-crest">${homeCrestHtml}</div>
-                                <div class="team-info">
-                                    <span class="team-name">${home.Name}</span>
-                                    <span class="team-score">${scores[0] || '0'}</span>
+                        <div class="match-card ${cardClass}" data-matchid="${matchId}">
+                            <div class="match-header">
+                                ${label}
+                                <span class="match-time">${timeDisplay}</span>
+                                <span class="match-league">${league}</span>
+                            </div>
+                            <div class="score-line">
+                                <div class="team-block home">
+                                    <div class="team-crest">${homeCrestHtml}</div>
+                                    <div class="team-info">
+                                        <span class="team-name">${home.Name}</span>
+                                        <span class="team-score">${scores[0] || '0'}</span>
+                                    </div>
+                                </div>
+                                <span class="vs-dash">⚡</span>
+                                <div class="team-block away">
+                                    <div class="team-crest">${awayCrestHtml}</div>
+                                    <div class="team-info">
+                                        <span class="team-name">${away.Name}</span>
+                                        <span class="team-score">${scores[1] || '0'}</span>
+                                    </div>
                                 </div>
                             </div>
-                            <span class="vs-dash">⚡</span>
-                            <div class="team-block away">
-                                <div class="team-crest">${awayCrestHtml}</div>
-                                <div class="team-info">
-                                    <span class="team-name">${away.Name}</span>
-                                    <span class="team-score">${scores[1] || '0'}</span>
+                            <div class="odds-row">
+                                <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
+                                    <div class="label">1</div>
+                                    <div class="value" id="odd-1-${matchId}">${odds1}</div>
+                                </div>
+                                <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
+                                    <div class="label">X</div>
+                                    <div class="value highlight" id="odd-X-${matchId}">${oddsX}</div>
+                                </div>
+                                <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
+                                    <div class="label">2</div>
+                                    <div class="value" id="odd-2-${matchId}">${odds2}</div>
                                 </div>
                             </div>
                         </div>
-                        <div class="odds-row">
-                            <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${home.Name} vs ${away.Name}">
-                                <div class="label">1</div>
-                                <div class="value" id="odd-1-${matchId}">${odds1}</div>
-                            </div>
-                            <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${home.Name} vs ${away.Name}">
-                                <div class="label">X</div>
-                                <div class="value highlight" id="odd-X-${matchId}">${oddsX}</div>
-                            </div>
-                            <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${home.Name} vs ${away.Name}">
-                                <div class="label">2</div>
-                                <div class="value" id="odd-2-${matchId}">${odds2}</div>
-                            </div>
-                        </div>
-                    </div>
-                `;
+                    `;
             });
 
             const scrollY = preserveScroll ? window.scrollY : 0;
@@ -481,26 +964,29 @@
         }
 
         // ============================================================
-        // 6. DETAILS VIEW with LIVE UPDATE
+        // 6. DETAILS VIEW (SILENT UPDATE)
         // ============================================================
-        let detailUpdateInterval = null;
-
         async function showEventDetails(matchId) {
             try {
-                // Arrêter l'ancien intervalle si existant
-                if (detailUpdateInterval) {
-                    clearInterval(detailUpdateInterval);
-                    detailUpdateInterval = null;
+                // Arrêter le rafraîchissement des listes
+                if (listRefreshInterval) {
+                    clearInterval(listRefreshInterval);
+                    listRefreshInterval = null;
+                }
+                // Arrêter l'ancien détail s'il existe
+                if (detailRefreshInterval) {
+                    clearInterval(detailRefreshInterval);
+                    detailRefreshInterval = null;
                 }
 
                 currentMatchId = matchId;
                 app.innerHTML = '<div class="loading">⏳ Chargement des détails...</div>';
 
-                // Charger les détails
+                // Charger une première fois
                 await loadMatchDetails(matchId);
 
-                // Lancer la mise à jour en direct toutes les 5 secondes
-                detailUpdateInterval = setInterval(() => {
+                // Lancer le rafraîchissement silencieux des détails (toutes les 5s)
+                detailRefreshInterval = setInterval(() => {
                     loadMatchDetails(matchId, true);
                 }, 5000);
 
@@ -546,36 +1032,38 @@
                             const evTime = ev.time ? `${ev.time}'` : '--';
                             let icon = '•';
                             let cls = '';
-                            if (ev.type === 'goal') { icon = '⚽'; cls = 'event-goal'; }
-                            else if (ev.type === 'card' && ev.card === 'yellow') { icon = '🟨'; cls = 'event-card-yellow'; }
-                            else if (ev.type === 'card' && ev.card === 'red') { icon = '🟥'; cls = 'event-card-red'; }
-                            else if (ev.type === 'substitution') { icon = '🔄'; cls = 'event-sub'; }
-                            else if (ev.type === 'shotontarget') { icon = '🎯'; }
-                            else if (ev.type === 'corner') { icon = '🚩'; cls = 'event-corner'; }
-                            else if (ev.type === 'offside') { icon = '🚫'; }
+                            if (ev.type === 'goal') { icon = '⚽';
+                                cls = 'event-goal'; } else if (ev.type === 'card' && ev.card === 'yellow') { icon =
+                                    '🟨';
+                                cls = 'event-card-yellow'; } else if (ev.type === 'card' && ev.card === 'red') { icon =
+                                    '🟥';
+                                cls = 'event-card-red'; } else if (ev.type === 'substitution') { icon = '🔄';
+                                cls = 'event-sub'; } else if (ev.type === 'shotontarget') { icon = '🎯'; } else if (ev
+                                    .type === 'corner') { icon = '🚩';
+                                cls = 'event-corner'; } else if (ev.type === 'offside') { icon = '🚫'; }
                             const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
                             const playerName = ev.player?.name || '';
                             const desc = ev.name || ev.type || '';
                             evHtml += `
-                                <div class="timeline-event">
-                                    <span class="time">${evTime}</span>
-                                    <span class="icon ${cls}">${icon}</span>
-                                    <span class="desc">${teamName ? `<span class="team-name">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
-                                </div>
-                            `;
+                                    <div class="timeline-event">
+                                        <span class="time">${evTime}</span>
+                                        <span class="icon ${cls}">${icon}</span>
+                                        <span class="desc">${teamName ? `<span class="team-name">${teamName}</span> ` : ''}${desc} ${playerName ? `(${playerName})` : ''}</span>
+                                    </div>
+                                `;
                         });
 
                         timelineHtml = `
-                            <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
-                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${matchStatus}</span>
-                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${time}</span>
-                                <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">🏆 ${league}</span>
-                            </div>
-                            <div class="timeline-container">
-                                <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements</div>
-                                ${evHtml || '<div style="color:#6b7280;">Aucun événement récent</div>'}
-                            </div>
-                        `;
+                                <div style="display:flex; gap:12px; margin-bottom:12px; flex-wrap:wrap;">
+                                    <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">${matchStatus}</span>
+                                    <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">⏱️ ${time}</span>
+                                    <span style="background:#1f2937; padding:4px 12px; border-radius:12px;">🏆 ${league}</span>
+                                </div>
+                                <div class="timeline-container">
+                                    <div style="font-weight:600; margin-bottom:8px; color:#fbbf24;">📋 Événements</div>
+                                    ${evHtml || '<div style="color:#6b7280;">Aucun événement récent</div>'}
+                                </div>
+                            `;
                     } catch (e) {
                         console.warn('Timeline non disponible:', e);
                     }
@@ -583,12 +1071,12 @@
 
                 // 3. Score en direct
                 const scoreHtml = `
-                    <div class="live-score-update">
-                        <span class="score-badge">🏠 <span class="home-score">${scores[0] || '0'}</span> - <span class="away-score">${scores[1] || '0'}</span> 🏃</span>
-                        ${liveTime ? `<span class="score-badge">⏱️ ${liveTime}</span>` : ''}
-                        ${matchStatus ? `<span class="score-badge">${matchStatus}</span>` : ''}
-                    </div>
-                `;
+                        <div class="live-score-update">
+                            <span class="score-badge">🏠 <span class="home-score">${scores[0] || '0'}</span> - <span class="away-score">${scores[1] || '0'}</span> 🏃</span>
+                            ${liveTime ? `<span class="score-badge">⏱️ ${liveTime}</span>` : ''}
+                            ${matchStatus ? `<span class="score-badge">${matchStatus}</span>` : ''}
+                        </div>
+                    `;
 
                 // 4. Group markets by type
                 const marketGroups = result.MarketGroups || [];
@@ -608,12 +1096,12 @@
 
                 // 5. Build HTML
                 let html = `
-                    <button class="back-btn" id="backToList">← Retour</button>
-                    <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
-                    <div class="match-detail-sub">${league} | ${date}</div>
-                    ${scoreHtml}
-                    ${timelineHtml}
-                `;
+                        <button class="back-btn" id="backToList">← Retour</button>
+                        <div class="match-detail-title">${homeTeam} vs ${awayTeam}</div>
+                        <div class="match-detail-sub">${league} | ${date}</div>
+                        ${scoreHtml}
+                        ${timelineHtml}
+                    `;
 
                 // Market tabs
                 if (tabNames.length > 0) {
@@ -639,11 +1127,11 @@
                                     const price = item.Price || '-';
                                     const selection = name;
                                     html += `
-                                        <div class="market-item" data-selection="${selection}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
-                                            <div class="name">${name}</div>
-                                            <div class="price">${price}</div>
-                                        </div>
-                                    `;
+                                            <div class="market-item" data-selection="${selection}" data-price="${price}" data-match="${homeTeam} vs ${awayTeam}">
+                                                <div class="name">${name}</div>
+                                                <div class="price">${price}</div>
+                                            </div>
+                                        `;
                                 });
                             });
                             html += `</div>`;
@@ -667,11 +1155,14 @@
 
                 // Back button
                 document.getElementById('backToList').addEventListener('click', () => {
-                    if (detailUpdateInterval) {
-                        clearInterval(detailUpdateInterval);
-                        detailUpdateInterval = null;
+                    // Arrêter le rafraîchissement des détails
+                    if (detailRefreshInterval) {
+                        clearInterval(detailRefreshInterval);
+                        detailRefreshInterval = null;
                     }
                     currentMatchId = null;
+                    // Redémarrer le rafraîchissement des listes
+                    startListRefresh();
                     loadView(currentView, true);
                 });
 
@@ -698,25 +1189,20 @@
         }
 
         // ============================================================
-        // 7. LOAD VIEWS
+        // 7. LOAD VIEWS (LISTES)
         // ============================================================
         async function loadView(view, preserveScroll = false) {
             if (isUpdating) return;
             isUpdating = true;
 
             try {
-                // Arrêter l'intervalle de mise à jour des détails
-                if (detailUpdateInterval) {
-                    clearInterval(detailUpdateInterval);
-                    detailUpdateInterval = null;
-                }
-
-                currentView = view;
+                // Si on est en mode détails, on ne recharge pas la liste
                 if (currentMatchId) {
                     isUpdating = false;
                     return;
                 }
 
+                currentView = view;
                 let events = [];
                 let cacheKey = `${view}_${currentDay}`;
 
@@ -754,11 +1240,11 @@
             } catch (error) {
                 if (!preserveScroll) {
                     app.innerHTML = `
-                        <div class="error-msg">
-                            ⛔ Erreur de chargement: ${error.message}
-                            <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
-                        </div>
-                    `;
+                            <div class="error-msg">
+                                ⛔ Erreur de chargement: ${error.message}
+                                <span class="error-detail">Vérifiez que le Proxy est déployé et que le lien est correct.</span>
+                            </div>
+                        `;
                 }
                 console.error(error);
             }
@@ -767,58 +1253,124 @@
         }
 
         // ============================================================
-        // 8. NAVIGATION & INIT
+        // 8. SILENT REFRESH DES LISTES
+        // ============================================================
+        async function silentListRefresh() {
+            // Ne pas rafraîchir si on est dans les détails
+            if (currentMatchId) return;
+            if (isUpdating) return;
+
+            try {
+                const view = currentView;
+                const cacheKey = `${view}_${currentDay}`;
+                let events = [];
+
+                if (view === 'live') {
+                    const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
+                    events = data?.Result?.Items?.[0]?.Events || [];
+                } else if (view === 'top') {
+                    const data = await fetchFromProxy('GetTopEvents', '');
+                    events = data?.Result?.Events || [];
+                } else if (view === 'upcoming') {
+                    if (currentDay === 0) {
+                        const data = await fetchFromProxy('GetUpcoming', 'sportId=1&showAllEvents=false&count=15');
+                        events = data?.Result?.Items?.[0]?.Events || [];
+                    } else {
+                        const range = getDateRange(currentDay);
+                        const data = await fetchFromProxy('GetEvents',
+                            `sportids=1&categoryids=0&champids=0&period=perioddate&outrightsDisplay=none&marketTypeIds=1,16,11&couponType=0&marketGroupId=0&group=AllEvents&withLive=false&startDate=${encodeURIComponent(range.start)}&endDate=${encodeURIComponent(range.end)}`
+                        );
+                        events = data?.Result?.Items?.[0]?.Events || [];
+                    }
+                }
+
+                if (events.length > 0) {
+                    eventsCache[cacheKey] = events;
+                    // Mettre à jour silencieusement l'affichage
+                    renderMatchList(events, view, true);
+                }
+
+            } catch (error) {
+                console.error('Silent refresh error:', error);
+            }
+        }
+
+        function startListRefresh() {
+            if (listRefreshInterval) {
+                clearInterval(listRefreshInterval);
+                listRefreshInterval = null;
+            }
+            // Rafraîchir les listes toutes les 10 secondes (silencieusement)
+            listRefreshInterval = setInterval(silentListRefresh, 10000);
+        }
+
+        // ============================================================
+        // 9. NAVIGATION & INIT
         // ============================================================
 
+        // Onglets principaux
         document.querySelectorAll('.nav-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
-                currentMatchId = null;
+                // Si on est dans les détails, on les quitte
+                if (currentMatchId) {
+                    if (detailRefreshInterval) {
+                        clearInterval(detailRefreshInterval);
+                        detailRefreshInterval = null;
+                    }
+                    currentMatchId = null;
+                    startListRefresh();
+                }
                 loadView(this.dataset.view);
             });
         });
 
+        // Sélecteur de jours
         document.querySelectorAll('.days-tabs button').forEach(btn => {
             btn.addEventListener('click', function() {
                 document.querySelectorAll('.days-tabs button').forEach(b => b.classList.remove('active'));
                 this.classList.add('active');
                 currentDay = parseInt(this.dataset.day);
-                currentMatchId = null;
+                if (currentMatchId) {
+                    if (detailRefreshInterval) {
+                        clearInterval(detailRefreshInterval);
+                        detailRefreshInterval = null;
+                    }
+                    currentMatchId = null;
+                    startListRefresh();
+                }
                 const cacheKey = `${currentView}_${currentDay}`;
                 delete eventsCache[cacheKey];
                 loadView(currentView);
             });
         });
 
+        // Retour à l'accueil
         document.getElementById('home-link').addEventListener('click', function(e) {
             e.preventDefault();
-            currentMatchId = null;
-            if (detailUpdateInterval) {
-                clearInterval(detailUpdateInterval);
-                detailUpdateInterval = null;
+            if (currentMatchId) {
+                if (detailRefreshInterval) {
+                    clearInterval(detailRefreshInterval);
+                    detailRefreshInterval = null;
+                }
+                currentMatchId = null;
+                startListRefresh();
             }
             const activeTab = document.querySelector('.nav-tabs .active');
             loadView(activeTab ? activeTab.dataset.view : 'live');
         });
 
+        // Démarrer le rafraîchissement des listes
+        startListRefresh();
+
         // Chargement initial
         loadView('live');
 
-        // Refresh toutes les 10s pour les vues listes
-        setInterval(() => {
-            if (!currentMatchId) {
-                const activeTab = document.querySelector('.nav-tabs .active');
-                if (activeTab && activeTab.dataset.view === 'live') {
-                    const cacheKey = `${currentView}_${currentDay}`;
-                    delete eventsCache[cacheKey];
-                    loadView(currentView, true);
-                }
-            }
-        }, 10000);
-
+        // Exposer les fonctions globalement pour débogage
         window.loadView = loadView;
         window.showEventDetails = showEventDetails;
+        window.silentListRefresh = silentListRefresh;
     </script>
 </body>
     </html>
