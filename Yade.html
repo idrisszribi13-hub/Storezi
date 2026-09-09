@@ -13,13 +13,13 @@
     
     <style>
         /* ===================================================
-           1. المتغيرات العامة والثيم (الوضع الليلي والنهاري)
+           المتغيرات العامة والثيم
            =================================================== */
         :root {
             --primary: #0d6efd;
             --secondary: #6c757d;
-            --success: #198754;
             --danger: #dc3545;
+            --success: #198754;
             --light-bg: #f0f2f5;
             --card-bg: #ffffff;
             --border-radius: 12px;
@@ -28,33 +28,19 @@
             --header-bg: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
             --header-text: #fff;
             --highlight-bg: rgba(13, 110, 253, 0.10);
-            --highlight-border: #0d6efd;
             --border-color: #e8eaed;
-            --table-border: #dee2e6;
-            --input-bg: #fff;
-            --input-border: #ddd;
-            --tab-inactive: #6c757d;
-            --live-dot: #ef4444;
-            --card-hover: #f8f9fc;
             --bottom-nav-bg: #ffffff;
             --bottom-nav-active: #0d6efd;
             --bottom-nav-inactive: #8e8e93;
             --font-scale: 1.15;
-            --red-card-badge: #dc3545;
         }
-
         [data-theme="dark"] {
             --light-bg: #12121e;
             --card-bg: #1a1a2e;
             --text-color: #e8e8f0;
             --shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
             --header-bg: linear-gradient(90deg, #0a0a18, #1a1a2e, #252545);
-            --highlight-bg: rgba(13, 110, 253, 0.20);
             --border-color: #2a2a4a;
-            --table-border: #333;
-            --input-bg: #1a1a2e;
-            --input-border: #333;
-            --card-hover: #252545;
             --bottom-nav-bg: #1a1a2e;
             --bottom-nav-active: #0d6efd;
             --bottom-nav-inactive: #8e8e93;
@@ -74,7 +60,7 @@
         a { text-decoration: none !important; }
 
         /* ===================================================
-           2. الهيدر المتطور والجميل (Header)
+           الهيدر المتطور
            =================================================== */
         .app-header {
             background: var(--header-bg);
@@ -85,7 +71,6 @@
             position: sticky;
             top: 0;
             z-index: 200;
-            transition: all 0.3s;
         }
         .app-header .header-content {
             display: flex;
@@ -104,7 +89,6 @@
             color: var(--header-text);
             font-size: calc(1.2rem * var(--font-scale));
             font-weight: 800;
-            letter-spacing: -0.2px;
         }
         .app-header .logo img { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
         .app-header .logo .premium-badge {
@@ -113,7 +97,7 @@
             text-transform: uppercase; margin-left: 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.3);
         }
 
-        /* بحث متطور */
+        /* البحث المتطور */
         .header-search {
             flex: 1; max-width: 420px; min-width: 180px; position: relative;
         }
@@ -161,7 +145,6 @@
             background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.1);
             color: var(--header-text); padding: 5px 12px; border-radius: 20px;
             font-size: calc(0.75rem * var(--font-scale)); cursor: pointer; display: flex; align-items: center; gap: 6px;
-            transition: all 0.2s;
         }
         .lang-selector:hover { background: rgba(255, 255, 255, 0.25); }
         .lang-selector img { width: 18px; height: 12px; object-fit: cover; border-radius: 2px; }
@@ -175,12 +158,12 @@
         .font-controls .font-label { font-size: 10px; color: rgba(255, 255, 255, 0.7); margin: 0 2px; }
 
         /* ===================================================
-           3. التنقل السفلي (Bottom Nav)
+           التنقل السفلي والصفحات
            =================================================== */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--bottom-nav-bg);
             border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; align-items: center;
-            height: 64px; padding: 2px 0; z-index: 1000; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
+            height: 64px; z-index: 1000; box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.05);
         }
         .bottom-nav .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center;
@@ -191,9 +174,6 @@
         .bottom-nav .nav-item i { font-size: 20px; transition: transform 0.15s; }
         .bottom-nav .nav-item.active i { transform: scale(1.05); }
 
-        /* ===================================================
-           4. المحتوى الرئيسي والصفحات
-           =================================================== */
         .page-content { display: none; }
         .page-content.active { display: block; }
 
@@ -251,12 +231,13 @@
         .settings-item .toggle.active .dot { transform: translateX(20px); }
 
         /* ===================================================
-           5. المودالات (نوافذ منبثقة) والتشكيلة
+           المودالات والتشكيلة والإحصائيات
            =================================================== */
         .modal-content { border-radius: var(--border-radius); border: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
         .modal-header { padding: 14px 20px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
-        .modal-header .modal-title { font-size: calc(1.1rem * var(--font-scale)); font-weight: 700; }
         .modal-body { padding: 16px 20px; background: var(--light-bg); }
+
+        /* تبويبات المباراة */
         .match-modal-tabs { border-bottom: 2px solid var(--border-color); gap: 3px; margin-top: 12px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
         .match-modal-tabs .nav-link { border: none; color: var(--tab-inactive); font-weight: 600; padding: 8px 16px; border-radius: 6px 6px 0 0; transition: all 0.15s; white-space: nowrap; font-size: calc(12px * var(--font-scale)); display: flex; align-items: center; gap: 5px; }
         .match-modal-tabs .nav-link.active { background: var(--light-bg); color: var(--primary); border-bottom: 2px solid var(--primary); }
@@ -268,7 +249,6 @@
         }
         .pitch-container .pitch-team-name { text-align: center; font-weight: 700; font-size: calc(13px * var(--font-scale)); color: #fff; margin-bottom: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
         .pitch-container .pitch-team-name img { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; background: rgba(255, 255, 255, 0.15); padding: 2px; }
-        .pitch-container .pitch-team-name .formation { font-size: calc(10px * var(--font-scale)); opacity: 0.7; font-weight: 400; }
         .pitch-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px 3px; height: 100%; min-height: 220px; position: relative; }
         .pitch-grid .pitch-player { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: rgba(255, 255, 255, 0.04); border-radius: 6px; padding: 2px 1px; min-height: 40px; transition: all 0.2s; cursor: pointer; }
         .pitch-grid .pitch-player:hover { background: rgba(255, 255, 255, 0.10); }
@@ -306,23 +286,13 @@
         .pitch-extras .injury-item:last-child { border-bottom: none; }
         .pitch-extras .injury-item img { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); object-fit: contain; cursor: pointer; }
         .pitch-extras .injury-item .injury-type { color: #dc3545; font-weight: 700; font-size: calc(12px * var(--font-scale)); margin-left: auto; }
-        
-        /* قائمة اللاعبين داخل الفريق */
+
+        /* قائمة اللاعبين */
         .player-list-item { transition: transform 0.15s, box-shadow 0.15s; }
         .player-list-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--primary) !important; }
         .shirt-number { background: var(--light-bg); padding: 5px 10px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
 
-        /* ===================================================
-           6. الأدوات المساعدة والتحميل
-           =================================================== */
-        .loader {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            display: flex; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.5); z-index: 9999;
-            backdrop-filter: blur(4px);
-        }
-        .loader.hidden { display: none; }
-        
+        /* أدوات وإحصائيات */
         .standings-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0; }
         .standings-table { width: 100%; border-collapse: collapse; font-size: calc(12px * var(--font-scale)); min-width: 420px; }
         .standings-table th { background: var(--light-bg); color: var(--secondary); font-weight: 600; font-size: calc(10px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.3px; padding: 6px 5px; border-bottom: 2px solid var(--border-color); text-align: center; }
@@ -330,9 +300,16 @@
         .standings-table .team-cell { display: flex; align-items: center; gap: 6px; text-align: left; padding: 2px 0; }
         .standings-table .team-cell img { width: 22px; height: 22px; object-fit: contain; cursor: pointer; border-radius: 4px; background: var(--light-bg); padding: 1px; flex-shrink: 0; }
         .standings-table .team-cell .team-name { font-weight: 500; color: var(--text-color); cursor: pointer; font-size: calc(11px * var(--font-scale)); white-space: nowrap; }
-        .standings-table .team-cell .team-name:hover { color: var(--primary); }
-        .standings-table .team-cell .color-bar { width: 3px; height: 16px; border-radius: 2px; display: inline-block; flex-shrink: 0; }
         .standings-table .pts { font-weight: 800; color: var(--primary); font-size: calc(14px * var(--font-scale)); }
+
+        /* معالجة التحميل */
+        .loader {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; justify-content: center; align-items: center;
+            background: rgba(0, 0, 0, 0.5); z-index: 9999;
+            backdrop-filter: blur(4px);
+        }
+        .loader.hidden { display: none; }
 
         @media (max-width: 768px) {
             .app-header .header-search { max-width: 150px; min-width: 80px; }
@@ -350,7 +327,7 @@
 <body>
 
     <!-- ===================================================
-        الهيدر المتطور (Header)
+        الهيدر المتطور
        =================================================== -->
     <header class="app-header">
         <div class="header-content">
@@ -372,24 +349,15 @@
                     <span class="font-label" id="fontSizeLabel">100%</span>
                     <button id="fontIncrease" title="Increase font size">A+</button>
                 </div>
-                
-                <button class="header-btn theme-toggle-header" id="themeToggleHeader" title="Toggle theme">
-                    <i class="fas fa-moon"></i>
-                </button>
-                
-                <button class="header-btn favorite-btn-header" id="favoriteToggleHeader" title="Favorites">
-                    <i class="fas fa-star"></i>
-                </button>
-
-                <div class="lang-selector" id="headerLangSelector">
-                    <img src="https://flagcdn.com/gb.svg" alt="EN" /> EN
-                </div>
+                <button class="header-btn theme-toggle-header" id="themeToggleHeader" title="Toggle theme"><i class="fas fa-moon"></i></button>
+                <button class="header-btn favorite-btn-header" id="favoriteToggleHeader" title="Favorites"><i class="fas fa-star"></i></button>
+                <div class="lang-selector" id="headerLangSelector"><img src="https://flagcdn.com/gb.svg" alt="EN" /> EN</div>
             </div>
         </div>
     </header>
 
     <!-- ===================================================
-        المحتوى الرئيسي (Main Content)
+        المحتوى الرئيسي
        =================================================== -->
     <main class="container" id="mainContent" style="max-width: 1240px; margin: 0 auto;">
         
@@ -463,11 +431,6 @@
                     <span class="label">Matches Time</span>
                     <span class="chevron"><i class="fas fa-chevron-right"></i></span>
                 </div>
-                <div class="settings-item">
-                    <span class="icon"><i class="fas fa-filter"></i></span>
-                    <span class="label">Filter and Sort Matches By</span>
-                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
-                </div>
                 <div class="settings-item" onclick="openFontModal()">
                     <span class="icon"><i class="fas fa-font"></i></span>
                     <span class="label">Font Size</span>
@@ -538,7 +501,7 @@
     </div>
 
     <!-- ===================================================
-        التنقل السفلي (Bottom Nav)
+        التنقل السفلي
        =================================================== -->
     <div class="bottom-nav" id="bottomNav">
         <button class="nav-item active" data-page="matches"><i class="fas fa-futbol"></i><span>Matches</span></button>
@@ -563,21 +526,15 @@
         let API_BASE = 'https://api-en.ysscores.com/api';
         let NEWS_BASE = 'https://news-en.ysscores.com/api';
         
-        const LANG_API_BASE = { ar: 'https://api-ar.ysscores.com/api', en: 'https://api-en.ysscores.com/api', fr: 'https://api-fr.ysscores.com/api', es: 'https://api-es.ysscores.com/api', it: 'https://api-it.ysscores.com/api', pt: 'https://api-pt.ysscores.com/api', br: 'https://api-br.ysscores.com/api' };
-        const LANG_NEWS_BASE = { ar: 'https://news-ar.ysscores.com/api', en: 'https://news-en.ysscores.com/api', fr: 'https://news-fr.ysscores.com/api', es: 'https://news-es.ysscores.com/api', it: 'https://news-it.ysscores.com/api', pt: 'https://news-pt.ysscores.com/api', br: 'https://news-br.ysscores.com/api' };
-
         let liveMatches = [];
         let todayMatches = [];
         let liveUpdateInterval = null;
         let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
-        let currentFilter = 'all';
         let selectedDate = new Date();
-        let currentLang = 'en';
         let fontScale = 1.15;
-        let currentPage = 'matches';
-
+        
         // ============================================================
-        //  إصلاح التحميل الأبدي (Timeout)
+        //  إصلاح التحميل الأبدي
         // ============================================================
         async function fetchFromProxy(url, timeout = 15000) {
             const controller = new AbortController();
@@ -602,9 +559,9 @@
                 clearTimeout(timeoutId);
             }
         }
-
+        
         // ============================================================
-        //  التحكم بالخط، الثيم، اللغة
+        //  التحكم بالخط والثيم
         // ============================================================
         function setFontScale(scale) {
             fontScale = Math.min(1.4, Math.max(0.85, scale));
@@ -618,9 +575,8 @@
         if (savedFont && !isNaN(savedFont)) setFontScale(savedFont);
 
         function toggleTheme() {
-            const html = document.documentElement;
-            const next = html.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-            html.setAttribute('data-theme', next);
+            const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
             localStorage.setItem('theme', next);
             updateThemeUI(next);
         }
@@ -643,75 +599,88 @@
         }
         document.getElementById('themeToggleHeader').addEventListener('click', toggleTheme);
         document.getElementById('darkModeToggle').addEventListener('click', toggleTheme);
-        
-        const commentsToggle = document.getElementById('commentsToggle');
-        commentsToggle.addEventListener('click', function() { this.classList.toggle('active'); });
+        document.getElementById('commentsToggle').addEventListener('click', function() { this.classList.toggle('active'); });
 
         // ============================================================
-        //  التنقل (Navigation)
+        //  البحث
         // ============================================================
-        const pages = {
-            matches: document.getElementById('pageMatches'),
-            news: document.getElementById('pageNews'),
-            competition: document.getElementById('pageCompetition'),
-            standings: document.getElementById('pageStandings'),
-            more: document.getElementById('pageMore')
-        };
-
-        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-            item.addEventListener('click', function() {
-                const page = this.dataset.page;
-                document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
-                this.classList.add('active');
-                Object.values(pages).forEach(el => el.style.display = 'none');
-                if (pages[page]) {
-                    pages[page].style.display = 'block';
-                    if (page === 'news') loadNewsPage();
-                    else if (page === 'competition') loadCompetitionPage();
-                    else if (page === 'standings') loadStandingsPage();
-                    else if (page === 'matches') renderLiveAndToday();
-                }
-                currentPage = page;
-            });
+        const searchInput = document.getElementById('headerSearchInput');
+        const searchDropdown = document.getElementById('searchResultsDropdown');
+        searchInput.addEventListener('input', function() {
+            const q = this.value.trim();
+            if (q.length < 2) { searchDropdown.classList.remove('active'); return; }
+            performSearch(q);
         });
+        document.addEventListener('click', function(e) { if (!e.target.closest('.header-search')) searchDropdown.classList.remove('active'); });
+        async function performSearch(query) {
+            try {
+                const data = await fetchFromProxy(`${API_BASE}/search/${encodeURIComponent(query)}/L/60`);
+                const results = data.data || {};
+                renderSearchResults(results);
+            } catch (err) { console.error('Search error:', err); }
+        }
+        function renderSearchResults(results) {
+            let html = ''; let has = false;
+            if (results.teams && results.teams.length) {
+                has = true;
+                results.teams.slice(0, 5).forEach(t => {
+                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : '';
+                    const title = t.name?.title || 'Unknown';
+                    const id = t.name?.row_id || t.id;
+                    html += `<div class="result-item" onclick="openTeamModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Team</span></div>`;
+                });
+            }
+            if (results.championship && results.championship.length) {
+                has = true;
+                results.championship.slice(0, 5).forEach(c => {
+                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : '';
+                    const title = c.name?.title || 'Unknown';
+                    const urlId = c.name?.url_id || c.id;
+                    html += `<div class="result-item" onclick="quickSelectChampionship('${urlId}','${title}')"><img src="${img}" /> <span>${title}</span><span class="result-type">Championship</span></div>`;
+                });
+            }
+            if (results.player && results.player.length) {
+                has = true;
+                results.player.slice(0, 5).forEach(p => {
+                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : '';
+                    const title = p.name?.title || 'Unknown';
+                    const id = p.name?.row_id || p.id;
+                    html += `<div class="result-item" onclick="openPlayerModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Player</span></div>`;
+                });
+            }
+            searchDropdown.innerHTML = has ? html : '<div class="no-results">No results found</div>';
+            searchDropdown.classList.add('active');
+        }
 
         // ============================================================
         //  جلب المباريات
         // ============================================================
         async function loadLiveMatches() {
             try {
-                const url = `${API_BASE}/matches/matches_in_proccess/L/60`;
-                const data = await fetchFromProxy(url);
+                const data = await fetchFromProxy(`${API_BASE}/matches/matches_in_proccess/L/60`);
                 liveMatches = data.data || [];
                 renderLiveAndToday();
             } catch (err) { console.error('Live matches error:', err); }
         }
-
         async function loadTodayMatches() {
             try {
                 const dateStr = getLocalDateStr(selectedDate);
-                const url = `${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`;
-                const data = await fetchFromProxy(url).catch(() => ({ data: [] }));
+                const data = await fetchFromProxy(`${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`).catch(() => ({ data: [] }));
                 const liveIds = new Set(liveMatches.map(m => m.match_id));
                 todayMatches = (data.data || []).filter(m => !liveIds.has(m.match_id));
                 renderLiveAndToday();
             } catch (err) { console.error('Today matches error:', err); }
         }
-
         function getLocalDateStr(date) {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
             const d = String(date.getDate()).padStart(2, '0');
             return `${y}-${m}-${d}`;
         }
-
         function updateDateUI() {
             const todayStr = getLocalDateStr(new Date());
-            const label = document.getElementById('dateLabel');
-            if (getLocalDateStr(selectedDate) === todayStr) label.textContent = 'Today';
-            else label.textContent = selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+            document.getElementById('dateLabel').textContent = (getLocalDateStr(selectedDate) === todayStr) ? 'Today' : selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
         }
-
         function changeDate(offset) {
             selectedDate.setDate(selectedDate.getDate() + offset);
             updateDateUI();
@@ -725,36 +694,21 @@
             renderCalendar();
             new bootstrap.Modal(document.getElementById('calendarModal')).show();
         });
-
-        let calViewDate = new Date();
-        let selectedCalDate = null;
+        let calViewDate = new Date(); let selectedCalDate = null;
         function renderCalendar() {
             document.getElementById('calMonthTitle').textContent = calViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            const grid = document.getElementById('calGrid');
-            grid.innerHTML = '';
+            const grid = document.getElementById('calGrid'); grid.innerHTML = '';
             const year = calViewDate.getFullYear(), month = calViewDate.getMonth();
             const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
             for (let i = 0; i < firstDay.getDay(); i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
             for (let d = 1; d <= lastDay.getDate(); d++) {
                 const dateObj = new Date(year, month, d), dateStr = getLocalDateStr(dateObj);
-                const isSelected = selectedCalDate && getLocalDateStr(selectedCalDate) === dateStr;
-                grid.innerHTML += `<div class="cal-day ${isSelected ? 'selected' : ''}" onclick="selectCalDate('${dateStr}')">${d}</div>`;
+                grid.innerHTML += `<div class="cal-day ${selectedCalDate && getLocalDateStr(selectedCalDate) === dateStr ? 'selected' : ''}" onclick="selectCalDate('${dateStr}')">${d}</div>`;
             }
         }
         window.changeCalMonth = function(offset) { calViewDate.setMonth(calViewDate.getMonth() + offset); renderCalendar(); };
-        window.selectCalDate = function(dateStr) {
-            const parts = dateStr.split('-');
-            selectedCalDate = new Date(parts[0], parts[1] - 1, parts[2]);
-            renderCalendar();
-        };
-        window.applyCalendarFilter = function() {
-            if (selectedCalDate) {
-                selectedDate = new Date(selectedCalDate);
-                bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide();
-                updateDateUI();
-                loadTodayMatches();
-            }
-        };
+        window.selectCalDate = function(dateStr) { const parts = dateStr.split('-'); selectedCalDate = new Date(parts[0], parts[1] - 1, parts[2]); renderCalendar(); };
+        window.applyCalendarFilter = function() { if (selectedCalDate) { selectedDate = new Date(selectedCalDate); bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide(); updateDateUI(); loadTodayMatches(); } };
 
         // ============================================================
         //  رسم المباريات
@@ -771,105 +725,45 @@
             } else if (isUpcoming) {
                 const ts = match.match_timestamp * 1000;
                 const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
-                const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60), s = diff % 60;
-                const countdown = h > 0 ? `${h}h ${m}m` : (m > 0 ? `${m}m` : `${s}s`);
-                centerHtml = `<div class="status">${countdown}</div><div class="score">VS</div>`;
+                const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
+                centerHtml = `<div class="status">${h > 0 ? h + 'h ' + m + 'm' : m + 'm'}</div><div class="score">VS</div>`;
             } else {
                 centerHtml = `<div class="score">${match.home_scores || 0} - ${match.away_scores || 0}</div><div class="status">FT</div>`;
             }
-
             return `
             <div class="simple-match-row" onclick="openMatchDetails(${match.match_id})">
-                <div class="team">
-                    <img src="${IMG_BASE_TEAM + home.image}" onclick="event.stopPropagation();openTeamModal(${home.row_id})" />
-                    <span class="team-name">${home.title}</span>
-                </div>
+                <div class="team"><img src="${IMG_BASE_TEAM + home.image}" onclick="event.stopPropagation();openTeamModal(${home.row_id})" /><span class="team-name">${home.title}</span></div>
                 <div class="match-center">${centerHtml}</div>
-                <div class="team" style="flex-direction: row-reverse;">
-                    <img src="${IMG_BASE_TEAM + away.image}" onclick="event.stopPropagation();openTeamModal(${away.row_id})" />
-                    <span class="team-name">${away.title}</span>
-                </div>
+                <div class="team" style="flex-direction: row-reverse;"><img src="${IMG_BASE_TEAM + away.image}" onclick="event.stopPropagation();openTeamModal(${away.row_id})" /><span class="team-name">${away.title}</span></div>
             </div>`;
         }
 
         function renderLiveAndToday() {
             const all = [...liveMatches, ...todayMatches];
-            const container = document.getElementById('allMatchesContainer');
-            container.innerHTML = '';
-
+            const container = document.getElementById('allMatchesContainer'); container.innerHTML = '';
             const groups = {};
             all.forEach(m => {
                 const compTitle = m.championship ? m.championship.title : 'Other';
                 if (!groups[compTitle]) groups[compTitle] = [];
                 groups[compTitle].push(m);
             });
-
             const favs = all.filter(m => isFavorite(m.match_id));
             if (favs.length > 0) {
-                container.innerHTML += `
-                <div class="match-section-header">
-                    <i class="fas fa-star" style="color: var(--primary);"></i>
-                    <span class="section-title">Favorites</span>
-                    <i class="fas fa-chevron-up section-more"></i>
-                </div>`;
+                container.innerHTML += `<div class="match-section-header"><i class="fas fa-star" style="color: var(--primary);"></i><span class="section-title">Favorites</span><i class="fas fa-chevron-up section-more"></i></div>`;
                 favs.forEach(m => container.innerHTML += renderSimpleMatchRow(m));
             }
-
             for (const compTitle in groups) {
                 const compData = groups[compTitle][0].championship;
                 const compImg = compData?.image ? IMG_BASE_CHAMP + compData.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Crect width=\'24\' height=\'24\' fill=\'%23ddd\'/%3E%3Ctext x=\'4\' y=\'16\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                container.innerHTML += `
-                <div class="match-section-header">
-                    <img src="${compImg}" class="section-icon" style="width: 26px; height: 26px; object-fit: contain;" />
-                    <span class="section-title">${compTitle}</span>
-                    <i class="fas fa-ellipsis-h section-more"></i>
-                </div>`;
+                container.innerHTML += `<div class="match-section-header"><img src="${compImg}" class="section-icon" style="width: 26px; height: 26px; object-fit: contain;" /><span class="section-title">${compTitle}</span><i class="fas fa-ellipsis-h section-more"></i></div>`;
                 groups[compTitle].forEach(m => container.innerHTML += renderSimpleMatchRow(m));
             }
-
             if (all.length === 0) container.innerHTML = '<p class="text-muted text-center py-4">No matches available.</p>';
-
             const liveC = document.getElementById('liveMatchesContainer');
             if (liveMatches.length > 0) {
-                liveC.innerHTML = `
-                <div class="match-section-header" style="background: rgba(220,53,69,0.05); border-color: rgba(220,53,69,0.15);">
-                    <span class="live-dot" style="width:10px;height:10px;background:red;border-radius:50%;display:inline-block;"></span>
-                    <span class="section-title" style="color:red;">LIVE</span>
-                </div>`;
+                liveC.innerHTML = `<div class="match-section-header" style="background: rgba(220,53,69,0.05); border-color: rgba(220,53,69,0.15);"><span class="live-dot" style="width:10px;height:10px;background:red;border-radius:50%;display:inline-block;"></span><span class="section-title" style="color:red;">LIVE</span></div>`;
                 liveMatches.forEach(m => liveC.innerHTML += renderSimpleMatchRow(m));
-            } else {
-                liveC.innerHTML = '';
-            }
-        }
-
-        function getLiveSeconds(match) {
-            const status = match.status !== undefined ? match.status : 1;
-            if (status === 1 || status === 3 || status === 8 || status === 9) {
-                if (match.minutes !== undefined && match.minutes !== null && match.minutes > 0 && match.minutes < 14400) return match.minutes;
-                if (match.match_timestamp && match.match_timestamp > 1000000000) {
-                    const elapsed = Math.floor(Date.now() / 1000 - match.match_timestamp);
-                    if (elapsed >= 0 && elapsed < 14400) return elapsed;
-                }
-                return 0;
-            }
-            return match.minutes || 0;
-        }
-        function formatLiveTimeRealtime(seconds, status, exTime) {
-            const total = Math.max(0, seconds);
-            const mins = Math.floor(total / 60);
-            const secs = Math.floor(total % 60);
-            const padded = String(secs).padStart(2, '0');
-            if (status === 0) return { display: 'VS', stoppage: null };
-            if (status === 4) return { display: 'FT', stoppage: null };
-            if (status === 2) return { display: 'HT', stoppage: null };
-            let display = `${mins}:${padded}`;
-            let stoppage = null;
-            if (exTime && exTime > 0) stoppage = `+${Math.floor(exTime)}`;
-            return { display, stoppage };
-        }
-        function getMatchPeriod(status) {
-            const map = {0: 'Upcoming', 1: '1st Half', 2: 'HT', 3: '2nd Half', 4: 'FT', 10: 'PEN', 14: 'Postponed'};
-            return map[status] || 'Live';
+            } else { liveC.innerHTML = ''; }
         }
 
         function isFavorite(matchId) { return favorites.indexOf(matchId) > -1; }
@@ -886,11 +780,9 @@
         }
 
         // ============================================================
-        //  تفاصيل المباراة (Match Details)
+        //  تفاصيل المباراة مع الإحصائيات والأحداث والتشكيلة
         // ============================================================
-        let currentMatchInfo = null;
-        let matchLiveInterval = null;
-        let matchDataInterval = null;
+        let currentMatchInfo = null; let matchLiveInterval = null; let matchDataInterval = null;
 
         async function openMatchDetails(matchId) {
             showLoading();
@@ -907,20 +799,24 @@
                 const events = eventsRes.data?.events || [];
                 const lineups = lineupRes.data || {};
                 const stats = statsRes.data?.statics || {};
+                const h2h = h2hRes.data || {};
+
+                let standingsData = null;
+                if (info.championship && info.championship.url_id) {
+                    try {
+                        const sData = await fetchFromProxy(`${API_BASE}/matches/league_standing_stage/${info.championship.url_id}`);
+                        if (sData.data && sData.data.league && sData.data.league.stage0) standingsData = sData.data;
+                    } catch (e) {}
+                }
 
                 currentMatchInfo = info;
-                renderMatchDetailsFull(info, events, lineups, stats);
+                renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData);
                 document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
-
                 if (info.status !== 14 && info.status !== 0) startLiveMatchUpdates(matchId);
                 hideLoading();
-            } catch (err) {
-                console.error('Match details error:', err);
-                showError('Failed to load match details');
-                hideLoading();
-            }
+            } catch (err) { console.error('Match details error:', err); showError('Failed to load match details'); hideLoading(); }
         }
 
         function startLiveMatchUpdates(matchId) {
@@ -937,11 +833,9 @@
                 const periodEl = document.querySelector('#matchModalBody .match-period');
                 if (periodEl) periodEl.textContent = getMatchPeriod(status);
             }, 1000);
-            
             matchDataInterval = setInterval(async () => {
                 try {
-                    const url = `${API_BASE}/matches/match_info/${matchId}/L/60`;
-                    const data = await fetchFromProxy(url);
+                    const data = await fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`);
                     if (data && data.data) currentMatchInfo = data.data;
                 } catch (e) {}
             }, 5000);
@@ -952,287 +846,192 @@
             }, { once: true });
         }
 
-        function renderMatchDetailsFull(info, events, lineups, stats) {
+        function renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData) {
             const body = document.getElementById('matchModalBody');
+            const isPostponed = info.status === 14;
+            const isUpcoming = info.status === 0;
+            const isFinished = info.status === 4;
             const seconds = getLiveSeconds(info);
-            const status = info.status !== undefined ? info.status : 1;
-            const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
-            const period = getMatchPeriod(status);
-            const isPostponed = status === 14;
-            const isUpcoming = status === 0;
-            const isFinished = status === 4;
-
-            let homeRedCard = false, awayRedCard = false;
-            if (events && events.length) { events.forEach(ev => { if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.home_team.row_id) homeRedCard = true; if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.away_team.row_id) awayRedCard = true; }); }
-
-            let halfScoreHtml = '';
-            if (info.fh_scores && info.fh_scores.length && !isUpcoming && !isPostponed) { const h = info.fh_scores[0]?.home_scores || 0; const a = info.fh_scores[0]?.away_scores || 0; halfScoreHtml = `<div class="half-score">HT: ${h} - ${a}</div>`; }
-
-            const champ = info.championship || {};
-            const dateTime = info.match_timestamp ? new Date(info.match_timestamp * 1000).toLocaleString() : (info.match_date + ' ' + info.match_time);
-            const showScore = !isUpcoming && !isPostponed;
-            const scoreDisplay = showScore ? `${info.home_scores || 0} - ${info.away_scores || 0}` : 'VS';
-
-            let timerMainText = 'VS';
-            if (isPostponed) timerMainText = 'Postponed';
-            else if (isUpcoming) timerMainText = 'Upcoming';
-            else if (isFinished) timerMainText = 'FT';
-            else timerMainText = timer.display;
+            const timer = formatLiveTimeRealtime(seconds, info.status, info.ex_time);
 
             // Header
-            let headerHtml = `
-            <div class="match-header" style="background: var(--card-bg); border-radius: 12px; padding: 12px 14px; margin-bottom: 8px; border: 1px solid var(--border-color);">
-                <div class="champ-badge" style="display: flex; justify-content: center; align-items: center; gap: 6px; font-size: calc(11px * var(--font-scale)); color: var(--secondary); flex-wrap: wrap; text-align: center;">
-                    <img src="${champ.image ? IMG_BASE_CHAMP + champ.image : ''}" style="width: 18px; height: 18px; cursor: pointer;" />
-                    <span>${champ.title || 'N/A'} | ${info.round || ''} | ${dateTime}</span>
-                </div>
-                <div class="match-teams" style="display: flex; justify-content: space-between; align-items: center; padding: 8px 0;">
-                    <div class="match-team-side" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                        ${homeRedCard ? '<span style="color:red; font-weight:bold;">RED</span>' : ''}
-                        <img src="${IMG_BASE_TEAM + info.home_team.image}" style="width: 48px; height: 48px; object-fit: contain; cursor: pointer;" onclick="openTeamModal(${info.home_team.row_id})" />
-                        <span style="font-weight: 700; font-size: calc(13px * var(--font-scale));">${info.home_team.title}</span>
+            let headerHtml = `<div class="match-header" style="background: var(--card-bg); border-radius: 12px; padding: 12px; border: 1px solid var(--border-color);">
+                <div style="text-align:center; color:var(--secondary); font-size:11px;">${info.championship?.title || ''} | ${info.round || ''}</div>
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="text-align:center; flex:1;"><img src="${IMG_BASE_TEAM + info.home_team.image}" style="width:50px;" onclick="openTeamModal(${info.home_team.row_id})"/><div style="font-weight:700;">${info.home_team.title}</div></div>
+                    <div style="text-align:center; flex:1.2;">
+                        <div style="font-size:24px; font-weight:800;">${isUpcoming ? 'VS' : info.home_scores + ' - ' + info.away_scores}</div>
+                        <div class="timer-main" style="background:var(--light-bg); padding:3px 10px; border-radius:10px;">${isFinished ? 'FT' : timer.display}</div>
                     </div>
-                    <div class="match-center-side" style="flex: 1.2; display: flex; flex-direction: column; align-items: center;">
-                        <div class="match-score" style="font-size: calc(30px * var(--font-scale)); font-weight: 800;">${scoreDisplay}</div>
-                        ${halfScoreHtml}
-                        <div class="match-timer-container" style="display: flex; align-items: center; gap: 6px;">
-                            <span class="timer-main" style="font-size: calc(16px * var(--font-scale)); font-weight: 700; background: var(--light-bg); padding: 3px 14px; border-radius: 16px;">${timerMainText}</span>
-                            ${timer.stoppage && !isPostponed && !isUpcoming && !isFinished ? `<span style="background: #dc3545; color: #fff; font-size: 10px; padding: 1px 10px; border-radius: 10px;">+${timer.stoppage}</span>` : ''}
-                        </div>
-                        <div class="match-period" style="font-size: calc(13px * var(--font-scale)); font-weight: 600;">${period}</div>
-                    </div>
-                    <div class="match-team-side" style="flex: 1; display: flex; flex-direction: column; align-items: center;">
-                        ${awayRedCard ? '<span style="color:red; font-weight:bold;">RED</span>' : ''}
-                        <img src="${IMG_BASE_TEAM + info.away_team.image}" style="width: 48px; height: 48px; object-fit: contain; cursor: pointer;" onclick="openTeamModal(${info.away_team.row_id})" />
-                        <span style="font-weight: 700; font-size: calc(13px * var(--font-scale));">${info.away_team.title}</span>
-                    </div>
+                    <div style="text-align:center; flex:1;"><img src="${IMG_BASE_TEAM + info.away_team.image}" style="width:50px;" onclick="openTeamModal(${info.away_team.row_id})"/><div style="font-weight:700;">${info.away_team.title}</div></div>
                 </div>
             </div>`;
 
             // Events
-            let eventsHtml = '<p class="text-center text-muted">No events recorded</p>';
-            if (events && events.length && !isUpcoming && !isPostponed) {
-                let orderedHtml = '';
-                events.sort((a,b) => (a.time_minute || 0) - (b.time_minute || 0));
-                events.forEach(ev => {
-                    const isHome = ev.team_id == info.home_team.row_id;
+            let eventsHtml = '<p>No events yet.</p>';
+            if (events && events.length) {
+                eventsHtml = events.sort((a,b) => a.time_minute - b.time_minute).map(ev => {
                     const icon = ev.type === 1 ? '⚽' : ev.type === 2 ? '🟨' : ev.type === 4 ? '🟥' : ev.type === 8 ? '🔁' : '';
-                    const player = ev.player_name?.title || '';
-                    const min = ev.time_minute || 0;
-                    orderedHtml += `
-                    <div class="event-row" style="display: flex; justify-content: ${isHome ? 'flex-start' : 'flex-end'}; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--border-color);">
-                        ${isHome ? `<div style="width:50px;">${min}'</div><div>${icon} ${player}</div>` : `<div>${player} ${icon}</div><div style="width:50px; text-align:right;">${min}'</div>`}
+                    const isHome = ev.team_id == info.home_team.row_id;
+                    return `<div style="display:flex; justify-content:${isHome ? 'flex-start' : 'flex-end'}; padding:4px 0; border-bottom:1px solid var(--border-color);">
+                        ${isHome ? `<div style="width:40px;">${ev.time_minute}'</div><div>${icon} ${ev.player_name?.title || ''}</div>` : `<div>${ev.player_name?.title || ''} ${icon}</div><div style="width:40px; text-align:right;">${ev.time_minute}'</div>`}
                     </div>`;
-                });
-                eventsHtml = orderedHtml;
+                }).join('');
             }
 
             // Lineups
-            let lineupHtml = '<p class="text-center text-muted">Lineups not available</p>';
-            if (lineups.lineup && !isUpcoming && !isPostponed) {
+            let lineupHtml = '<p>No lineups available.</p>';
+            if (lineups.lineup && !isUpcoming) {
                 const homeLineup = lineups.lineup[info.home_team.row_id];
                 const awayLineup = lineups.lineup[info.away_team.row_id];
                 const homeCoach = lineups['0']?.home_coach || info.home_coach;
                 const awayCoach = lineups['0']?.away_coach || info.away_coach;
-                const homeInjured = lineups.lineup_injureds ? lineups.lineup_injureds[info.home_team.row_id] : [];
-                const awayInjured = lineups.lineup_injureds ? lineups.lineup_injureds[info.away_team.row_id] : [];
-                const homeSubs = homeLineup ? homeLineup.substitutions || [] : [];
-                const awaySubs = awayLineup ? awayLineup.substitutions || [] : [];
-                const homeFormation = lineups['0']?.home_formation || '4-3-3';
-                const awayFormation = lineups['0']?.away_formation || '4-3-3';
-
                 if (homeLineup && awayLineup) {
-                    function buildPitchView(players, team, formation, subs, injured, coach) {
-                        const gk = players.filter(p => p.position === 'G' || p.position === 'GK');
-                        const def = players.filter(p => p.position === 'D' || p.position === 'LB' || p.position === 'RB' || p.position === 'CB');
-                        const mid = players.filter(p => p.position === 'M' || p.position === 'CDM' || p.position === 'CM' || p.position === 'CAM' || p.position === 'LM' || p.position === 'RM');
-                        const fwd = players.filter(p => p.position === 'F' || p.position === 'LW' || p.position === 'RW' || p.position === 'CF' || p.position === 'SS');
-                        
-                        function playerCard(p) {
-                            const img = p.player.image ? IMG_BASE_PLAYER + p.player.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                            return `<div class="pitch-player" onclick="openPlayerModal(${p.player.row_id})">
-                                <div class="player-avatar"><img src="${img}" /></div>
-                                <div class="player-number">${p.player.player_number || ''}</div>
-                                <div class="player-name">${p.player.title}</div>
-                                ${p.rating ? `<div class="player-rating">${p.rating}</div>` : ''}
-                            </div>`;
-                        }
-                        function renderRow(players, rowClass) {
-                            let html = `<div class="${rowClass}">`;
-                            players.forEach(p => { html += `<div style="flex:1;display:flex;justify-content:center;">${playerCard(p)}</div>`; });
-                            html += `</div>`;
-                            return html;
-                        }
-
-                        let pitchHtml = `
-                        <div class="pitch-container">
-                            <div class="pitch-team-name">${team.title} <span class="formation">(${formation})</span></div>
-                            <div class="pitch-grid">
-                                ${renderRow(gk, 'row-gk')}
-                                ${renderRow(def, 'row-def')}
-                                ${renderRow(mid, 'row-mid')}
-                                ${renderRow(fwd, 'row-fwd')}
-                            </div>
-                        `;
-                        let extrasHtml = '<div class="pitch-extras">';
-                        if (coach) extrasHtml += `<div class="coach-section" onclick="openCoachModal(${coach.id})"><img src="${IMG_BASE_COACH + coach.image}" class="coach-avatar" /><span class="coach-name">${coach.title}</span></div>`;
-                        if (subs.length) {
-                            extrasHtml += `<div class="subs-section"><div class="subs-title">Substitutions</div>`;
-                            subs.forEach(sub => {
-                                const player = sub.player; const replaced = sub.player_lineup ? sub.player_lineup.title : ''; const time = sub.substitute_time ? `${sub.substitute_time}'` : '';
-                                extrasHtml += `<div class="sub-item"><span>${time}</span><img src="${IMG_BASE_PLAYER + player.image}" onclick="event.stopPropagation();openPlayerModal(${player.row_id})" /><span onclick="event.stopPropagation();openPlayerModal(${player.row_id})">${player.title}</span>${replaced ? `<span class="sub-arrow">→ ${replaced}</span>` : ''}</div>`;
-                            });
-                            extrasHtml += `</div>`;
-                        }
-                        if (injured.length) {
-                            extrasHtml += `<div class="injuries-section"><div class="injuries-title">Missing Players</div>`;
-                            injured.forEach(inj => {
-                                extrasHtml += `<div class="injury-item"><img src="${IMG_BASE_PLAYER + inj.player.image}" onclick="event.stopPropagation();openPlayerModal(${inj.player.row_id})" /><span onclick="event.stopPropagation();openPlayerModal(${inj.player.row_id})">${inj.player.title}</span><span class="injury-type">- ${inj.type_name}</span></div>`;
-                            });
-                            extrasHtml += `</div>`;
-                        }
-                        extrasHtml += '</div>';
-                        pitchHtml += extrasHtml + '</div>';
-                        return pitchHtml;
+                    function buildView(players, coach, subs, injured) {
+                        const gk = players.filter(p => p.position === 'G');
+                        const def = players.filter(p => p.position === 'D');
+                        const mid = players.filter(p => p.position === 'M');
+                        const fwd = players.filter(p => p.position === 'F' || p.position === 'S');
+                        let extras = '';
+                        if (coach) extras += `<div style="padding:10px; border-bottom:1px solid var(--border-color);">👨‍💼 ${coach.title}</div>`;
+                        if (subs.length) extras += `<div style="padding:10px;"><strong>Substitutes:</strong> ${subs.map(s => s.player.title).join(', ')}</div>`;
+                        if (injured.length) extras += `<div style="padding:10px; background:rgba(255,0,0,0.1);"><strong>Missing:</strong> ${injured.map(i => i.player.title).join(', ')}</div>`;
+                        return `<div class="pitch-container"><div class="pitch-grid">
+                            ${gk.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
+                            ${def.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
+                            ${mid.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
+                            ${fwd.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
+                        </div>${extras}</div>`;
                     }
                     lineupHtml = `
-                    <div class="pitch-lineup-tabs">
-                        <button class="pitch-tab active" onclick="switchPitchTab(this, 'pitch-home', 'pitch-away')">${info.home_team.title}</button>
-                        <button class="pitch-tab" onclick="switchPitchTab(this, 'pitch-away', 'pitch-home')">${info.away_team.title}</button>
-                    </div>
-                    <div id="pitch-home">${buildPitchView(homeLineup.lineup || [], info.home_team, homeFormation, homeSubs, homeInjured, homeCoach)}</div>
-                    <div id="pitch-away" style="display:none;">${buildPitchView(awayLineup.lineup || [], info.away_team, awayFormation, awaySubs, awayInjured, awayCoach)}</div>`;
+                        <button class="btn btn-primary btn-sm w-100 mb-2" onclick="switchPitchTab(this, 'pitch-home', 'pitch-away')">${info.home_team.title}</button>
+                        <div id="pitch-home">${buildView(homeLineup.lineup || [], homeCoach, homeLineup.substitutions || [], lineups.lineup_injureds?.[info.home_team.row_id] || [])}</div>
+                        <div id="pitch-away" style="display:none;">${buildView(awayLineup.lineup || [], awayCoach, awayLineup.substitutions || [], lineups.lineup_injureds?.[info.away_team.row_id] || [])}</div>
+                    `;
                 }
             }
 
-            // Standings preview
-            let standingsPreview = '';
+            // Stats
+            let statsHtml = '<p>No stats yet.</p>';
+            if (stats && Object.keys(stats).length) {
+                const homeStats = stats[info.home_team.row_id] || {};
+                const awayStats = stats[info.away_team.row_id] || {};
+                const homePoss = parseInt(homeStats.ball_possession) || 50;
+                const awayPoss = parseInt(awayStats.ball_possession) || 50;
+                statsHtml = `<div style="text-align:center; margin-bottom:15px;"><strong>Possession</strong> ${homePoss}% - ${awayPoss}%</div>`;
+                statsHtml += `<div style="font-size:12px;">Shots: ${homeStats.total_shots || 0} - ${awayStats.total_shots || 0}</div>`;
+                statsHtml += `<div style="font-size:12px;">Shots on Goal: ${homeStats.shots_on_goal || 0} - ${awayStats.shots_on_goal || 0}</div>`;
+                statsHtml += `<div style="font-size:12px;">Fouls: ${homeStats.fouls || 0} - ${awayStats.fouls || 0}</div>`;
+            }
 
-            body.innerHTML = `
-                ${headerHtml}
-                <ul class="nav nav-tabs" id="matchModalTabs" role="tablist" style="margin-top: 12px; border-bottom: 2px solid var(--border-color);">
-                    <li class="nav-item"><button class="nav-link active" id="events-tab" data-bs-toggle="tab" data-bs-target="#md-events" type="button">Events</button></li>
-                    <li class="nav-item"><button class="nav-link" id="lineup-tab-modal" data-bs-toggle="tab" data-bs-target="#md-lineup" type="button">Lineups</button></li>
+            // H2H
+            let h2hHtml = '<p>No H2H data.</p>';
+            if (h2h && Object.keys(h2h).length) {
+                let hW = 0, d = 0, aW = 0;
+                for (const id in h2h) { const m = h2h[id]; if (m && m.win === 'win1') hW++; else if (m && m.win === 'win2') aW++; else if (m) d++; }
+                h2hHtml = `<div style="display:flex; justify-content:center; gap:20px;"><span>${info.home_team.title}: ${hW} Wins</span> <span>${d} Draws</span> <span>${info.away_team.title}: ${aW} Wins</span></div>`;
+            }
+
+            // Standings
+            let standingsHtml = '<p>No standings data.</p>';
+            if (standingsData && standingsData.league && standingsData.league.stage0) {
+                standingsHtml = renderStandingsTable(standingsData.league.stage0, [info.home_team.row_id, info.away_team.row_id]);
+            }
+
+            // Tabs
+            body.innerHTML = `${headerHtml}
+                <ul class="nav nav-tabs" style="margin-top:15px;">
+                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#md-events">Events</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-lineup">Lineups</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-stats">Statistics</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-h2h">H2H</a></li>
+                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-standings">Standings</a></li>
                 </ul>
-                <div class="tab-content" style="padding: 10px 0;">
-                    <div class="tab-pane fade show active" id="md-events" role="tabpanel">${eventsHtml}</div>
-                    <div class="tab-pane fade" id="md-lineup" role="tabpanel">${lineupHtml}</div>
-                </div>
-            `;
+                <div class="tab-content" style="padding:15px 0;">
+                    <div class="tab-pane fade show active" id="md-events">${eventsHtml}</div>
+                    <div class="tab-pane fade" id="md-lineup">${lineupHtml}</div>
+                    <div class="tab-pane fade" id="md-stats">${statsHtml}</div>
+                    <div class="tab-pane fade" id="md-h2h">${h2hHtml}</div>
+                    <div class="tab-pane fade" id="md-standings">${standingsHtml}</div>
+                </div>`;
+        }
+
+        function renderStandingsTable(teams, highlightIds) {
+            let html = '<div style="overflow-x:auto;"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
+            teams.forEach((team, idx) => {
+                const info = team.team_name;
+                const isH = highlightIds.includes(info.row_id);
+                html += `<tr style="${isH ? 'background:var(--highlight-bg); font-weight:bold;' : ''}"><td>${idx+1}</td><td>${info.title}</td><td>${team.play}</td><td>${team.diff}</td><td class="pts">${team.points}</td></tr>`;
+            });
+            html += '</tbody></table></div>';
+            return html;
         }
 
         // ============================================================
-        //  نافذة الفريق (Team Modal)
+        //  نافذة الفريق واللاعبين
         // ============================================================
         async function openTeamModal(id) {
             showLoading();
             try {
-                const teamInfoData = await fetchFromProxy(`${API_BASE}/info/team_info/${id}/L/60`);
-                if (!teamInfoData || !teamInfoData.data) { hideLoading(); showError('Team data not found'); return; }
-                const info = teamInfoData.data;
+                const infoData = await fetchFromProxy(`${API_BASE}/info/team_info/${id}/L/60`);
+                if (!infoData.data) return;
+                const info = infoData.data;
                 const playersData = await fetchFromProxy(`${API_BASE}/info/players_team/${id}`).catch(() => ({ data: {} }));
-                const matchesData = await fetchFromProxy(`${API_BASE}/matches/team_matches/${id}/L/60`).catch(() => ({ data: { coming: { data: [] }, end: { data: [] } } }));
-                
                 const body = document.getElementById('teamModalBody');
-                body.innerHTML = `
-                    <div class="d-flex align-items-center mb-3">
-                        <img src="${IMG_BASE_TEAM + info.image}" style="width:60px;height:60px;object-fit:contain;margin-right:16px;" />
-                        <div>
-                            <h4>${info.title}</h4>
-                            <p class="text-muted mb-0">${info.full_title || ''}</p>
-                        </div>
-                    </div>
-                    <ul class="nav nav-tabs" id="teamTabs" role="tablist">
-                        <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#team-matches" type="button">Matches</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#team-players" type="button">Players</button></li>
-                        <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#team-info" type="button">Information</button></li>
+                body.innerHTML = `<h4 class="mb-3">${info.title}</h4>
+                    <ul class="nav nav-tabs">
+                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#team-players">Players</a></li>
+                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#team-info">Info</a></li>
                     </ul>
-                    <div class="tab-content mt-3">
-                        <div class="tab-pane fade show active" id="team-matches">
-                            ${renderTeamMatchesTab(matchesData.data.coming.data || [], matchesData.data.end.data || [])}
-                        </div>
-                        <div class="tab-pane fade" id="team-players">
+                    <div class="tab-content" style="padding:15px 0;">
+                        <div class="tab-pane fade show active" id="team-players">
                             ${renderTeamPlayersTab(playersData.data)}
                         </div>
                         <div class="tab-pane fade" id="team-info">
-                            <p><strong>Country:</strong> ${info.country ? info.country.title : 'N/A'}</p>
-                            <p><strong>Stadium:</strong> ${info.stadium_name || 'N/A'}</p>
-                            ${info.about ? `<p>${info.about}</p>` : ''}
+                            <p>Country: ${info.country ? info.country.title : 'N/A'}</p>
+                            <p>Stadium: ${info.stadium_name || 'N/A'}</p>
                         </div>
-                    </div>
-                `;
-                document.getElementById('teamModalTitle').textContent = info.title;
+                    </div>`;
                 const modal = new bootstrap.Modal(document.getElementById('teamModal'));
                 modal.show();
                 hideLoading();
             } catch (err) { console.error(err); hideLoading(); }
         }
 
-        function renderTeamMatchesTab(upcoming, ended) {
+        function renderTeamPlayersTab(data) {
+            if (!data) return '<p>No players.</p>';
             let html = '';
-            if (upcoming.length > 0) {
-                html += '<h6 class="text-muted">Upcoming</h6>';
-                upcoming.slice(0, 5).forEach(m => {
-                    html += `<div class="p-2 border rounded mb-2" style="background:var(--card-bg);">${m.home_team.title} vs ${m.away_team.title} - ${m.match_date} ${m.match_time}</div>`;
-                });
-            }
-            if (ended.length > 0) {
-                html += '<h6 class="text-muted mt-3">Recent</h6>';
-                ended.slice(0, 5).forEach(m => {
-                    html += `<div class="p-2 border rounded mb-2" style="background:var(--card-bg);">${m.home_team.title} ${m.home_scores} - ${m.away_scores} ${m.away_team.title} - ${m.match_date}</div>`;
-                });
-            }
-            return html || '<p class="text-muted">No matches available.</p>';
-        }
-
-        function renderTeamPlayersTab(playersData) {
-            if (!playersData || Object.keys(playersData).length === 0) return '<p class="text-muted">No player data available.</p>';
-            let coachHtml = '';
-            if (playersData.coach) {
-                coachHtml = `<div class="d-flex align-items-center p-2 rounded mb-2" style="background:var(--card-bg);border:1px solid var(--border-color);" onclick="openCoachModal(${playersData.coach.id})"><img src="${IMG_BASE_COACH + playersData.coach.image}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;margin-right:10px;" /><div><span class="text-muted" style="font-size:12px;">Coach</span><div class="font-weight-bold">${playersData.coach.title}</div></div></div>`;
-            }
-            const attackers = playersData.F || [];
-            const midfielders = playersData.M || [];
-            const defenders = playersData.D || [];
-            const goalkeepers = playersData.G || [];
-
-            function renderPlayerRow(p) {
-                const img = p.image ? IMG_BASE_PLAYER + p.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'30\' height=\'30\' viewBox=\'0 0 30 30\'%3E%3Crect width=\'30\' height=\'30\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'14\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                return `<div class="player-list-item d-flex justify-content-between align-items-center p-2 mb-2" onclick="openPlayerModal(${p.row_id})" style="cursor:pointer;background:var(--card-bg);border:1px solid var(--border-color);border-radius:8px;"><div class="d-flex align-items-center"><img src="${img}" style="width:36px;height:36px;object-fit:contain;border-radius:50%;margin-right:10px;" /><div><div style="font-size:14px;font-weight:600;">${p.title}</div><div style="font-size:11px;color:var(--secondary);">${p.position}</div></div></div><div class="shirt-number">${p.player_number || ''}</div></div>`;
-            }
+            if (data.coach) html += `<div style="padding:10px; border:1px solid; border-radius:8px; margin-bottom:10px;">👨‍💼 Coach: ${data.coach.title}</div>`;
             function renderGroup(title, list) {
-                if (list.length === 0) return '';
-                return `<h5 class="mt-3 text-center" style="font-size:15px;font-weight:700;padding:10px;background:var(--light-bg);border-radius:8px;">${title}</h5><div>${list.map(renderPlayerRow).join('')}</div>`;
+                if (!list || list.length === 0) return '';
+                return `<h6>${title}</h6>${list.map(p => `<div class="player-list-item" style="display:flex; justify-content:space-between; padding:8px; border:1px solid var(--border-color); margin-bottom:5px; border-radius:8px;" onclick="openPlayerModal(${p.row_id})"><span>${p.player_number || ''} ${p.title}</span><span>${p.position}</span></div>`).join('')}`;
             }
-            return `${coachHtml}${renderGroup('Attackers', attackers)}${renderGroup('Midfielders', midfielders)}${renderGroup('Defenders', defenders)}${renderGroup('Goalkeepers', goalkeepers)}`;
+            html += renderGroup('Attackers', data.F);
+            html += renderGroup('Midfielders', data.M);
+            html += renderGroup('Defenders', data.D);
+            html += renderGroup('Goalkeepers', data.G);
+            return html;
         }
 
-        // ============================================================
-        //  اللاعب والمدرب
-        // ============================================================
         async function openPlayerModal(id) {
             try {
                 const data = await fetchFromProxy(`${API_BASE}/info/player_info/${id}/L/60`);
                 if (data && data.data) {
-                    const info = data.data;
                     document.getElementById('playerModalBody').innerHTML = `
-                        <div class="d-flex align-items-center mb-3"><img src="${IMG_BASE_PLAYER + info.image}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;margin-right:16px;" /><div><h4>${info.title}</h4><p class="text-muted">${info.team_name ? info.team_name.title : ''}</p></div></div>
-                        <p><strong>Position:</strong> ${info.position}</p>
-                        <p><strong>Number:</strong> ${info.club_number}</p>
+                        <h4>${data.data.title}</h4>
+                        <p>Team: ${data.data.team_name?.title || 'N/A'} | Number: ${data.data.club_number}</p>
                     `;
-                    document.getElementById('playerModalTitle').textContent = info.title;
                     const modal = new bootstrap.Modal(document.getElementById('playerModal'));
                     modal.show();
                 }
             } catch (e) {}
         }
+
         async function openCoachModal(id) {
             try {
                 const data = await fetchFromProxy(`${API_BASE}/info/coach_info/${id}`);
                 if (data && data.data) {
-                    const info = data.data;
-                    document.getElementById('coachModalBody').innerHTML = `<div class="d-flex align-items-center mb-3"><img src="${IMG_BASE_COACH + info.image}" style="width:64px;height:64px;object-fit:cover;border-radius:50%;margin-right:16px;" /><div><h4>${info.title}</h4></div></div>`;
-                    document.getElementById('coachModalTitle').textContent = info.title;
+                    document.getElementById('coachModalBody').innerHTML = `<h4>${data.data.title}</h4>`;
                     const modal = new bootstrap.Modal(document.getElementById('coachModal'));
                     modal.show();
                 }
@@ -1240,63 +1039,63 @@
         }
 
         // ============================================================
-        //  الصفحات الإضافية (أخبار، بطولات، ترتيب)
+        //  الصفحات الإضافية والتنقل
         // ============================================================
+        const pages = { matches: document.getElementById('pageMatches'), news: document.getElementById('pageNews'), competition: document.getElementById('pageCompetition'), standings: document.getElementById('pageStandings'), more: document.getElementById('pageMore') };
+        document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
+            item.addEventListener('click', function() {
+                document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+                this.classList.add('active');
+                Object.values(pages).forEach(el => el.style.display = 'none');
+                if (pages[this.dataset.page]) {
+                    pages[this.dataset.page].style.display = 'block';
+                    if (this.dataset.page === 'news') loadNewsPage();
+                    else if (this.dataset.page === 'competition') loadCompetitionPage();
+                    else if (this.dataset.page === 'standings') loadStandingsPage();
+                    else if (this.dataset.page === 'matches') renderLiveAndToday();
+                }
+            });
+        });
+
         async function loadNewsPage() {
-            const container = document.getElementById('newsContainer');
-            container.innerHTML = 'Loading...';
-            try {
-                const data = await fetchFromProxy(`${NEWS_BASE}/News/news_leagues`);
-                const items = data.data || [];
-                let html = '<div class="row g-3">';
-                items.forEach(item => {
-                    html += `<div class="col-12 col-md-6 col-lg-4"><div class="card h-100" style="cursor:pointer;border-radius:12px;"><img src="https://imgs.ysscores.com/news/350/${item.image}" class="card-img-top" onerror="this.style.display='none'" /><div class="card-body p-2"><h6 style="font-size:14px;font-weight:700;">${item.title}</h6><p class="card-text small text-muted">${item.news_desc || ''}</p></div></div></div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html || 'No news found';
-            } catch (e) { container.innerHTML = 'Failed to load news'; }
+            const data = await fetchFromProxy(`${NEWS_BASE}/News/news_leagues`).catch(() => ({ data: [] }));
+            document.getElementById('newsContainer').innerHTML = `<div class="row">${(data.data || []).map(n => `<div class="col-12 col-md-4 mb-3"><div class="card h-100"><img src="https://imgs.ysscores.com/news/350/${n.image}" class="card-img-top" /><div class="card-body"><h6>${n.title}</h6></div></div></div>`).join('') || 'No news'}</div>`;
         }
-
         async function loadCompetitionPage() {
-            const container = document.getElementById('competitionContainer');
-            container.innerHTML = 'Loading...';
-            try {
-                const data = await fetchFromProxy(`${API_BASE}/info/championship_ranking/L/60`);
-                const items = data.data || [];
-                let html = '<div class="row g-2">';
-                items.forEach(champ => {
-                    const img = champ.image ? IMG_BASE_CHAMP + champ.image : '';
-                    html += `<div class="col-12 mb-2"><div class="d-flex align-items-center p-2 border rounded" style="background:var(--card-bg);cursor:pointer;" onclick="loadStandingsPage(${champ.url_id})"><img src="${img}" style="width:24px;height:24px;object-fit:contain;margin-right:10px;" /><span style="font-weight:600;">${champ.title}</span></div></div>`;
-                });
-                html += '</div>';
-                container.innerHTML = html;
-            } catch (e) { container.innerHTML = 'Failed to load competitions'; }
+            const data = await fetchFromProxy(`${API_BASE}/info/championship_ranking/L/60`).catch(() => ({ data: [] }));
+            document.getElementById('competitionContainer').innerHTML = `<div class="row">${(data.data || []).map(c => `<div class="col-12 mb-2"><div class="d-flex p-2 border rounded" style="cursor:pointer;" onclick="loadStandingsPage(${c.url_id})"><img src="${c.image ? IMG_BASE_CHAMP + c.image : ''}" style="width:24px;height:24px;margin-right:10px;" /><span>${c.title}</span></div></div>`).join('') || 'No competitions'}</div>`;
         }
-
         async function loadStandingsPage(id) {
-            const container = document.getElementById('standingsContainer');
-            container.innerHTML = 'Loading...';
-            try {
-                const champId = id || (currentChampionship ? currentChampionship.url_id : null);
-                if (!champId) { container.innerHTML = 'Select a competition'; return; }
-                const data = await fetchFromProxy(`${API_BASE}/matches/league_standing_stage/${champId}`);
-                const teams = data.data?.league?.stage0 || [];
-                let html = '<div class="standings-wrap"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GF</th><th>GA</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
-                teams.forEach((team, idx) => {
-                    const info = team.team_name;
-                    html += `<tr><td>${idx+1}</td><td style="text-align:left;"><div class="team-cell"><img src="${IMG_BASE_TEAM + info.image}" onclick="openTeamModal(${info.row_id})" /><span class="team-name" onclick="openTeamModal(${info.row_id})">${info.title}</span></div></td><td>${team.play}</td><td>${team.wins}</td><td>${team.draw}</td><td>${team.lose}</td><td>${team.for}</td><td>${team.against}</td><td>${team.diff}</td><td class="pts">${team.points}</td></tr>`;
-                });
-                html += '</tbody></table></div>';
-                container.innerHTML = html;
-            } catch (e) { container.innerHTML = 'Failed to load standings'; }
+            const data = await fetchFromProxy(`${API_BASE}/matches/league_standing_stage/${id}`).catch(() => ({ data: {} }));
+            const teams = data.data?.league?.stage0 || [];
+            document.getElementById('standingsContainer').innerHTML = renderStandingsTable(teams, []);
         }
 
         // ============================================================
-        //  الأدوات المساعدة والبدء
+        //  التحميل والبدء
         // ============================================================
         function showLoading() { document.getElementById('loadingIndicator').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingIndicator').classList.add('hidden'); }
         function showError(msg) { document.getElementById('errorIndicator').textContent = msg; document.getElementById('errorIndicator').classList.remove('hidden'); }
+
+        function switchPitchTab(btn, showId, hideId) {
+            document.querySelectorAll('.pitch-tab').forEach(t => t.classList.remove('active'));
+            btn.classList.add('active');
+            document.getElementById(showId).style.display = 'block';
+            document.getElementById(hideId).style.display = 'none';
+        }
+        window.switchPitchTab = switchPitchTab;
+        
+        function quickSelectChampionship(url_id, title) { loadStandingsPage(url_id); }
+        window.quickSelectChampionship = quickSelectChampionship;
+        window.openTeamModal = openTeamModal;
+        window.openPlayerModal = openPlayerModal;
+        window.openCoachModal = openCoachModal;
+        window.openMatchDetails = openMatchDetails;
+        window.toggleFavorite = toggleFavorite;
+        window.changeCalMonth = changeCalMonth;
+        window.selectCalDate = selectCalDate;
+        window.applyCalendarFilter = applyCalendarFilter;
 
         async function init() {
             showLoading();
@@ -1307,33 +1106,15 @@
                 await loadNewsPage();
                 await loadCompetitionPage();
                 liveUpdateInterval = setInterval(() => loadLiveMatches(), 3000);
-                hideLoading();
             } catch (error) {
                 console.error(error);
                 showError("تعذر تحميل البيانات. تأكد من اتصالك بالإنترنت.");
+            } finally {
                 hideLoading();
             }
         }
 
-        // تعريف الدوال العامة
-        window.openTeamModal = openTeamModal;
-        window.openPlayerModal = openPlayerModal;
-        window.openCoachModal = openCoachModal;
-        window.openMatchDetails = openMatchDetails;
-        window.toggleFavorite = toggleFavorite;
-        window.switchPitchTab = function(btn, showId, hideId) {
-            document.querySelectorAll('.pitch-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(showId).style.display = 'block';
-            document.getElementById(hideId).style.display = 'none';
-        };
-        window.loadStandingsPage = loadStandingsPage;
-        window.changeCalMonth = changeCalMonth;
-        window.selectCalDate = selectCalDate;
-        window.applyCalendarFilter = applyCalendarFilter;
-
-        // بدء التطبيق
         init();
     </script>
 </body>
-    </html>
+                                                                                                            </html>
