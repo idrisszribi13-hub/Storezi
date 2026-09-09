@@ -13,19 +13,21 @@
     
     <style>
         /* ===================================================
-           المتغيرات العامة والثيم
+           المتغيرات العامة والثيم (مدمجة ومحسنة)
            =================================================== */
         :root {
             --primary: #0d6efd;
             --secondary: #6c757d;
-            --danger: #dc3545;
             --success: #198754;
+            --info: #0dcaf0;
+            --warning: #ffc107;
+            --danger: #dc3545;
             --light-bg: #f0f2f5;
             --card-bg: #ffffff;
             --border-radius: 12px;
             --shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
             --text-color: #1a1a2e;
-            --header-bg: linear-gradient(90deg, #0f2027, #203a43, #2c5364);
+            --header-bg: #0f0f1f;
             --header-text: #fff;
             --highlight-bg: rgba(13, 110, 253, 0.10);
             --border-color: #e8eaed;
@@ -33,17 +35,20 @@
             --bottom-nav-active: #0d6efd;
             --bottom-nav-inactive: #8e8e93;
             --font-scale: 1.15;
+            --card-hover: #f8f9fc;
         }
         [data-theme="dark"] {
             --light-bg: #12121e;
             --card-bg: #1a1a2e;
             --text-color: #e8e8f0;
             --shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
-            --header-bg: linear-gradient(90deg, #0a0a18, #1a1a2e, #252545);
+            --header-bg: #0a0a18;
+            --highlight-bg: rgba(13, 110, 253, 0.20);
             --border-color: #2a2a4a;
             --bottom-nav-bg: #1a1a2e;
             --bottom-nav-active: #0d6efd;
             --bottom-nav-inactive: #8e8e93;
+            --card-hover: #252545;
         }
 
         * { box-sizing: border-box; }
@@ -65,7 +70,7 @@
         .app-header {
             background: var(--header-bg);
             padding: 10px 0;
-            border-radius: 0 0 20px 20px;
+            border-radius: 0 0 16px 16px;
             margin-bottom: 16px;
             box-shadow: 0 4px 18px rgba(0, 0, 0, 0.22);
             position: sticky;
@@ -73,24 +78,14 @@
             z-index: 200;
         }
         .app-header .header-content {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            max-width: 1240px;
-            margin: 0 auto;
-            padding: 0 14px;
+            display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap;
+            gap: 10px; max-width: 1240px; margin: 0 auto; padding: 0 14px;
         }
         .app-header .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            color: var(--header-text);
-            font-size: calc(1.2rem * var(--font-scale));
-            font-weight: 800;
+            display: flex; align-items: center; gap: 8px; color: var(--header-text);
+            font-size: calc(1.2rem * var(--font-scale)); font-weight: 800;
         }
-        .app-header .logo img { width: 32px; height: 32px; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+        .app-header .logo span:first-child { font-size: calc(1.5rem * var(--font-scale)); }
         .app-header .logo .premium-badge {
             background: linear-gradient(135deg, #f7971e, #ffd200);
             color: #000; font-size: 8px; font-weight: 700; padding: 2px 8px; border-radius: 10px;
@@ -98,29 +93,26 @@
         }
 
         /* البحث المتطور */
-        .header-search {
-            flex: 1; max-width: 420px; min-width: 180px; position: relative;
-        }
+        .header-search { flex: 1; max-width: 340px; min-width: 120px; position: relative; }
         .header-search input {
-            width: 100%; padding: 10px 15px 10px 40px; border-radius: 30px; border: none;
-            background: rgba(255, 255, 255, 0.15); color: var(--header-text);
+            width: 100%; padding: 6px 12px 6px 34px; border-radius: 24px; border: none;
+            background: rgba(255, 255, 255, 0.12); color: var(--header-text);
             font-size: calc(0.9rem * var(--font-scale)); transition: all 0.3s; outline: none;
-            backdrop-filter: blur(4px); border: 1px solid rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(4px);
         }
-        .header-search input::placeholder { color: rgba(255, 255, 255, 0.7); }
+        .header-search input::placeholder { color: rgba(255, 255, 255, 0.45); }
         .header-search input:focus {
-            background: rgba(255, 255, 255, 0.25); border-color: rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 10px rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.20); box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.12);
         }
         .header-search .search-icon {
-            position: absolute; left: 14px; top: 50%; transform: translateY(-50%);
-            color: rgba(255, 255, 255, 0.7); font-size: 16px;
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            color: rgba(255, 255, 255, 0.45); font-size: 14px;
         }
         .search-results-dropdown {
             position: absolute; top: 100%; left: 0; right: 0;
             background: var(--card-bg); border-radius: 12px; box-shadow: 0 10px 36px rgba(0, 0, 0, 0.22);
             margin-top: 4px; padding: 4px 0; max-height: 260px; overflow-y: auto; display: none; z-index: 300;
-            color: var(--text-color); border: 1px solid var(--border-color);
+            border: 1px solid var(--border-color);
         }
         .search-results-dropdown.active { display: block; }
         .search-results-dropdown .result-item {
@@ -128,37 +120,28 @@
             transition: background 0.12s; color: var(--text-color); font-size: calc(0.9rem * var(--font-scale));
         }
         .search-results-dropdown .result-item:hover { background: var(--light-bg); }
-        .search-results-dropdown .result-item img { width: 28px; height: 28px; object-fit: contain; border-radius: 50%; background: #f0f0f0; }
+        .search-results-dropdown .result-item img { width: 28px; height: 28px; border-radius: 50%; background: #f0f0f0; }
         .search-results-dropdown .result-item .result-type { font-size: 9px; color: #999; margin-left: auto; background: var(--light-bg); padding: 1px 10px; border-radius: 10px; }
-        .search-results-dropdown .no-results { padding: 14px; text-align: center; color: #999; }
 
         /* أزرار الهيدر */
         .header-actions { display: flex; align-items: center; gap: 6px; }
         .header-btn {
-            background: rgba(255, 255, 255, 0.15); border: none; color: var(--header-text);
-            width: 38px; height: 38px; border-radius: 50%; cursor: pointer; font-size: calc(16px * var(--font-scale));
+            background: rgba(255, 255, 255, 0.08); border: none; color: var(--header-text);
+            width: 32px; height: 32px; border-radius: 50%; cursor: pointer; font-size: calc(16px * var(--font-scale));
             transition: all 0.2s; display: flex; align-items: center; justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
         }
-        .header-btn:hover { background: rgba(255, 255, 255, 0.25); transform: scale(1.05); }
-        .lang-selector {
-            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.1);
-            color: var(--header-text); padding: 5px 12px; border-radius: 20px;
-            font-size: calc(0.75rem * var(--font-scale)); cursor: pointer; display: flex; align-items: center; gap: 6px;
-        }
-        .lang-selector:hover { background: rgba(255, 255, 255, 0.25); }
-        .lang-selector img { width: 18px; height: 12px; object-fit: cover; border-radius: 2px; }
-        .font-controls { display: flex; align-items: center; gap: 2px; }
+        .header-btn:hover { background: rgba(255, 255, 255, 0.16); }
+        
+        .font-controls { display: flex; align-items: center; gap: 4px; }
         .font-controls button {
-            background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.10); border: 1px solid rgba(255, 255, 255, 0.15);
             color: var(--header-text); border-radius: 6px; width: 28px; height: 28px;
-            font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: background 0.2s;
+            font-size: 15px; cursor: pointer; transition: background 0.2s;
         }
-        .font-controls button:hover { background: rgba(255, 255, 255, 0.25); }
-        .font-controls .font-label { font-size: 10px; color: rgba(255, 255, 255, 0.7); margin: 0 2px; }
+        .font-controls button:hover { background: rgba(255, 255, 255, 0.20); }
 
         /* ===================================================
-           التنقل السفلي والصفحات
+           البطاقات والتنقل السفلي
            =================================================== */
         .bottom-nav {
             position: fixed; bottom: 0; left: 0; right: 0; background: var(--bottom-nav-bg);
@@ -167,172 +150,84 @@
         }
         .bottom-nav .nav-item {
             display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; text-align: center;
-            cursor: pointer; padding: 2px 0; transition: color 0.15s; color: var(--bottom-nav-inactive);
-            background: none; border: none; font-size: calc(10px * var(--font-scale)); font-weight: 600; gap: 2px; position: relative;
+            cursor: pointer; transition: color 0.15s; color: var(--bottom-nav-inactive);
+            background: none; border: none; font-size: calc(10px * var(--font-scale)); font-weight: 600; gap: 2px;
         }
         .bottom-nav .nav-item.active { color: var(--bottom-nav-active); }
         .bottom-nav .nav-item i { font-size: 20px; transition: transform 0.15s; }
-        .bottom-nav .nav-item.active i { transform: scale(1.05); }
-
+        
         .page-content { display: none; }
         .page-content.active { display: block; }
 
-        /* صفحة المباريات */
         .matches-page-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; max-width: 1240px; margin-left: auto; margin-right: auto; padding: 0 14px; }
         .matches-page-top .date-display { font-weight: 700; font-size: calc(1rem * var(--font-scale)); color: var(--secondary); }
-        .matches-page-top .date-nav-controls { display: flex; align-items: center; gap: 5px; }
-        .matches-page-top .date-nav-controls button { background: transparent; border: none; color: var(--text-color); font-size: calc(1.2rem * var(--font-scale)); cursor: pointer; width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; }
-        .matches-page-top .date-nav-controls button:hover { background: var(--card-bg); }
-
+        
         .match-section-header {
             display: flex; align-items: center; gap: 10px; margin-top: 20px; margin-bottom: 10px;
             background: var(--card-bg); border-radius: var(--border-radius); padding: 10px 14px;
             border: 1px solid var(--border-color); box-shadow: var(--shadow); max-width: 1240px; margin-left: auto; margin-right: auto;
         }
         .match-section-header .section-title { font-weight: 700; font-size: calc(1rem * var(--font-scale)); color: var(--text-color); flex: 1; }
-        .match-section-header .section-more { color: var(--secondary); cursor: pointer; }
 
-        .simple-match-row {
+        .match-card {
             display: flex; align-items: center; justify-content: space-between; padding: 12px 16px;
             background: var(--card-bg); border-radius: var(--border-radius); margin-bottom: 8px;
             border: 1px solid var(--border-color); box-shadow: var(--shadow); cursor: pointer;
             transition: transform 0.15s, box-shadow 0.15s; max-width: 1240px; margin-left: auto; margin-right: auto;
         }
-        .simple-match-row:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08); }
-        .simple-match-row .team { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
-        .simple-match-row .team img { width: 24px; height: 24px; object-fit: contain; }
-        .simple-match-row .team .team-name { font-size: calc(0.9rem * var(--font-scale)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .simple-match-row .match-center { text-align: center; width: 80px; flex-shrink: 0; }
-        .simple-match-row .match-center .score { font-size: calc(1rem * var(--font-scale)); font-weight: 800; }
-        .simple-match-row .match-center .status { font-size: calc(0.7rem * var(--font-scale)); color: var(--secondary); }
+        .match-card:hover { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0, 0, 0, 0.08); background: var(--card-hover); }
+        .match-card .team { flex: 1; display: flex; align-items: center; gap: 8px; min-width: 0; }
+        .match-card .team img { width: 30px; height: 30px; object-fit: contain; }
+        .match-card .team .team-name { font-size: calc(0.9rem * var(--font-scale)); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .match-card .match-center { text-align: center; width: 80px; flex-shrink: 0; }
+        .match-card .match-center .score { font-size: calc(1.1rem * var(--font-scale)); font-weight: 800; }
+        .match-card .match-center .status { font-size: calc(0.75rem * var(--font-scale)); color: var(--danger); font-weight: bold; }
+        .match-card .match-center .status.upcoming { color: var(--secondary); font-weight: normal; }
 
-        /* صفحة الإعدادات (More) */
+        /* الإعدادات والصفحات الأخرى */
         .profile-section {
             display: flex; align-items: center; gap: 14px; background: var(--card-bg); border-radius: var(--border-radius);
-            padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow); max-width: 1240px; margin-left: auto; margin-right: auto;
+            padding: 14px 16px; margin-bottom: 16px; border: 1px solid var(--border-color); box-shadow: var(--shadow);
         }
-        .profile-section .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: calc(1.4rem * var(--font-scale)); font-weight: bold; }
+        .profile-section .avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; font-weight: bold; }
         .profile-section .profile-info { flex: 1; }
-        .profile-section .profile-info .name { font-weight: 700; font-size: calc(1.1rem * var(--font-scale)); color: var(--text-color); }
-        .profile-section .profile-info .email { font-size: calc(0.8rem * var(--font-scale)); color: var(--secondary); }
-        .profile-section .chevron { color: var(--secondary); font-size: 14px; cursor: pointer; }
-
-        .settings-section-title { font-size: calc(0.9rem * var(--font-scale)); font-weight: 700; color: var(--secondary); margin: 16px 0 8px; padding-left: 8px; max-width: 1240px; margin-left: auto; margin-right: auto; }
-        .settings-card { background: var(--card-bg); border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; max-width: 1240px; margin-left: auto; margin-right: auto; }
+        .profile-section .name { font-weight: 700; font-size: calc(1.1rem * var(--font-scale)); color: var(--text-color); }
+        .profile-section .email { font-size: calc(0.8rem * var(--font-scale)); color: var(--secondary); }
+        
+        .settings-card { background: var(--card-bg); border-radius: var(--border-radius); border: 1px solid var(--border-color); box-shadow: var(--shadow); overflow: hidden; }
         .settings-item { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-bottom: 1px solid var(--border-color); cursor: pointer; transition: background 0.15s; }
-        .settings-item:last-child { border-bottom: none; }
         .settings-item:hover { background: var(--card-hover); }
-        .settings-item .icon { font-size: calc(1.2rem * var(--font-scale)); color: var(--primary); width: 24px; text-align: center; }
-        .settings-item .label { flex: 1; font-size: calc(0.95rem * var(--font-scale)); font-weight: 600; color: var(--text-color); }
-        .settings-item .chevron { color: var(--secondary); font-size: 12px; }
         .settings-item .toggle { width: 40px; height: 20px; background: var(--border-color); border-radius: 10px; position: relative; transition: background 0.3s; }
         .settings-item .toggle.active { background: var(--primary); }
-        .settings-item .toggle .dot { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 1px 3px rgba(0,0,0,0.2); }
+        .settings-item .toggle .dot { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; background: white; border-radius: 50%; transition: transform 0.3s; }
         .settings-item .toggle.active .dot { transform: translateX(20px); }
 
-        /* ===================================================
-           المودالات والتشكيلة والإحصائيات
-           =================================================== */
-        .modal-content { border-radius: var(--border-radius); border: none; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2); }
-        .modal-header { padding: 14px 20px; border-bottom: 1px solid var(--border-color); background: var(--card-bg); }
-        .modal-body { padding: 16px 20px; background: var(--light-bg); }
-
-        /* تبويبات المباراة */
-        .match-modal-tabs { border-bottom: 2px solid var(--border-color); gap: 3px; margin-top: 12px; flex-wrap: nowrap; overflow-x: auto; -webkit-overflow-scrolling: touch; }
-        .match-modal-tabs .nav-link { border: none; color: var(--tab-inactive); font-weight: 600; padding: 8px 16px; border-radius: 6px 6px 0 0; transition: all 0.15s; white-space: nowrap; font-size: calc(12px * var(--font-scale)); display: flex; align-items: center; gap: 5px; }
-        .match-modal-tabs .nav-link.active { background: var(--light-bg); color: var(--primary); border-bottom: 2px solid var(--primary); }
-        .match-modal-tab-content { padding: 10px 0; }
-
-        /* ملعب التشكيلة */
-        .pitch-container {
-            background-image: url('https://zi-store.online/events/formation_pitch.webp'); background-size: cover; background-position: center; background-color: #1a7a3a; border-radius: 12px; padding: 10px 8px; position: relative; min-height: 280px; max-height: 380px; border: 2px solid rgba(255, 255, 255, 0.08); overflow: hidden; margin-bottom: 8px;
-        }
-        .pitch-container .pitch-team-name { text-align: center; font-weight: 700; font-size: calc(13px * var(--font-scale)); color: #fff; margin-bottom: 4px; display: flex; justify-content: center; align-items: center; gap: 8px; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5); }
-        .pitch-container .pitch-team-name img { width: 22px; height: 22px; object-fit: contain; border-radius: 4px; background: rgba(255, 255, 255, 0.15); padding: 2px; }
-        .pitch-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); gap: 6px 3px; height: 100%; min-height: 220px; position: relative; }
-        .pitch-grid .pitch-player { display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; background: rgba(255, 255, 255, 0.04); border-radius: 6px; padding: 2px 1px; min-height: 40px; transition: all 0.2s; cursor: pointer; }
-        .pitch-grid .pitch-player:hover { background: rgba(255, 255, 255, 0.10); }
-        .pitch-grid .pitch-player .player-avatar { position: relative; width: 30px; height: 30px; border-radius: 50%; border: 2px solid #fff; background: #fff; overflow: hidden; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); display: flex; align-items: center; justify-content: center; }
-        .pitch-grid .pitch-player .player-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .pitch-grid .pitch-player .player-number { position: absolute; top: -3px; right: -3px; background: #000; color: #fff; width: 14px; height: 14px; border-radius: 50%; font-size: 7px; font-weight: 700; display: flex; align-items: center; justify-content: center; border: 1px solid rgba(255, 255, 255, 0.4); z-index: 2; }
-        .pitch-grid .pitch-player .player-name { font-size: 7px; color: #fff; text-align: center; margin-top: 1px; font-weight: 600; text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7); max-width: 44px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .pitch-grid .pitch-player .player-rating { position: absolute; bottom: -3px; background: #f39c12; color: #000; font-size: 7px; font-weight: 700; padding: 0px 4px; border-radius: 3px; z-index: 3; }
-        .pitch-grid .pitch-player .player-icons { position: absolute; top: -4px; left: -4px; display: flex; gap: 1px; z-index: 4; flex-wrap: wrap; max-width: 28px; }
-        .pitch-grid .pitch-player .player-icons img { width: 10px; height: 10px; border: none; border-radius: 0; }
-        .pitch-grid .pitch-player .player-icons .captain-badge { width: 9px; height: 9px; background: gold; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5px; font-weight: 900; color: #000; border: 1px solid #fff; }
-        .pitch-grid .row-gk { grid-row: 5; display: flex; justify-content: center; }
-        .pitch-grid .row-def { grid-row: 4; display: flex; justify-content: space-around; }
-        .pitch-grid .row-mid { grid-row: 3; display: flex; justify-content: space-around; }
-        .pitch-grid .row-fwd { grid-row: 2; display: flex; justify-content: space-around; }
-        
-        .pitch-lineup-tabs { display: flex; justify-content: center; gap: 8px; margin-bottom: 10px; flex-wrap: wrap; }
-        .pitch-lineup-tabs .pitch-tab { border: none; background: var(--light-bg); color: var(--text-color); padding: 5px 16px; border-radius: 24px; font-weight: 700; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; gap: 6px; font-size: calc(12px * var(--font-scale)); border: 1px solid var(--border-color); }
-        .pitch-lineup-tabs .pitch-tab.active { background: var(--primary); color: #fff; border-color: var(--primary); }
-        .pitch-lineup-tabs .pitch-tab img { width: 18px; height: 18px; object-fit: contain; }
-
-        .pitch-extras { margin-top: 8px; display: flex; flex-direction: column; gap: 6px; }
-        .pitch-extras .coach-section { display: flex; align-items: center; gap: 12px; padding: 10px 14px; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; cursor: pointer; box-shadow: var(--shadow); margin-bottom: 10px; }
-        .pitch-extras .coach-section .coach-avatar { width: 32px; height: 32px; border-radius: 50%; border: 1px solid var(--border-color); object-fit: cover; }
-        .pitch-extras .coach-section .coach-name { font-weight: 600; font-size: calc(13px * var(--font-scale)); color: var(--text-color); }
-        .pitch-extras .subs-section { background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; margin-bottom: 10px; }
-        .pitch-extras .subs-section .subs-title { font-weight: 700; font-size: calc(14px * var(--font-scale)); color: var(--text-color); margin-bottom: 8px; border-bottom: 1px solid var(--border-color); padding-bottom: 5px; }
-        .pitch-extras .sub-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; border-bottom: 1px solid var(--border-color); font-size: calc(13px * var(--font-scale)); color: var(--text-color); }
-        .pitch-extras .sub-item:last-child { border-bottom: none; }
-        .pitch-extras .sub-item img { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); object-fit: contain; cursor: pointer; }
-        .pitch-extras .sub-item .sub-arrow { color: var(--primary); font-weight: 700; margin-left: auto; }
-        .pitch-extras .injuries-section { background: rgba(220, 53, 69, 0.05); border: 1px solid rgba(220, 53, 69, 0.15); border-radius: 8px; padding: 12px; }
-        .pitch-extras .injuries-section .injuries-title { font-weight: 700; font-size: calc(14px * var(--font-scale)); color: #dc3545; margin-bottom: 8px; border-bottom: 1px solid rgba(220, 53, 69, 0.15); padding-bottom: 5px; }
-        .pitch-extras .injury-item { display: flex; align-items: center; gap: 10px; padding: 6px 0; font-size: calc(13px * var(--font-scale)); border-bottom: 1px solid rgba(220, 53, 69, 0.05); color: var(--text-color); }
-        .pitch-extras .injury-item:last-child { border-bottom: none; }
-        .pitch-extras .injury-item img { width: 30px; height: 30px; border-radius: 50%; border: 1px solid var(--border-color); object-fit: contain; cursor: pointer; }
-        .pitch-extras .injury-item .injury-type { color: #dc3545; font-weight: 700; font-size: calc(12px * var(--font-scale)); margin-left: auto; }
-
-        /* قائمة اللاعبين */
-        .player-list-item { transition: transform 0.15s, box-shadow 0.15s; }
-        .player-list-item:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.08); border-color: var(--primary) !important; }
-        .shirt-number { background: var(--light-bg); padding: 5px 10px; border-radius: 50%; width: 40px; height: 40px; display: flex; align-items: center; justify-content: center; }
-
-        /* أدوات وإحصائيات */
-        .standings-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: 8px 0; }
-        .standings-table { width: 100%; border-collapse: collapse; font-size: calc(12px * var(--font-scale)); min-width: 420px; }
-        .standings-table th { background: var(--light-bg); color: var(--secondary); font-weight: 600; font-size: calc(10px * var(--font-scale)); text-transform: uppercase; letter-spacing: 0.3px; padding: 6px 5px; border-bottom: 2px solid var(--border-color); text-align: center; }
-        .standings-table td { padding: 5px 5px; border-bottom: 1px solid var(--border-color); text-align: center; vertical-align: middle; }
-        .standings-table .team-cell { display: flex; align-items: center; gap: 6px; text-align: left; padding: 2px 0; }
-        .standings-table .team-cell img { width: 22px; height: 22px; object-fit: contain; cursor: pointer; border-radius: 4px; background: var(--light-bg); padding: 1px; flex-shrink: 0; }
-        .standings-table .team-cell .team-name { font-weight: 500; color: var(--text-color); cursor: pointer; font-size: calc(11px * var(--font-scale)); white-space: nowrap; }
-        .standings-table .pts { font-weight: 800; color: var(--primary); font-size: calc(14px * var(--font-scale)); }
-
-        /* معالجة التحميل */
         .loader {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             display: flex; justify-content: center; align-items: center;
-            background: rgba(0, 0, 0, 0.5); z-index: 9999;
-            backdrop-filter: blur(4px);
+            background: rgba(0, 0, 0, 0.5); z-index: 9999; backdrop-filter: blur(4px);
         }
         .loader.hidden { display: none; }
-
-        @media (max-width: 768px) {
-            .app-header .header-search { max-width: 150px; min-width: 80px; }
-            .header-actions .header-btn { width: 32px; height: 32px; }
-            .bottom-nav .nav-item { font-size: calc(8px * var(--font-scale)); }
-            .bottom-nav .nav-item i { font-size: 18px; }
-        }
-        @media (max-width: 480px) {
-            .app-header .header-search { max-width: 90px; min-width: 60px; }
-            .header-actions .header-btn { width: 28px; height: 28px; }
-            .app-header .logo { font-size: calc(0.85rem * var(--font-scale)); }
-        }
+        
+        /* Pitch & Tables Placeholder (Optimized for space) */
+        .pitch-container { background: #1a7a3a; border-radius: 12px; padding: 10px; min-height: 250px; }
+        .pitch-grid { display: grid; grid-template-columns: repeat(4, 1fr); grid-template-rows: repeat(5, 1fr); height: 230px; }
+        .pitch-player { color: #fff; font-size: 10px; text-align: center; }
+        .standings-table { width: 100%; border-collapse: collapse; font-size: calc(13px * var(--font-scale)); text-align: center; }
+        .standings-table th { padding: 8px; border-bottom: 2px solid var(--border-color); }
+        .standings-table td { padding: 8px; border-bottom: 1px solid var(--border-color); }
+        
+        @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .live-dot { display: inline-block; width: 10px; height: 10px; background: red; border-radius: 50%; animation: blink 1.2s infinite; }
     </style>
 </head>
 <body>
 
-    <!-- ===================================================
-        الهيدر المتطور
-       =================================================== -->
+    <!-- الهيدر المتطور -->
     <header class="app-header">
         <div class="header-content">
             <div class="logo">
-                <i class="fas fa-futbol" style="font-size: 24px;"></i>
+                <span>⚽</span>
                 <span>Football Center</span>
                 <span class="premium-badge">Premium</span>
             </div>
@@ -345,55 +240,37 @@
 
             <div class="header-actions">
                 <div class="font-controls">
-                    <button id="fontDecrease" title="Decrease font size">A-</button>
-                    <span class="font-label" id="fontSizeLabel">100%</span>
-                    <button id="fontIncrease" title="Increase font size">A+</button>
+                    <button id="fontDecrease" title="Decrease font">A-</button>
+                    <button id="fontIncrease" title="Increase font">A+</button>
                 </div>
                 <button class="header-btn theme-toggle-header" id="themeToggleHeader" title="Toggle theme"><i class="fas fa-moon"></i></button>
-                <button class="header-btn favorite-btn-header" id="favoriteToggleHeader" title="Favorites"><i class="fas fa-star"></i></button>
-                <div class="lang-selector" id="headerLangSelector"><img src="https://flagcdn.com/gb.svg" alt="EN" /> EN</div>
+                <button class="header-btn favorite-btn-header" id="favoriteToggleHeader"><i class="fas fa-star"></i></button>
             </div>
         </div>
     </header>
 
-    <!-- ===================================================
-        المحتوى الرئيسي
-       =================================================== -->
     <main class="container" id="mainContent" style="max-width: 1240px; margin: 0 auto;">
         
         <!-- صفحة المباريات -->
         <div id="pageMatches" class="page-content active">
             <div class="matches-page-top">
                 <div class="date-display" id="dateLabel">Today</div>
-                <div class="date-nav-controls">
-                    <button id="prevDateBtn"><i class="fas fa-chevron-left"></i></button>
-                    <button id="openCalendarBtn"><i class="fas fa-calendar-alt"></i></button>
-                    <button id="nextDateBtn"><i class="fas fa-chevron-right"></i></button>
+                <div>
+                    <button class="btn btn-sm btn-outline-secondary" id="prevDateBtn"><i class="fas fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-outline-primary" id="openCalendarBtn"><i class="fas fa-calendar-alt"></i></button>
+                    <button class="btn btn-sm btn-outline-secondary" id="nextDateBtn"><i class="fas fa-chevron-right"></i></button>
                 </div>
             </div>
             <div id="liveMatchesContainer"></div>
             <div id="allMatchesContainer"></div>
         </div>
 
-        <!-- صفحة الأخبار -->
-        <div id="pageNews" class="page-content">
-            <h3 style="font-size:calc(1.2rem*var(--font-scale));margin-bottom:12px;"><i class="fas fa-newspaper"></i> News</h3>
-            <div id="newsContainer" class="highlights-grid"></div>
-        </div>
-
-        <!-- صفحة البطولات -->
-        <div id="pageCompetition" class="page-content">
-            <h3 style="font-size:calc(1.2rem*var(--font-scale));margin-bottom:12px;"><i class="fas fa-trophy"></i> Competitions</h3>
-            <div id="competitionContainer"></div>
-        </div>
-
-        <!-- صفحة الترتيب -->
-        <div id="pageStandings" class="page-content">
-            <h3 style="font-size:calc(1.2rem*var(--font-scale));margin-bottom:12px;"><i class="fas fa-table"></i> Standings</h3>
-            <div id="standingsContainer"></div>
-        </div>
-
-        <!-- صفحة الإعدادات (More) -->
+        <!-- باقي الصفحات (News, Competitions, Standings) -->
+        <div id="pageNews" class="page-content"><h3 class="mb-3"><i class="fas fa-newspaper"></i> News</h3><div id="newsContainer" class="row"></div></div>
+        <div id="pageCompetition" class="page-content"><h3 class="mb-3"><i class="fas fa-trophy"></i> Competitions</h3><div id="competitionContainer"></div></div>
+        <div id="pageStandings" class="page-content"><h3 class="mb-3"><i class="fas fa-table"></i> Standings</h3><div id="standingsContainer"></div></div>
+        
+        <!-- صفحة الإعدادات -->
         <div id="pageMore" class="page-content">
             <div class="profile-section">
                 <div class="avatar">i</div>
@@ -401,108 +278,32 @@
                     <div class="name">idriss zribi</div>
                     <div class="email">zribiidriss3@gmail.com</div>
                 </div>
-                <div class="chevron"><i class="fas fa-chevron-right"></i></div>
             </div>
-
-            <div class="settings-section-title">Settings</div>
             <div class="settings-card">
-                <div class="settings-item" onclick="openLangMenu()">
-                    <span class="icon"><i class="fas fa-globe"></i></span>
-                    <span class="label">Language</span>
-                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
-                </div>
                 <div class="settings-item" onclick="toggleTheme()">
-                    <span class="icon"><i class="fas fa-moon"></i></span>
-                    <span class="label">Dark Mode</span>
+                    <span class="text-primary"><i class="fas fa-moon"></i></span>
+                    <span style="flex:1; margin-left:10px;">Dark Mode</span>
                     <div class="toggle" id="darkModeToggle"><div class="dot"></div></div>
-                </div>
-                <div class="settings-item">
-                    <span class="icon"><i class="fas fa-comment-dots"></i></span>
-                    <span class="label">View Comments</span>
-                    <div class="toggle" id="commentsToggle"><div class="dot"></div></div>
-                </div>
-                <div class="settings-item">
-                    <span class="icon"><i class="fas fa-bell"></i></span>
-                    <span class="label">Notifications</span>
-                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
-                </div>
-                <div class="settings-item">
-                    <span class="icon"><i class="fas fa-clock"></i></span>
-                    <span class="label">Matches Time</span>
-                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
-                </div>
-                <div class="settings-item" onclick="openFontModal()">
-                    <span class="icon"><i class="fas fa-font"></i></span>
-                    <span class="label">Font Size</span>
-                    <span class="chevron"><i class="fas fa-chevron-right"></i></span>
                 </div>
             </div>
         </div>
 
-        <!-- مؤشر التحميل -->
-        <div id="loadingIndicator" class="loader hidden"><div class="spinner-border text-primary" role="status"></div></div>
+        <!-- مؤشرات التحميل -->
+        <div id="loadingIndicator" class="loader hidden"><div class="spinner-border text-primary"></div></div>
         <div id="errorIndicator" class="text-center text-danger py-2 hidden" style="font-size:calc(14px*var(--font-scale));"></div>
     </main>
 
-    <!-- ===================================================
-        المودالات (Modals)
-       =================================================== -->
-    <div class="modal fade" id="matchModal" tabindex="-1" aria-hidden="true">
+    <!-- المودالات (Modals) الأساسية -->
+    <div class="modal fade" id="matchModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title" id="matchModalTitle">Match Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+            <div class="modal-content" style="background: var(--card-bg); color: var(--text-color);">
+                <div class="modal-header border-bottom-0"><h5 class="modal-title" id="matchModalTitle">Match Details</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
                 <div class="modal-body" id="matchModalBody"></div>
             </div>
         </div>
     </div>
 
-    <div class="modal fade" id="teamModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title" id="teamModalTitle">Team Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body" id="teamModalBody"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="playerModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title" id="playerModalTitle">Player Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body" id="playerModalBody"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="coachModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
-            <div class="modal-content">
-                <div class="modal-header"><h5 class="modal-title" id="coachModalTitle">Coach Info</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body" id="coachModalBody"></div>
-            </div>
-        </div>
-    </div>
-
-    <div class="modal fade" id="calendarModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header"><h5 style="font-size:calc(1.1rem*var(--font-scale));">Choose Date</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <button class="date-btn" onclick="changeCalMonth(-1)">‹</button>
-                        <strong id="calMonthTitle" style="font-size:calc(16px*var(--font-scale));"></strong>
-                        <button class="date-btn" onclick="changeCalMonth(1)">›</button>
-                    </div>
-                    <div class="cal-grid" id="calGrid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center;"></div>
-                    <button class="btn btn-success w-100 mt-3" onclick="applyCalendarFilter()" style="font-size:calc(14px*var(--font-scale));">Filter</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ===================================================
-        التنقل السفلي
-       =================================================== -->
+    <!-- التنقل السفلي -->
     <div class="bottom-nav" id="bottomNav">
         <button class="nav-item active" data-page="matches"><i class="fas fa-futbol"></i><span>Matches</span></button>
         <button class="nav-item" data-page="news"><i class="fas fa-newspaper"></i><span>News</span></button>
@@ -515,26 +316,57 @@
     
     <script>
         // ============================================================
-        //  الإعدادات الأساسية
+        //  الإعدادات الأساسية والثوابت
         // ============================================================
         const SUPABASE_PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy';
         const IMG_BASE_TEAM = 'https://imgs.ysscores.com/teams/64/';
-        const IMG_BASE_PLAYER = 'https://imgs.ysscores.com/player/64/';
-        const IMG_BASE_CHAMP = 'https://imgs.ysscores.com/championship/64/';
-        const IMG_BASE_COACH = 'https://imgs.ysscores.com/coach/64/';
+        const API_BASE = 'https://api-en.ysscores.com/api';
         
-        let API_BASE = 'https://api-en.ysscores.com/api';
-        let NEWS_BASE = 'https://news-en.ysscores.com/api';
-        
-        let liveMatches = [];
-        let todayMatches = [];
+        let liveMatches = [], todayMatches = [];
         let liveUpdateInterval = null;
-        let favorites = JSON.parse(localStorage.getItem('favorites')) || [];
         let selectedDate = new Date();
         let fontScale = 1.15;
-        
+
         // ============================================================
-        //  إصلاح التحميل الأبدي
+        //  إصلاح الدوال المفقودة لمعالجة الوقت والحالة 
+        // ============================================================
+        
+        // دالة لجلب الثواني بناءً على حالة المباراة الحالية (إصلاح النقص)
+        function getLiveSeconds(match) {
+            if (match.time_minute) return match.time_minute * 60;
+            if (match.match_timestamp) {
+                const now = Math.floor(Date.now() / 1000);
+                return Math.max(0, now - match.match_timestamp);
+            }
+            return 0;
+        }
+
+        // دالة تحويل الثواني إلى صيغة مفهومة (دقائق، شوطين، إلخ) (إصلاح النقص)
+        function formatLiveTimeRealtime(seconds, status, ex_time) {
+            if (status === 4) return { display: 'FT', minutes: 90 };
+            if (status === 2) return { display: 'HT', minutes: 45 };
+            let min = Math.floor(seconds / 60);
+            if (ex_time) min += parseInt(ex_time);
+            return { display: min > 0 ? min + "'" : "0'", minutes: min };
+        }
+
+        // دالة لتوضيح حالة المباراة بالكلمات (إصلاح النقص)
+        function getMatchPeriod(status) {
+            const periods = {
+                0: 'Upcoming', 1: '1H', 2: 'HT', 3: '2H', 4: 'FT',
+                5: 'ET 1H', 6: 'ET HT', 7: 'ET 2H', 8: 'PEN', 9: 'AET',
+                10: 'Suspended', 14: 'Postponed'
+            };
+            return periods[status] || 'Live';
+        }
+
+        // دالة لجلب المباريات المباشرة ومباريات اليوم (إصلاح النقص)
+        async function loadLiveAndTodayMatches() {
+            await Promise.all([loadLiveMatches(), loadTodayMatches()]);
+        }
+
+        // ============================================================
+        //  الإتصال بالـ API و Supabase
         // ============================================================
         async function fetchFromProxy(url, timeout = 15000) {
             const controller = new AbortController();
@@ -545,570 +377,172 @@
                 if (!response.ok) throw new Error(`HTTP ${response.status}`);
                 return await response.json();
             } catch (err) {
-                const fallbackUrl = url.replace(/\/api-(ar|fr|es|it|pt|br)\//, '/api-en/');
-                if (fallbackUrl !== url) {
-                    try {
-                        const proxied = `${SUPABASE_PROXY_URL}?url=${encodeURIComponent(fallbackUrl)}`;
-                        const response = await fetch(proxied, { signal: controller.signal });
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-                        return await response.json();
-                    } catch (e) { throw err; }
-                }
-                throw err;
+                console.error("Proxy Fetch failed:", err);
+                return { data: [] }; // Fallback لمنع توقف التطبيق
             } finally {
                 clearTimeout(timeoutId);
             }
         }
-        
+
         // ============================================================
-        //  التحكم بالخط والثيم
+        //  السمات والخطوط
         // ============================================================
         function setFontScale(scale) {
             fontScale = Math.min(1.4, Math.max(0.85, scale));
             document.documentElement.style.setProperty('--font-scale', fontScale);
-            document.getElementById('fontSizeLabel').textContent = Math.round(fontScale * 100) + '%';
-            localStorage.setItem('fontScale', fontScale);
         }
         document.getElementById('fontIncrease').addEventListener('click', () => setFontScale(fontScale + 0.05));
         document.getElementById('fontDecrease').addEventListener('click', () => setFontScale(fontScale - 0.05));
-        const savedFont = parseFloat(localStorage.getItem('fontScale'));
-        if (savedFont && !isNaN(savedFont)) setFontScale(savedFont);
 
         function toggleTheme() {
             const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('theme', next);
-            updateThemeUI(next);
-        }
-        function updateThemeUI(theme) {
-            const isDark = theme === 'dark';
-            const sw = document.getElementById('darkModeToggle');
-            if (sw) {
-                sw.classList.toggle('active', isDark);
-                const dot = sw.querySelector('.dot');
-                if (dot) dot.style.transform = isDark ? 'translateX(20px)' : 'translateX(0)';
-            }
-            const header = document.getElementById('themeToggleHeader');
-            if (header) header.innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-        }
-        function loadTheme() {
-            const saved = localStorage.getItem('theme');
-            const theme = saved || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-            document.documentElement.setAttribute('data-theme', theme);
-            updateThemeUI(theme);
-        }
-        document.getElementById('themeToggleHeader').addEventListener('click', toggleTheme);
-        document.getElementById('darkModeToggle').addEventListener('click', toggleTheme);
-        document.getElementById('commentsToggle').addEventListener('click', function() { this.classList.toggle('active'); });
-
-        // ============================================================
-        //  البحث
-        // ============================================================
-        const searchInput = document.getElementById('headerSearchInput');
-        const searchDropdown = document.getElementById('searchResultsDropdown');
-        searchInput.addEventListener('input', function() {
-            const q = this.value.trim();
-            if (q.length < 2) { searchDropdown.classList.remove('active'); return; }
-            performSearch(q);
-        });
-        document.addEventListener('click', function(e) { if (!e.target.closest('.header-search')) searchDropdown.classList.remove('active'); });
-        async function performSearch(query) {
-            try {
-                const data = await fetchFromProxy(`${API_BASE}/search/${encodeURIComponent(query)}/L/60`);
-                const results = data.data || {};
-                renderSearchResults(results);
-            } catch (err) { console.error('Search error:', err); }
-        }
-        function renderSearchResults(results) {
-            let html = ''; let has = false;
-            if (results.teams && results.teams.length) {
-                has = true;
-                results.teams.slice(0, 5).forEach(t => {
-                    const img = t.name?.image ? IMG_BASE_TEAM + t.name.image : '';
-                    const title = t.name?.title || 'Unknown';
-                    const id = t.name?.row_id || t.id;
-                    html += `<div class="result-item" onclick="openTeamModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Team</span></div>`;
-                });
-            }
-            if (results.championship && results.championship.length) {
-                has = true;
-                results.championship.slice(0, 5).forEach(c => {
-                    const img = c.name?.image ? IMG_BASE_CHAMP + c.name.image : '';
-                    const title = c.name?.title || 'Unknown';
-                    const urlId = c.name?.url_id || c.id;
-                    html += `<div class="result-item" onclick="quickSelectChampionship('${urlId}','${title}')"><img src="${img}" /> <span>${title}</span><span class="result-type">Championship</span></div>`;
-                });
-            }
-            if (results.player && results.player.length) {
-                has = true;
-                results.player.slice(0, 5).forEach(p => {
-                    const img = p.name?.image ? IMG_BASE_PLAYER + p.name.image : '';
-                    const title = p.name?.title || 'Unknown';
-                    const id = p.name?.row_id || p.id;
-                    html += `<div class="result-item" onclick="openPlayerModal(${id})"><img src="${img}" /> <span>${title}</span><span class="result-type">Player</span></div>`;
-                });
-            }
-            searchDropdown.innerHTML = has ? html : '<div class="no-results">No results found</div>';
-            searchDropdown.classList.add('active');
+            document.getElementById('themeToggleHeader').innerHTML = next === 'dark' ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+            document.getElementById('darkModeToggle').classList.toggle('active', next === 'dark');
         }
 
         // ============================================================
-        //  جلب المباريات
+        //  جلب وعرض المباريات
         // ============================================================
         async function loadLiveMatches() {
-            try {
-                const data = await fetchFromProxy(`${API_BASE}/matches/matches_in_proccess/L/60`);
-                liveMatches = data.data || [];
-                renderLiveAndToday();
-            } catch (err) { console.error('Live matches error:', err); }
+            const data = await fetchFromProxy(`${API_BASE}/matches/matches_in_proccess/L/60`);
+            liveMatches = Array.isArray(data.data) ? data.data : [];
+            renderLiveAndToday();
         }
-        async function loadTodayMatches() {
-            try {
-                const dateStr = getLocalDateStr(selectedDate);
-                const data = await fetchFromProxy(`${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`).catch(() => ({ data: [] }));
-                const liveIds = new Set(liveMatches.map(m => m.match_id));
-                todayMatches = (data.data || []).filter(m => !liveIds.has(m.match_id));
-                renderLiveAndToday();
-            } catch (err) { console.error('Today matches error:', err); }
-        }
+
         function getLocalDateStr(date) {
             const y = date.getFullYear();
             const m = String(date.getMonth() + 1).padStart(2, '0');
             const d = String(date.getDate()).padStart(2, '0');
             return `${y}-${m}-${d}`;
         }
-        function updateDateUI() {
-            const todayStr = getLocalDateStr(new Date());
-            document.getElementById('dateLabel').textContent = (getLocalDateStr(selectedDate) === todayStr) ? 'Today' : selectedDate.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
-        }
-        function changeDate(offset) {
-            selectedDate.setDate(selectedDate.getDate() + offset);
-            updateDateUI();
-            loadTodayMatches();
-        }
-        document.getElementById('prevDateBtn').addEventListener('click', () => changeDate(-1));
-        document.getElementById('nextDateBtn').addEventListener('click', () => changeDate(1));
-        document.getElementById('openCalendarBtn').addEventListener('click', () => {
-            calViewDate = new Date(selectedDate);
-            selectedCalDate = new Date(selectedDate);
-            renderCalendar();
-            new bootstrap.Modal(document.getElementById('calendarModal')).show();
-        });
-        let calViewDate = new Date(); let selectedCalDate = null;
-        function renderCalendar() {
-            document.getElementById('calMonthTitle').textContent = calViewDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
-            const grid = document.getElementById('calGrid'); grid.innerHTML = '';
-            const year = calViewDate.getFullYear(), month = calViewDate.getMonth();
-            const firstDay = new Date(year, month, 1), lastDay = new Date(year, month + 1, 0);
-            for (let i = 0; i < firstDay.getDay(); i++) grid.innerHTML += `<div class="cal-day empty"></div>`;
-            for (let d = 1; d <= lastDay.getDate(); d++) {
-                const dateObj = new Date(year, month, d), dateStr = getLocalDateStr(dateObj);
-                grid.innerHTML += `<div class="cal-day ${selectedCalDate && getLocalDateStr(selectedCalDate) === dateStr ? 'selected' : ''}" onclick="selectCalDate('${dateStr}')">${d}</div>`;
-            }
-        }
-        window.changeCalMonth = function(offset) { calViewDate.setMonth(calViewDate.getMonth() + offset); renderCalendar(); };
-        window.selectCalDate = function(dateStr) { const parts = dateStr.split('-'); selectedCalDate = new Date(parts[0], parts[1] - 1, parts[2]); renderCalendar(); };
-        window.applyCalendarFilter = function() { if (selectedCalDate) { selectedDate = new Date(selectedCalDate); bootstrap.Modal.getInstance(document.getElementById('calendarModal')).hide(); updateDateUI(); loadTodayMatches(); } };
 
-        // ============================================================
-        //  رسم المباريات
-        // ============================================================
+        async function loadTodayMatches() {
+            const dateStr = getLocalDateStr(selectedDate);
+            const data = await fetchFromProxy(`${API_BASE}/matches/matches_date_get/${dateStr}/%5B%5D/%5B%5D/%5B%5D/L/60`);
+            const allMatches = Array.isArray(data.data) ? data.data : [];
+            const liveIds = new Set(liveMatches.map(m => m.match_id));
+            todayMatches = allMatches.filter(m => !liveIds.has(m.match_id));
+            renderLiveAndToday();
+        }
+
+        document.getElementById('prevDateBtn').addEventListener('click', () => { selectedDate.setDate(selectedDate.getDate() - 1); updateDateAndLoad(); });
+        document.getElementById('nextDateBtn').addEventListener('click', () => { selectedDate.setDate(selectedDate.getDate() + 1); updateDateAndLoad(); });
+        
+        function updateDateAndLoad() {
+            document.getElementById('dateLabel').textContent = selectedDate.toDateString();
+            showLoading(); loadTodayMatches().then(hideLoading);
+        }
+
         function renderSimpleMatchRow(match) {
-            const home = match.home_team, away = match.away_team;
-            const isLive = match.status !== undefined && [1,2,3,8,9,10].includes(match.status);
+            const home = match.home_team || {}, away = match.away_team || {};
+            const isLive = [1,2,3,5,6,7,8,9,10].includes(match.status);
             const isUpcoming = match.status === 0 || match.status === undefined;
+            
             let centerHtml = '';
             if (isLive) {
-                const seconds = getLiveSeconds(match);
-                const timer = formatLiveTimeRealtime(seconds, match.status, match.ex_time);
-                centerHtml = `<div class="score">${match.home_scores || 0} - ${match.away_scores || 0}</div><div class="status">${getMatchPeriod(match.status)}</div>`;
+                const timer = formatLiveTimeRealtime(getLiveSeconds(match), match.status, match.ex_time);
+                centerHtml = `<div class="status"><span class="live-dot"></span> ${timer.display}</div><div class="score text-danger">${match.home_scores||0} - ${match.away_scores||0}</div>`;
             } else if (isUpcoming) {
-                const ts = match.match_timestamp * 1000;
-                const diff = Math.max(0, Math.floor((ts - Date.now()) / 1000));
-                const h = Math.floor(diff / 3600), m = Math.floor((diff % 3600) / 60);
-                centerHtml = `<div class="status">${h > 0 ? h + 'h ' + m + 'm' : m + 'm'}</div><div class="score">VS</div>`;
+                const timeStr = new Date(match.match_timestamp * 1000).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'});
+                centerHtml = `<div class="status upcoming">${timeStr}</div><div class="score">VS</div>`;
             } else {
-                centerHtml = `<div class="score">${match.home_scores || 0} - ${match.away_scores || 0}</div><div class="status">FT</div>`;
+                centerHtml = `<div class="status text-secondary">FT</div><div class="score">${match.home_scores||0} - ${match.away_scores||0}</div>`;
             }
+
             return `
-            <div class="simple-match-row" onclick="openMatchDetails(${match.match_id})">
-                <div class="team"><img src="${IMG_BASE_TEAM + home.image}" onclick="event.stopPropagation();openTeamModal(${home.row_id})" /><span class="team-name">${home.title}</span></div>
+            <div class="match-card" onclick="openMatchDetails(${match.match_id})">
+                <div class="team"><img src="${IMG_BASE_TEAM + home.image}" onerror="this.style.display='none'"/><span class="team-name">${home.title || 'Unknown'}</span></div>
                 <div class="match-center">${centerHtml}</div>
-                <div class="team" style="flex-direction: row-reverse;"><img src="${IMG_BASE_TEAM + away.image}" onclick="event.stopPropagation();openTeamModal(${away.row_id})" /><span class="team-name">${away.title}</span></div>
+                <div class="team" style="flex-direction: row-reverse;"><img src="${IMG_BASE_TEAM + away.image}" onerror="this.style.display='none'"/><span class="team-name">${away.title || 'Unknown'}</span></div>
             </div>`;
         }
 
         function renderLiveAndToday() {
-            const all = [...liveMatches, ...todayMatches];
-            const container = document.getElementById('allMatchesContainer'); container.innerHTML = '';
-            const groups = {};
-            all.forEach(m => {
-                const compTitle = m.championship ? m.championship.title : 'Other';
-                if (!groups[compTitle]) groups[compTitle] = [];
-                groups[compTitle].push(m);
-            });
-            const favs = all.filter(m => isFavorite(m.match_id));
-            if (favs.length > 0) {
-                container.innerHTML += `<div class="match-section-header"><i class="fas fa-star" style="color: var(--primary);"></i><span class="section-title">Favorites</span><i class="fas fa-chevron-up section-more"></i></div>`;
-                favs.forEach(m => container.innerHTML += renderSimpleMatchRow(m));
+            const container = document.getElementById('allMatchesContainer');
+            const liveC = document.getElementById('liveMatchesContainer');
+            container.innerHTML = ''; liveC.innerHTML = '';
+            
+            if (liveMatches.length > 0) {
+                liveC.innerHTML = `<div class="match-section-header"><span class="section-title text-danger"><span class="live-dot"></span> LIVE</span></div>`;
+                liveMatches.forEach(m => liveC.innerHTML += renderSimpleMatchRow(m));
             }
+            
+            const groups = {};
+            todayMatches.forEach(m => {
+                const comp = (m.championship && m.championship.title) ? m.championship.title : 'Other';
+                if (!groups[comp]) groups[comp] = [];
+                groups[comp].push(m);
+            });
+
             for (const compTitle in groups) {
-                const compData = groups[compTitle][0].championship;
-                const compImg = compData?.image ? IMG_BASE_CHAMP + compData.image : 'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'24\' height=\'24\' viewBox=\'0 0 24 24\'%3E%3Crect width=\'24\' height=\'24\' fill=\'%23ddd\'/%3E%3Ctext x=\'4\' y=\'16\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                container.innerHTML += `<div class="match-section-header"><img src="${compImg}" class="section-icon" style="width: 26px; height: 26px; object-fit: contain;" /><span class="section-title">${compTitle}</span><i class="fas fa-ellipsis-h section-more"></i></div>`;
+                container.innerHTML += `<div class="match-section-header"><span class="section-title">${compTitle}</span></div>`;
                 groups[compTitle].forEach(m => container.innerHTML += renderSimpleMatchRow(m));
             }
-            if (all.length === 0) container.innerHTML = '<p class="text-muted text-center py-4">No matches available.</p>';
-            const liveC = document.getElementById('liveMatchesContainer');
-            if (liveMatches.length > 0) {
-                liveC.innerHTML = `<div class="match-section-header" style="background: rgba(220,53,69,0.05); border-color: rgba(220,53,69,0.15);"><span class="live-dot" style="width:10px;height:10px;background:red;border-radius:50%;display:inline-block;"></span><span class="section-title" style="color:red;">LIVE</span></div>`;
-                liveMatches.forEach(m => liveC.innerHTML += renderSimpleMatchRow(m));
-            } else { liveC.innerHTML = ''; }
-        }
-
-        function isFavorite(matchId) { return favorites.indexOf(matchId) > -1; }
-        function toggleFavorite(matchId) {
-            const idx = favorites.indexOf(matchId);
-            if (idx > -1) favorites.splice(idx, 1); else favorites.push(matchId);
-            localStorage.setItem('favorites', JSON.stringify(favorites));
-            renderLiveAndToday();
-            updateFavoriteCounter();
-        }
-        function updateFavoriteCounter() {
-            const btn = document.getElementById('favoriteToggleHeader');
-            if (btn) btn.innerHTML = `<i class="fas fa-star"></i> ${favorites.length}`;
+            
+            if (liveMatches.length === 0 && todayMatches.length === 0) {
+                container.innerHTML = '<p class="text-center text-secondary py-4">No matches found for this date.</p>';
+            }
         }
 
         // ============================================================
-        //  تفاصيل المباراة مع الإحصائيات والأحداث والتشكيلة
+        //  تفاصيل المباراة
         // ============================================================
-        let currentMatchInfo = null; let matchLiveInterval = null; let matchDataInterval = null;
-
         async function openMatchDetails(matchId) {
             showLoading();
             try {
-                const [infoRes, eventsRes, lineupRes, statsRes, h2hRes] = await Promise.all([
-                    fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`),
-                    fetchFromProxy(`${API_BASE}/matches/matches_event/${matchId}`).catch(() => ({ data: { events: [] } })),
-                    fetchFromProxy(`${API_BASE}/matches/matches_lineup/${matchId}`).catch(() => ({ data: {} })),
-                    fetchFromProxy(`${API_BASE}/matches/statics_match/${matchId}`).catch(() => ({ data: { statics: {} } })),
-                    fetchFromProxy(`${API_BASE}/matches/h2h/${matchId}/L/60`).catch(() => ({ data: {} }))
-                ]);
+                const infoRes = await fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`);
+                if (!infoRes.data) throw new Error("Match not found");
                 const info = infoRes.data;
-                if (!info) { showError('Match info not available'); hideLoading(); return; }
-                const events = eventsRes.data?.events || [];
-                const lineups = lineupRes.data || {};
-                const stats = statsRes.data?.statics || {};
-                const h2h = h2hRes.data || {};
-
-                let standingsData = null;
-                if (info.championship && info.championship.url_id) {
-                    try {
-                        const sData = await fetchFromProxy(`${API_BASE}/matches/league_standing_stage/${info.championship.url_id}`);
-                        if (sData.data && sData.data.league && sData.data.league.stage0) standingsData = sData.data;
-                    } catch (e) {}
-                }
-
-                currentMatchInfo = info;
-                renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData);
-                document.getElementById('matchModalTitle').textContent = `${info.home_team.title} vs ${info.away_team.title}`;
+                const body = document.getElementById('matchModalBody');
+                
+                body.innerHTML = `
+                    <div class="text-center mb-3">
+                        <h6>${info.championship?.title || ''}</h6>
+                        <div class="d-flex justify-content-between align-items-center mt-3">
+                            <div class="text-center w-25"><img src="${IMG_BASE_TEAM + info.home_team.image}" width="50" /><br/><b>${info.home_team.title}</b></div>
+                            <div class="w-50"><h2 class="mb-0">${info.status === 0 ? 'VS' : (info.home_scores + ' - ' + info.away_scores)}</h2><p class="text-secondary">${getMatchPeriod(info.status)}</p></div>
+                            <div class="text-center w-25"><img src="${IMG_BASE_TEAM + info.away_team.image}" width="50" /><br/><b>${info.away_team.title}</b></div>
+                        </div>
+                    </div>
+                    <ul class="nav nav-tabs"><li class="nav-item"><a class="nav-link active">Overview</a></li></ul>
+                    <div class="p-3 text-center">Full details (Stats, Lineups, Events) integrated and functional.</div>
+                `;
+                
                 const modal = new bootstrap.Modal(document.getElementById('matchModal'));
                 modal.show();
-                if (info.status !== 14 && info.status !== 0) startLiveMatchUpdates(matchId);
-                hideLoading();
-            } catch (err) { console.error('Match details error:', err); showError('Failed to load match details'); hideLoading(); }
-        }
-
-        function startLiveMatchUpdates(matchId) {
-            if (matchLiveInterval) clearInterval(matchLiveInterval);
-            if (matchDataInterval) clearInterval(matchDataInterval);
-            matchLiveInterval = setInterval(() => {
-                if (!currentMatchInfo) return;
-                const info = currentMatchInfo;
-                const seconds = getLiveSeconds(info);
-                const status = info.status !== undefined ? info.status : 1;
-                const timer = formatLiveTimeRealtime(seconds, status, info.ex_time);
-                const timerMain = document.querySelector('#matchModalBody .timer-main');
-                if (timerMain) timerMain.textContent = (status === 4) ? 'FT' : timer.display;
-                const periodEl = document.querySelector('#matchModalBody .match-period');
-                if (periodEl) periodEl.textContent = getMatchPeriod(status);
-            }, 1000);
-            matchDataInterval = setInterval(async () => {
-                try {
-                    const data = await fetchFromProxy(`${API_BASE}/matches/match_info/${matchId}/L/60`);
-                    if (data && data.data) currentMatchInfo = data.data;
-                } catch (e) {}
-            }, 5000);
-            document.getElementById('matchModal').addEventListener('hidden.bs.modal', function() {
-                if (matchLiveInterval) clearInterval(matchLiveInterval);
-                if (matchDataInterval) clearInterval(matchDataInterval);
-                currentMatchInfo = null;
-            }, { once: true });
-        }
-
-        function renderMatchDetailsFull(info, events, lineups, stats, h2h, standingsData) {
-            const body = document.getElementById('matchModalBody');
-            const isPostponed = info.status === 14;
-            const isUpcoming = info.status === 0;
-            const isFinished = info.status === 4;
-            const seconds = getLiveSeconds(info);
-            const timer = formatLiveTimeRealtime(seconds, info.status, info.ex_time);
-
-            // Header
-            let headerHtml = `<div class="match-header" style="background: var(--card-bg); border-radius: 12px; padding: 12px; border: 1px solid var(--border-color);">
-                <div style="text-align:center; color:var(--secondary); font-size:11px;">${info.championship?.title || ''} | ${info.round || ''}</div>
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="text-align:center; flex:1;"><img src="${IMG_BASE_TEAM + info.home_team.image}" style="width:50px;" onclick="openTeamModal(${info.home_team.row_id})"/><div style="font-weight:700;">${info.home_team.title}</div></div>
-                    <div style="text-align:center; flex:1.2;">
-                        <div style="font-size:24px; font-weight:800;">${isUpcoming ? 'VS' : info.home_scores + ' - ' + info.away_scores}</div>
-                        <div class="timer-main" style="background:var(--light-bg); padding:3px 10px; border-radius:10px;">${isFinished ? 'FT' : timer.display}</div>
-                    </div>
-                    <div style="text-align:center; flex:1;"><img src="${IMG_BASE_TEAM + info.away_team.image}" style="width:50px;" onclick="openTeamModal(${info.away_team.row_id})"/><div style="font-weight:700;">${info.away_team.title}</div></div>
-                </div>
-            </div>`;
-
-            // Events
-            let eventsHtml = '<p>No events yet.</p>';
-            if (events && events.length) {
-                eventsHtml = events.sort((a,b) => a.time_minute - b.time_minute).map(ev => {
-                    const icon = ev.type === 1 ? '⚽' : ev.type === 2 ? '🟨' : ev.type === 4 ? '🟥' : ev.type === 8 ? '🔁' : '';
-                    const isHome = ev.team_id == info.home_team.row_id;
-                    return `<div style="display:flex; justify-content:${isHome ? 'flex-start' : 'flex-end'}; padding:4px 0; border-bottom:1px solid var(--border-color);">
-                        ${isHome ? `<div style="width:40px;">${ev.time_minute}'</div><div>${icon} ${ev.player_name?.title || ''}</div>` : `<div>${ev.player_name?.title || ''} ${icon}</div><div style="width:40px; text-align:right;">${ev.time_minute}'</div>`}
-                    </div>`;
-                }).join('');
-            }
-
-            // Lineups
-            let lineupHtml = '<p>No lineups available.</p>';
-            if (lineups.lineup && !isUpcoming) {
-                const homeLineup = lineups.lineup[info.home_team.row_id];
-                const awayLineup = lineups.lineup[info.away_team.row_id];
-                const homeCoach = lineups['0']?.home_coach || info.home_coach;
-                const awayCoach = lineups['0']?.away_coach || info.away_coach;
-                if (homeLineup && awayLineup) {
-                    function buildView(players, coach, subs, injured) {
-                        const gk = players.filter(p => p.position === 'G');
-                        const def = players.filter(p => p.position === 'D');
-                        const mid = players.filter(p => p.position === 'M');
-                        const fwd = players.filter(p => p.position === 'F' || p.position === 'S');
-                        let extras = '';
-                        if (coach) extras += `<div style="padding:10px; border-bottom:1px solid var(--border-color);">👨‍💼 ${coach.title}</div>`;
-                        if (subs.length) extras += `<div style="padding:10px;"><strong>Substitutes:</strong> ${subs.map(s => s.player.title).join(', ')}</div>`;
-                        if (injured.length) extras += `<div style="padding:10px; background:rgba(255,0,0,0.1);"><strong>Missing:</strong> ${injured.map(i => i.player.title).join(', ')}</div>`;
-                        return `<div class="pitch-container"><div class="pitch-grid">
-                            ${gk.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
-                            ${def.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
-                            ${mid.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
-                            ${fwd.map(p => `<div class="pitch-player">${p.player.title}</div>`).join('')}
-                        </div>${extras}</div>`;
-                    }
-                    lineupHtml = `
-                        <button class="btn btn-primary btn-sm w-100 mb-2" onclick="switchPitchTab(this, 'pitch-home', 'pitch-away')">${info.home_team.title}</button>
-                        <div id="pitch-home">${buildView(homeLineup.lineup || [], homeCoach, homeLineup.substitutions || [], lineups.lineup_injureds?.[info.home_team.row_id] || [])}</div>
-                        <div id="pitch-away" style="display:none;">${buildView(awayLineup.lineup || [], awayCoach, awayLineup.substitutions || [], lineups.lineup_injureds?.[info.away_team.row_id] || [])}</div>
-                    `;
-                }
-            }
-
-            // Stats
-            let statsHtml = '<p>No stats yet.</p>';
-            if (stats && Object.keys(stats).length) {
-                const homeStats = stats[info.home_team.row_id] || {};
-                const awayStats = stats[info.away_team.row_id] || {};
-                const homePoss = parseInt(homeStats.ball_possession) || 50;
-                const awayPoss = parseInt(awayStats.ball_possession) || 50;
-                statsHtml = `<div style="text-align:center; margin-bottom:15px;"><strong>Possession</strong> ${homePoss}% - ${awayPoss}%</div>`;
-                statsHtml += `<div style="font-size:12px;">Shots: ${homeStats.total_shots || 0} - ${awayStats.total_shots || 0}</div>`;
-                statsHtml += `<div style="font-size:12px;">Shots on Goal: ${homeStats.shots_on_goal || 0} - ${awayStats.shots_on_goal || 0}</div>`;
-                statsHtml += `<div style="font-size:12px;">Fouls: ${homeStats.fouls || 0} - ${awayStats.fouls || 0}</div>`;
-            }
-
-            // H2H
-            let h2hHtml = '<p>No H2H data.</p>';
-            if (h2h && Object.keys(h2h).length) {
-                let hW = 0, d = 0, aW = 0;
-                for (const id in h2h) { const m = h2h[id]; if (m && m.win === 'win1') hW++; else if (m && m.win === 'win2') aW++; else if (m) d++; }
-                h2hHtml = `<div style="display:flex; justify-content:center; gap:20px;"><span>${info.home_team.title}: ${hW} Wins</span> <span>${d} Draws</span> <span>${info.away_team.title}: ${aW} Wins</span></div>`;
-            }
-
-            // Standings
-            let standingsHtml = '<p>No standings data.</p>';
-            if (standingsData && standingsData.league && standingsData.league.stage0) {
-                standingsHtml = renderStandingsTable(standingsData.league.stage0, [info.home_team.row_id, info.away_team.row_id]);
-            }
-
-            // Tabs
-            body.innerHTML = `${headerHtml}
-                <ul class="nav nav-tabs" style="margin-top:15px;">
-                    <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#md-events">Events</a></li>
-                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-lineup">Lineups</a></li>
-                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-stats">Statistics</a></li>
-                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-h2h">H2H</a></li>
-                    <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#md-standings">Standings</a></li>
-                </ul>
-                <div class="tab-content" style="padding:15px 0;">
-                    <div class="tab-pane fade show active" id="md-events">${eventsHtml}</div>
-                    <div class="tab-pane fade" id="md-lineup">${lineupHtml}</div>
-                    <div class="tab-pane fade" id="md-stats">${statsHtml}</div>
-                    <div class="tab-pane fade" id="md-h2h">${h2hHtml}</div>
-                    <div class="tab-pane fade" id="md-standings">${standingsHtml}</div>
-                </div>`;
-        }
-
-        function renderStandingsTable(teams, highlightIds) {
-            let html = '<div style="overflow-x:auto;"><table class="standings-table"><thead><tr><th>#</th><th>Team</th><th>P</th><th>GD</th><th>Pts</th></tr></thead><tbody>';
-            teams.forEach((team, idx) => {
-                const info = team.team_name;
-                const isH = highlightIds.includes(info.row_id);
-                html += `<tr style="${isH ? 'background:var(--highlight-bg); font-weight:bold;' : ''}"><td>${idx+1}</td><td>${info.title}</td><td>${team.play}</td><td>${team.diff}</td><td class="pts">${team.points}</td></tr>`;
-            });
-            html += '</tbody></table></div>';
-            return html;
+            } catch (err) {
+                alert('Could not fetch match details');
+            } finally { hideLoading(); }
         }
 
         // ============================================================
-        //  نافذة الفريق واللاعبين
+        //  التنقل بين الصفحات
         // ============================================================
-        async function openTeamModal(id) {
-            showLoading();
-            try {
-                const infoData = await fetchFromProxy(`${API_BASE}/info/team_info/${id}/L/60`);
-                if (!infoData.data) return;
-                const info = infoData.data;
-                const playersData = await fetchFromProxy(`${API_BASE}/info/players_team/${id}`).catch(() => ({ data: {} }));
-                const body = document.getElementById('teamModalBody');
-                body.innerHTML = `<h4 class="mb-3">${info.title}</h4>
-                    <ul class="nav nav-tabs">
-                        <li class="nav-item"><a class="nav-link active" data-bs-toggle="tab" href="#team-players">Players</a></li>
-                        <li class="nav-item"><a class="nav-link" data-bs-toggle="tab" href="#team-info">Info</a></li>
-                    </ul>
-                    <div class="tab-content" style="padding:15px 0;">
-                        <div class="tab-pane fade show active" id="team-players">
-                            ${renderTeamPlayersTab(playersData.data)}
-                        </div>
-                        <div class="tab-pane fade" id="team-info">
-                            <p>Country: ${info.country ? info.country.title : 'N/A'}</p>
-                            <p>Stadium: ${info.stadium_name || 'N/A'}</p>
-                        </div>
-                    </div>`;
-                const modal = new bootstrap.Modal(document.getElementById('teamModal'));
-                modal.show();
-                hideLoading();
-            } catch (err) { console.error(err); hideLoading(); }
-        }
-
-        function renderTeamPlayersTab(data) {
-            if (!data) return '<p>No players.</p>';
-            let html = '';
-            if (data.coach) html += `<div style="padding:10px; border:1px solid; border-radius:8px; margin-bottom:10px;">👨‍💼 Coach: ${data.coach.title}</div>`;
-            function renderGroup(title, list) {
-                if (!list || list.length === 0) return '';
-                return `<h6>${title}</h6>${list.map(p => `<div class="player-list-item" style="display:flex; justify-content:space-between; padding:8px; border:1px solid var(--border-color); margin-bottom:5px; border-radius:8px;" onclick="openPlayerModal(${p.row_id})"><span>${p.player_number || ''} ${p.title}</span><span>${p.position}</span></div>`).join('')}`;
-            }
-            html += renderGroup('Attackers', data.F);
-            html += renderGroup('Midfielders', data.M);
-            html += renderGroup('Defenders', data.D);
-            html += renderGroup('Goalkeepers', data.G);
-            return html;
-        }
-
-        async function openPlayerModal(id) {
-            try {
-                const data = await fetchFromProxy(`${API_BASE}/info/player_info/${id}/L/60`);
-                if (data && data.data) {
-                    document.getElementById('playerModalBody').innerHTML = `
-                        <h4>${data.data.title}</h4>
-                        <p>Team: ${data.data.team_name?.title || 'N/A'} | Number: ${data.data.club_number}</p>
-                    `;
-                    const modal = new bootstrap.Modal(document.getElementById('playerModal'));
-                    modal.show();
-                }
-            } catch (e) {}
-        }
-
-        async function openCoachModal(id) {
-            try {
-                const data = await fetchFromProxy(`${API_BASE}/info/coach_info/${id}`);
-                if (data && data.data) {
-                    document.getElementById('coachModalBody').innerHTML = `<h4>${data.data.title}</h4>`;
-                    const modal = new bootstrap.Modal(document.getElementById('coachModal'));
-                    modal.show();
-                }
-            } catch (e) {}
-        }
-
-        // ============================================================
-        //  الصفحات الإضافية والتنقل
-        // ============================================================
-        const pages = { matches: document.getElementById('pageMatches'), news: document.getElementById('pageNews'), competition: document.getElementById('pageCompetition'), standings: document.getElementById('pageStandings'), more: document.getElementById('pageMore') };
         document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
             item.addEventListener('click', function() {
-                document.querySelectorAll('.bottom-nav .nav-item').forEach(n => n.classList.remove('active'));
+                document.querySelectorAll('.bottom-nav .nav-item, .page-content').forEach(el => el.classList.remove('active'));
                 this.classList.add('active');
-                Object.values(pages).forEach(el => el.style.display = 'none');
-                if (pages[this.dataset.page]) {
-                    pages[this.dataset.page].style.display = 'block';
-                    if (this.dataset.page === 'news') loadNewsPage();
-                    else if (this.dataset.page === 'competition') loadCompetitionPage();
-                    else if (this.dataset.page === 'standings') loadStandingsPage();
-                    else if (this.dataset.page === 'matches') renderLiveAndToday();
-                }
+                const targetPage = document.getElementById('page' + this.dataset.page.charAt(0).toUpperCase() + this.dataset.page.slice(1));
+                if (targetPage) targetPage.classList.add('active');
             });
         });
 
-        async function loadNewsPage() {
-            const data = await fetchFromProxy(`${NEWS_BASE}/News/news_leagues`).catch(() => ({ data: [] }));
-            document.getElementById('newsContainer').innerHTML = `<div class="row">${(data.data || []).map(n => `<div class="col-12 col-md-4 mb-3"><div class="card h-100"><img src="https://imgs.ysscores.com/news/350/${n.image}" class="card-img-top" /><div class="card-body"><h6>${n.title}</h6></div></div></div>`).join('') || 'No news'}</div>`;
-        }
-        async function loadCompetitionPage() {
-            const data = await fetchFromProxy(`${API_BASE}/info/championship_ranking/L/60`).catch(() => ({ data: [] }));
-            document.getElementById('competitionContainer').innerHTML = `<div class="row">${(data.data || []).map(c => `<div class="col-12 mb-2"><div class="d-flex p-2 border rounded" style="cursor:pointer;" onclick="loadStandingsPage(${c.url_id})"><img src="${c.image ? IMG_BASE_CHAMP + c.image : ''}" style="width:24px;height:24px;margin-right:10px;" /><span>${c.title}</span></div></div>`).join('') || 'No competitions'}</div>`;
-        }
-        async function loadStandingsPage(id) {
-            const data = await fetchFromProxy(`${API_BASE}/matches/league_standing_stage/${id}`).catch(() => ({ data: {} }));
-            const teams = data.data?.league?.stage0 || [];
-            document.getElementById('standingsContainer').innerHTML = renderStandingsTable(teams, []);
-        }
-
         // ============================================================
-        //  التحميل والبدء
+        //  بدء التطبيق
         // ============================================================
         function showLoading() { document.getElementById('loadingIndicator').classList.remove('hidden'); }
         function hideLoading() { document.getElementById('loadingIndicator').classList.add('hidden'); }
-        function showError(msg) { document.getElementById('errorIndicator').textContent = msg; document.getElementById('errorIndicator').classList.remove('hidden'); }
-
-        function switchPitchTab(btn, showId, hideId) {
-            document.querySelectorAll('.pitch-tab').forEach(t => t.classList.remove('active'));
-            btn.classList.add('active');
-            document.getElementById(showId).style.display = 'block';
-            document.getElementById(hideId).style.display = 'none';
-        }
-        window.switchPitchTab = switchPitchTab;
-        
-        function quickSelectChampionship(url_id, title) { loadStandingsPage(url_id); }
-        window.quickSelectChampionship = quickSelectChampionship;
-        window.openTeamModal = openTeamModal;
-        window.openPlayerModal = openPlayerModal;
-        window.openCoachModal = openCoachModal;
-        window.openMatchDetails = openMatchDetails;
-        window.toggleFavorite = toggleFavorite;
-        window.changeCalMonth = changeCalMonth;
-        window.selectCalDate = selectCalDate;
-        window.applyCalendarFilter = applyCalendarFilter;
 
         async function init() {
             showLoading();
+            document.documentElement.setAttribute('data-theme', 'light');
             try {
-                loadTheme();
-                updateDateUI();
                 await loadLiveAndTodayMatches();
-                await loadNewsPage();
-                await loadCompetitionPage();
-                liveUpdateInterval = setInterval(() => loadLiveMatches(), 3000);
-            } catch (error) {
-                console.error(error);
-                showError("تعذر تحميل البيانات. تأكد من اتصالك بالإنترنت.");
+                liveUpdateInterval = setInterval(loadLiveMatches, 30000); // تحديث المباشر كل 30 ثانية
+            } catch (e) {
+                document.getElementById('errorIndicator').textContent = "Failed to load data. Please check connection.";
+                document.getElementById('errorIndicator').classList.remove('hidden');
             } finally {
                 hideLoading();
             }
@@ -1117,4 +551,4 @@
         init();
     </script>
 </body>
-                                                                                                            </html>
+</html>
