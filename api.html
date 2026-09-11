@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-<title>Goal 216</title>
+<title>Goal 216 - Paris Sportifs</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;-webkit-tap-highlight-color:transparent}
 :root{--bg:#0a0e14;--bg-2:#11161f;--bg-3:#171e2a;--bg-4:#1e2733;--bg-5:#252f3e;--border:#232c3a;--text:#eef2f7;--text-dim:#8b95a5;--text-mute:#5a6577;--accent:#00e676;--accent-2:#00c853;--gold:#ffc107;--gold-2:#ffb300;--live:#ff2d55;--violet:#a855f7;--blue:#3b82f6}
 html,body{background:var(--bg);color:var(--text);min-height:100vh;overscroll-behavior-y:none}
 body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(0,230,118,.08),transparent 70%),radial-gradient(ellipse 60% 40% at 100% 30%,rgba(168,85,247,.05),transparent 70%),var(--bg)}
+
+/* ===== HEADER ===== */
 .header{display:flex;justify-content:space-between;align-items:center;padding:16px 4px 14px;position:sticky;top:0;z-index:50;background:linear-gradient(180deg,var(--bg) 60%,rgba(10,14,20,.95) 100%);backdrop-filter:blur(10px)}
 .header h1{font-size:22px;font-weight:800;letter-spacing:-.5px;cursor:pointer;display:flex;align-items:center;gap:8px;background:linear-gradient(135deg,var(--accent),#6ee7b7);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .header h1::before{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent);animation:pulse-dot 1.6s infinite}
@@ -19,10 +21,14 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .badge{display:flex;align-items:center;gap:6px;background:rgba(255,45,85,.12);border:1px solid rgba(255,45,85,.3);padding:5px 12px;border-radius:20px;font-size:11px;font-weight:700;letter-spacing:.8px;color:#ff5c7a}
 .badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--live);box-shadow:0 0 8px var(--live);animation:blink 1.2s infinite}
 @keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* ===== TOP MENU ===== */
 .top-menu{display:flex;gap:6px;margin-bottom:12px}
 .top-menu button{flex:1;background:var(--bg-2);border:1px solid var(--border);color:var(--text-dim);padding:10px 12px;font-size:12px;font-weight:700;border-radius:10px;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px;transition:.2s}
 .top-menu button:hover{background:var(--bg-3);color:var(--text)}
 .top-menu button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06120b;border-color:transparent}
+
+/* ===== CALENDAR ===== */
 .calendar-bar{display:flex;align-items:center;gap:8px;margin-bottom:12px}
 .calendar-icon-btn{flex-shrink:0;background:var(--bg-2);border:1px solid var(--border);color:var(--accent);width:40px;height:40px;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px}
 .days-tabs{display:flex;gap:6px;flex:1;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
@@ -31,24 +37,25 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .days-tabs button .day-num{font-size:14px;font-weight:800;line-height:1}
 .days-tabs button .day-lbl{font-size:9px;text-transform:uppercase;letter-spacing:.6px;opacity:.7}
 .days-tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06120b;border-color:transparent;box-shadow:0 4px 16px rgba(0,230,118,.35)}
+
+/* ===== NAV TABS ===== */
 .nav-tabs{display:flex;gap:6px;margin-bottom:18px;padding:5px;background:var(--bg-2);border:1px solid var(--border);border-radius:14px}
 .nav-tabs button{flex:1;background:transparent;border:none;color:var(--text-dim);padding:10px 14px;font-size:12.5px;font-weight:700;cursor:pointer;border-radius:10px;white-space:nowrap;transition:.2s}
 .nav-tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06120b}
 
-/* MATCH CARD */
-.match-card{position:relative;background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:16px;padding:14px 16px;margin-bottom:12px;cursor:pointer;transition:.25s;overflow:hidden}
-.match-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--live);box-shadow:0 0 12px var(--live)}
+/* ===== MATCH CARD ===== */
+.match-card{position:relative;background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:16px;margin-bottom:12px;overflow:hidden;transition:.25s}
+.match-card::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--live);box-shadow:0 0 12px var(--live);z-index:2}
 .match-card.coming::before{background:var(--gold);box-shadow:0 0 12px rgba(255,193,7,.5)}
 .match-card.top-event::before{background:var(--violet);box-shadow:0 0 12px rgba(168,85,247,.5)}
-.match-card:hover{transform:translateY(-2px);border-color:#2f3a4d}
+.match-card-main{padding:14px 16px;cursor:pointer;transition:.2s}
+.match-card-main:hover{background:rgba(255,255,255,.02)}
 .match-header{display:flex;justify-content:space-between;align-items:center;font-size:11px;margin-bottom:12px;gap:8px}
 .match-time{font-weight:800;color:var(--gold);font-size:12px;font-variant-numeric:tabular-nums}
 .match-time.ht{color:var(--accent);background:rgba(0,230,118,.12);padding:2px 8px;border-radius:6px;font-size:10px;letter-spacing:.5px}
 .match-league{display:inline-flex;align-items:center;gap:6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:55%;background:rgba(255,255,255,.04);padding:3px 9px;border-radius:20px;color:var(--text-dim);font-weight:600;border:1px solid rgba(255,255,255,.05)}
 .match-league img{height:14px;width:14px;object-fit:contain;border-radius:50%}
-
-/* FIX SCORE LINE - Grid layout robuste */
-.score-line{display:grid;grid-template-columns:1fr 24px 1fr;gap:6px;align-items:center;padding:8px 0 12px}
+.score-line{display:grid;grid-template-columns:1fr 24px 1fr;gap:6px;align-items:center;padding:8px 0}
 .team-block{display:flex;align-items:center;gap:10px;min-width:0;overflow:hidden}
 .team-block.away{flex-direction:row-reverse}
 .team-crest{width:38px;height:38px;flex-shrink:0;border-radius:50%;background:linear-gradient(135deg,var(--bg-4),var(--bg-2));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:var(--text-dim);overflow:hidden;border:1px solid var(--border)}
@@ -60,26 +67,37 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .team-block.away .team-score{background:linear-gradient(135deg,var(--gold),var(--gold-2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
 .vs-dash{text-align:center;color:#3b4656;font-size:14px}
 
-.odds-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:4px}
-.odd-item{position:relative;text-align:center;padding:10px 6px;background:linear-gradient(180deg,var(--bg-4),var(--bg-3));border:1px solid var(--border);border-radius:10px;cursor:pointer;transition:.2s}
-.odd-item:hover{border-color:var(--accent);transform:translateY(-1px)}
-.odd-item:active{transform:scale(.97)}
-.odd-item.selected{border-color:var(--accent);background:linear-gradient(180deg,rgba(0,230,118,.15),rgba(0,230,118,.05))}
-.odd-item .label{font-size:10px;color:var(--text-mute);font-weight:800;text-transform:uppercase;letter-spacing:1px;margin-bottom:2px}
-.odd-item .value{font-size:15px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums;transition:.2s}
-.odd-item .value.highlight{color:#fff}
-.odd-item .value.up{color:var(--accent)}
-.odd-item .value.down{color:var(--live)}
-.odd-item .arrow{font-size:9px;margin-left:3px}
+/* ===== CHEVRON EXPAND BUTTON ===== */
+.match-expand-btn{position:absolute;right:12px;top:60px;width:32px;height:32px;border-radius:50%;background:var(--bg-4);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;transition:.3s;color:var(--text-dim);font-size:14px;z-index:3}
+.match-expand-btn:hover{background:var(--accent);color:#06120b;border-color:var(--accent)}
+.match-expand-btn.open{transform:rotate(180deg);background:var(--accent);color:#06120b;border-color:var(--accent)}
 
-.live-label,.top-label,.coming-label{display:inline-flex;align-items:center;gap:5px;font-size:9px;font-weight:800;letter-spacing:.7px;padding:3px 8px;border-radius:6px;text-transform:uppercase}
-.live-label{background:rgba(255,45,85,.15);color:#ff5c7a;border:1px solid rgba(255,45,85,.35)}
-.live-label::before{content:'';width:5px;height:5px;background:var(--live);border-radius:50%;box-shadow:0 0 6px var(--live);animation:blink 1.2s infinite}
-.top-label{background:rgba(168,85,247,.15);color:#c084fc;border:1px solid rgba(168,85,247,.35)}
-.coming-label{background:rgba(255,193,7,.12);color:var(--gold);border:1px solid rgba(255,193,7,.3)}
+/* ===== INLINE ODDS PANEL (Expand) ===== */
+.inline-odds{display:none;padding:0 16px 14px;border-top:1px solid var(--border);margin-top:4px;background:linear-gradient(180deg,rgba(0,0,0,.15),transparent);animation:slideDown .3s ease}
+.inline-odds.open{display:block}
+@keyframes slideDown{from{opacity:0;max-height:0}to{opacity:1;max-height:800px}}
+.inline-market-block{margin-top:12px}
+.inline-market-title{font-size:10px;font-weight:800;color:var(--gold);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px;display:flex;align-items:center;gap:6px}
+.inline-market-title::before{content:'';width:3px;height:10px;background:var(--gold);border-radius:2px}
+.inline-market-items{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.inline-market-items.two-cols{grid-template-columns:repeat(2,1fr)}
+.inline-market-items.four-cols{grid-template-columns:repeat(4,1fr)}
+.inline-odd{background:linear-gradient(180deg,var(--bg-4),var(--bg-3));border:1px solid var(--border);border-radius:8px;padding:8px 4px;text-align:center;cursor:pointer;transition:.2s;min-height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative}
+.inline-odd:hover{border-color:var(--accent);background:linear-gradient(180deg,rgba(0,230,118,.12),rgba(0,230,118,.03))}
+.inline-odd:active{transform:scale(.96)}
+.inline-odd.selected{border-color:var(--accent);background:linear-gradient(180deg,rgba(0,230,118,.18),rgba(0,230,118,.06));box-shadow:0 0 0 2px rgba(0,230,118,.35)}
+.inline-odd .od-name{font-size:9px;color:var(--text-mute);font-weight:700;text-transform:uppercase;letter-spacing:.4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.inline-odd .od-price{font-size:13px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
+.inline-odd .od-price.up{color:var(--accent);animation:flashUp .8s}
+.inline-odd .od-price.down{color:var(--live);animation:flashDown .8s}
+@keyframes flashUp{0%{background:rgba(0,230,118,.3);border-radius:3px}100%{background:transparent}}
+@keyframes flashDown{0%{background:rgba(255,45,85,.3);border-radius:3px}100%{background:transparent}}
+.inline-odd.locked{opacity:.4;cursor:not-allowed;pointer-events:none}
+.inline-odd.locked .od-price::before{content:'🔒 ';font-size:10px}
 
-/* DETAIL */
+/* ===== DETAIL VIEW ===== */
 .back-btn{background:var(--bg-3);border:1px solid var(--border);color:var(--text);padding:8px 16px;border-radius:20px;font-size:13px;font-weight:600;cursor:pointer;margin-bottom:16px;display:inline-flex;align-items:center;gap:6px;transition:.2s}
+.back-btn:hover{background:var(--bg-4);border-color:var(--accent);color:var(--accent)}
 .detail-hero{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:18px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden}
 .detail-hero::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--accent),var(--violet),var(--gold))}
 .detail-league{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:4px 10px;border-radius:20px;font-size:11px;color:var(--text-dim);font-weight:600;margin-bottom:12px}
@@ -98,20 +116,16 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .status-chip{display:inline-flex;align-items:center;gap:5px;background:rgba(255,255,255,.04);border:1px solid var(--border);padding:5px 11px;border-radius:20px;font-size:11px;font-weight:700;color:var(--text-dim)}
 .status-chip.live-chip{color:#ff5c7a;border-color:rgba(255,45,85,.3);background:rgba(255,45,85,.08)}
 .status-chip.ht-chip{color:var(--gold);border-color:rgba(255,193,7,.35);background:rgba(255,193,7,.1)}
-
-/* STICKY 1X2 BAR (dans le détail) */
 .sticky-1x2{position:sticky;top:56px;z-index:20;background:linear-gradient(180deg,var(--bg-3),var(--bg-2));border:1px solid var(--border);border-radius:12px;padding:8px;margin-bottom:12px;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;box-shadow:0 4px 20px rgba(0,0,0,.5)}
-.sticky-1x2 .odd-item{padding:8px 4px;border-radius:8px}
-.sticky-1x2 .odd-item .label{font-size:9px}
-.sticky-1x2 .odd-item .value{font-size:14px}
+.sticky-1x2 .inline-odd{padding:8px 4px}
 
-/* MARKET TABS */
+/* ===== MARKET TABS ===== */
 .market-tabs{display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:6px;scrollbar-width:none}
 .market-tabs::-webkit-scrollbar{display:none}
 .market-tabs button{background:var(--bg-3);border:1px solid var(--border);color:var(--text-dim);padding:8px 14px;font-size:12px;font-weight:700;cursor:pointer;border-radius:10px;white-space:nowrap;flex-shrink:0;transition:.2s}
 .market-tabs button.active{background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06120b;border-color:transparent}
 
-/* ACCORDION SECTIONS (comme le vrai site) */
+/* ===== ACCORDION SECTIONS ===== */
 .market-section{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:12px;margin-bottom:8px;overflow:hidden;transition:.2s}
 .market-section-header{display:flex;justify-content:space-between;align-items:center;padding:12px 14px;cursor:pointer;background:linear-gradient(180deg,rgba(255,193,7,.06),transparent);border-bottom:1px solid transparent;transition:.2s}
 .market-section.open .market-section-header{border-bottom-color:var(--border)}
@@ -132,12 +146,8 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .market-item.locked::before{content:'🔒';position:absolute;top:50%;right:6px;transform:translateY(-50%);font-size:10px;opacity:.6}
 .market-item .name{font-size:10px;color:var(--text-dim);font-weight:700;margin-bottom:4px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
 .market-item .price{font-size:14px;font-weight:800;color:var(--gold);font-variant-numeric:tabular-nums}
-.market-item .price.changed-up{color:var(--accent);animation:flashUp .8s}
-.market-item .price.changed-down{color:var(--live);animation:flashDown .8s}
-@keyframes flashUp{0%{background:rgba(0,230,118,.3);border-radius:4px}100%{background:transparent}}
-@keyframes flashDown{0%{background:rgba(255,45,85,.3);border-radius:4px}100%{background:transparent}}
 
-/* TIMELINE */
+/* ===== TIMELINE ===== */
 .timeline-wrap{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:14px;padding:14px;margin-bottom:12px;max-height:300px;overflow-y:auto}
 .timeline-header{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:800;color:var(--gold);margin-bottom:10px;letter-spacing:.8px;text-transform:uppercase}
 .period-separator{display:flex;align-items:center;gap:10px;margin:10px 0 6px;padding:7px 11px;background:linear-gradient(90deg,rgba(0,230,118,.08),transparent);border-left:3px solid var(--accent);border-radius:6px;font-size:11px;font-weight:800;color:var(--accent);letter-spacing:1px;text-transform:uppercase}
@@ -154,12 +164,12 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .event-sub{color:var(--blue)}
 .event-corner{color:var(--violet)}
 
-/* BET SLIP TOGGLE */
+/* ===== BET SLIP TOGGLE ===== */
 .bet-slip-toggle{position:fixed;bottom:88px;right:16px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#06120b;border:none;border-radius:50%;width:58px;height:58px;font-size:24px;cursor:pointer;z-index:100;display:flex;align-items:center;justify-content:center;box-shadow:0 8px 24px rgba(0,230,118,.45);animation:pulse-shadow 2s infinite}
 @keyframes pulse-shadow{0%{box-shadow:0 8px 24px rgba(0,230,118,.45),0 0 0 0 rgba(0,230,118,.5)}70%{box-shadow:0 8px 24px rgba(0,230,118,.45),0 0 0 14px rgba(0,230,118,0)}100%{box-shadow:0 8px 24px rgba(0,230,118,.45),0 0 0 0 rgba(0,230,118,0)}}
 .bet-slip-toggle .badge{position:absolute;top:-4px;right:-4px;background:linear-gradient(135deg,#ff2d55,#ff5c7a);color:white;border-radius:50%;min-width:22px;height:22px;font-size:11px;font-weight:800;display:flex;align-items:center;justify-content:center;padding:0 4px;border:2px solid var(--bg)}
-.bet-slip-toggle .badge::before{display:none}
 
+/* ===== BET SLIP PANEL ===== */
 .bet-slip{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:2px solid var(--accent);padding:22px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);z-index:99;border-radius:22px 22px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.6)}
 .bet-slip::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:4px;background:var(--bg-4);border-radius:2px}
 .bet-slip.open{transform:translateY(0)}
@@ -193,7 +203,7 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .place-bet-btn:disabled{opacity:.5;cursor:not-allowed}
 .clear-all-btn{background:transparent;border:1px solid rgba(255,45,85,.4);color:var(--live);padding:8px 14px;border-radius:9px;font-size:11px;font-weight:700;cursor:pointer;margin-top:8px;width:100%;letter-spacing:.5px}
 
-/* MY BETS */
+/* ===== MY BETS ===== */
 .mybets-panel{position:fixed;bottom:0;left:0;right:0;background:linear-gradient(180deg,var(--bg-2),var(--bg));border-top:2px solid var(--gold);padding:22px 16px calc(20px + env(safe-area-inset-bottom));max-height:88vh;overflow-y:auto;transform:translateY(100%);transition:transform .4s cubic-bezier(.4,0,.2,1);z-index:99;border-radius:22px 22px 0 0;box-shadow:0 -12px 40px rgba(0,0,0,.6)}
 .mybets-panel::before{content:'';position:absolute;top:8px;left:50%;transform:translateX(-50%);width:44px;height:4px;background:var(--bg-4);border-radius:2px}
 .mybets-panel.open{transform:translateY(0)}
@@ -231,7 +241,7 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 .empty-state .title{font-size:14px;font-weight:700;color:var(--text-dim);margin-bottom:6px}
 .empty-state .sub{font-size:12px}
 
-/* MODAL */
+/* ===== MODAL ===== */
 .modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.75);backdrop-filter:blur(6px);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
 .modal-overlay.show{display:flex}
 .modal{background:linear-gradient(180deg,var(--bg-2),var(--bg-3));border:1px solid var(--border);border-radius:20px;padding:24px;width:100%;max-width:380px}
@@ -262,7 +272,7 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 ::-webkit-scrollbar-track{background:transparent}
 ::-webkit-scrollbar-thumb{background:var(--bg-4);border-radius:4px}
 
-@media(max-width:480px){.team-name{font-size:12px}.team-score{font-size:20px}.team-crest{width:34px;height:34px}.footer-menu span{font-size:10px}.detail-score{font-size:28px}.detail-team-crest{width:46px;height:46px}.detail-team-name{font-size:11px}}
+@media(max-width:480px){.team-name{font-size:12px}.team-score{font-size:20px}.team-crest{width:34px;height:34px}.footer-menu span{font-size:10px}.detail-score{font-size:28px}.detail-team-crest{width:46px;height:46px}.detail-team-name{font-size:11px}.inline-market-items{grid-template-columns:repeat(3,1fr)}}
 @media(min-width:768px){body{max-width:720px;margin:0 auto}}
 </style>
 </head>
@@ -357,15 +367,15 @@ body{padding:0 12px 120px;background:radial-gradient(ellipse 80% 50% at 50% 0%,r
 </div>
 
 <script>
-// ============================================================
-// CONFIG
-// ============================================================
+/* ============================================================
+   CONFIG
+   ============================================================ */
 const PROXY_URL = 'https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/altenar-proxy';
 const API_SPORTS_KEY = 'e227ff90ed4eacc3eacb07eca05ce78b';
 
-// ============================================================
-// STATE
-// ============================================================
+/* ============================================================
+   STATE
+   ============================================================ */
 let currentView = 'live';
 let currentDay = 0;
 let currentMatchId = null;
@@ -379,14 +389,15 @@ let slipMode = 'simple';
 let myBets = [];
 let currentBetsFilter = 'open';
 let liveEventsCache = {};
+let expandedMatches = new Set(); // matchIds actuellement dépliés
 
-// LIVE DETAIL TIMERS
-let liveDetailApiTimer = null;   // Fetch API toutes les 3s
-let liveDetailClockTimer = null; // Tick horloge toutes les 1s
-let localLiveSeconds = 0;        // Secondes écoulées depuis le dernier sync
-let localBaseMinutes = 0;        // Minutes au moment du sync
+/* DETAIL LIVE TIMERS */
+let liveDetailApiTimer = null;
+let liveDetailClockTimer = null;
+let localLiveSeconds = 0;
+let localBaseMinutes = 0;
 let localIsHalftime = false;
-let currentLiveEventRef = null;  // Référence au liveEvent courant
+let currentLiveEventRef = null;
 
 const logoCache = {};
 const leagueLogoCache = {};
@@ -399,9 +410,9 @@ const myBetsListEl = document.getElementById('myBetsList');
 const betCountEl = document.getElementById('betCount');
 const toastEl = document.getElementById('toast');
 
-// ============================================================
-// PERSISTENCE
-// ============================================================
+/* ============================================================
+   PERSISTENCE
+   ============================================================ */
 function saveState() {
   try {
     localStorage.setItem('goal216_balance', String(balance));
@@ -417,9 +428,9 @@ function loadState() {
   } catch(e) {}
 }
 
-// ============================================================
-// HELPERS
-// ============================================================
+/* ============================================================
+   HELPERS
+   ============================================================ */
 async function fetchFromProxy(endpoint, extraParams = '') {
   let url = `${PROXY_URL}?endpoint=${endpoint}`;
   if (extraParams) url += `&extraParams=${extraParams}`;
@@ -489,69 +500,56 @@ function extractTime24(eventDate) {
   } catch (e) { return '--:--'; }
 }
 
-// === FIX SCORE: parsing ultra-robuste ===
+/* FIX: fonction groupMarketsByType */
+function groupMarketsByType(marketGroups) {
+  const groups = {};
+  const typeMap = {
+    'Main': 'main', 'Popular': 'popular', '1st Half': '1sthalf', '2nd Half': '2ndhalf',
+    'Combo': 'combo', 'Corners': 'corners', 'Bookings': 'bookings', 'Teams': 'teams',
+    'Correct Score': 'correctscore'
+  };
+  if (!marketGroups || !Array.isArray(marketGroups)) return groups;
+  marketGroups.forEach(group => {
+    if (!group || !group.Name) return;
+    const key = typeMap[group.Name] || group.Name.toLowerCase().replace(/ /g, '');
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(group);
+  });
+  return groups;
+}
+
+/* Extraction robuste du score */
 function extractScore(match) {
   if (!match) return { home: 0, away: 0, halftime: false, liveTime: '', isLive: false };
-
   let liveTime = match.LiveCurrentTime || match.CurrentTime || '';
   const statusStr = (match.MatchStatus || match.Status || '').toString().toLowerCase();
-  const isHalftime = 
-    liveTime === 'Halftime' || liveTime === 'HT' || liveTime === 'Break' ||
+  const isHalftime = liveTime === 'Halftime' || liveTime === 'HT' || liveTime === 'Break' ||
     statusStr.includes('half') || statusStr.includes('mi-temps') || statusStr.includes('halftime');
-
-  let home = 0, away = 0;
-  let found = false;
-
-  // 1) Essayer LiveScore, Score, Scores
+  let home = 0, away = 0, found = false;
   const candidates = [match.LiveScore, match.Score, match.Scores, match.CurrentScore, match.LiveMatchScore];
   for (const c of candidates) {
     if (c === undefined || c === null || c === '') continue;
     if (typeof c === 'object') {
       const h = c.Home ?? c.home ?? c.HomeScore ?? c.homeScore;
       const a = c.Away ?? c.away ?? c.AwayScore ?? c.awayScore;
-      if (h !== undefined || a !== undefined) {
-        home = parseInt(h) || 0;
-        away = parseInt(a) || 0;
-        found = true;
-        break;
-      }
+      if (h !== undefined || a !== undefined) { home = parseInt(h) || 0; away = parseInt(a) || 0; found = true; break; }
     } else if (typeof c === 'string') {
-      const trimmed = c.trim();
-      // Format "1:0" ou "1-0" ou "1 : 0"
-      const m = trimmed.match(/^(\d+)\s*[:\-–]\s*(\d+)/);
-      if (m) {
-        home = parseInt(m[1]) || 0;
-        away = parseInt(m[2]) || 0;
-        found = true;
-        break;
-      }
-      // Format "1" (juste home)
-      const single = trimmed.match(/^(\d+)$/);
-      if (single) {
-        home = parseInt(single[1]) || 0;
-        away = 0;
-        found = true;
-        break;
-      }
+      const m = c.trim().match(/^(\d+)\s*[:\-–]\s*(\d+)/);
+      if (m) { home = parseInt(m[1]) || 0; away = parseInt(m[2]) || 0; found = true; break; }
+      const single = c.trim().match(/^(\d+)$/);
+      if (single) { home = parseInt(single[1]) || 0; away = 0; found = true; break; }
     }
   }
-
-  // 2) Fallback HomeScore / AwayScore
   if (!found) {
     if (match.HomeScore !== undefined) { home = parseInt(match.HomeScore) || 0; found = true; }
     if (match.AwayScore !== undefined) { away = parseInt(match.AwayScore) || 0; found = true; }
   }
-
-  // 3) Fallback depuis Competitors (parfois le score est là)
   if (!found && match.Competitors?.length >= 2) {
-    const c0 = match.Competitors[0];
-    const c1 = match.Competitors[1];
+    const c0 = match.Competitors[0], c1 = match.Competitors[1];
     if (c0.Score !== undefined) { home = parseInt(c0.Score) || 0; found = true; }
     if (c1.Score !== undefined) { away = parseInt(c1.Score) || 0; found = true; }
   }
-
   const isLive = !!(liveTime && liveTime !== '0' && liveTime !== '');
-
   return { home, away, halftime: isHalftime, liveTime: isHalftime ? 'MI-TEMPS' : liveTime, isLive };
 }
 
@@ -562,9 +560,9 @@ function showToast(msg, isError = false) {
   setTimeout(() => toastEl.classList.remove('show'), 2500);
 }
 
-// ============================================================
-// CALENDAR
-// ============================================================
+/* ============================================================
+   CALENDAR
+   ============================================================ */
 function renderDaysTabs() {
   const daysNames = ['Dim','Lun','Mar','Mer','Jeu','Ven','Sam'];
   const today = new Date();
@@ -597,9 +595,9 @@ function renderDaysTabs() {
   });
 }
 
-// ============================================================
-// MY BETS
-// ============================================================
+/* ============================================================
+   MY BETS
+   ============================================================ */
 function renderMyBets() {
   const openBets = myBets.filter(b => b.status === 'open');
   const settledBets = myBets.filter(b => b.status !== 'open');
@@ -607,10 +605,8 @@ function renderMyBets() {
   document.getElementById('cntSettled').textContent = settledBets.length;
   document.getElementById('cntAll').textContent = myBets.length;
   document.getElementById('myBetsCount').textContent = openBets.length;
-
   let list = currentBetsFilter === 'open' ? openBets : currentBetsFilter === 'settled' ? settledBets : myBets;
   list = [...list].sort((a,b) => b.placedAt - a.placedAt);
-
   if (list.length === 0) {
     const msgs = {
       open: { icon: '🟡', title: 'Aucun pari en cours', sub: 'Placez un pari pour le voir ici' },
@@ -621,37 +617,27 @@ function renderMyBets() {
     myBetsListEl.innerHTML = `<div class="empty-state"><div class="icon">${m.icon}</div><div class="title">${m.title}</div><div class="sub">${m.sub}</div></div>`;
     return;
   }
-
   let html = '';
   list.forEach(bet => {
-    const statusClass = bet.status;
     const statusLabel = { open: '🟡 En cours', won: '✅ Gagné', lost: '❌ Perdu' }[bet.status] || bet.status;
     const typeLabel = bet.mode === 'combine' ? `${bet.selections.length}-Combiné` : (bet.selections.length === 1 ? 'Simple' : `${bet.selections.length} Simples`);
     const dateStr = new Date(bet.placedAt).toLocaleString('fr-FR', { day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit' });
-
-    html += `<div class="bet-history-card ${statusClass}">
-      <div class="bhc-header">
-        <span class="bhc-type">${typeLabel}</span>
-        <span class="bhc-status ${statusClass}">${statusLabel}</span>
-      </div>
-      <div class="bhc-body">
-        ${bet.selections.map(s => `
-          <div class="bhc-selection">
-            <div class="bhc-selection-left">
-              <div class="bhc-selection-name">${s.selection}</div>
-              <div class="bhc-selection-match">${s.match}</div>
-              <div class="bhc-selection-info">${s.isLive ? '🔴 LIVE' : '📅 À venir'}</div>
-            </div>
-            <div><div class="bhc-selection-odds">${s.price.toFixed(2)}</div></div>
+    html += `<div class="bet-history-card ${bet.status}">
+      <div class="bhc-header"><span class="bhc-type">${typeLabel}</span><span class="bhc-status ${bet.status}">${statusLabel}</span></div>
+      <div class="bhc-body">${bet.selections.map(s => `
+        <div class="bhc-selection">
+          <div class="bhc-selection-left">
+            <div class="bhc-selection-name">${s.selection}</div>
+            <div class="bhc-selection-match">${s.match}</div>
+            <div class="bhc-selection-info">${s.isLive ? '🔴 LIVE' : '📅 À venir'}</div>
           </div>
-        `).join('')}
-      </div>
+          <div><div class="bhc-selection-odds">${s.price.toFixed(2)}</div></div>
+        </div>`).join('')}</div>
       <div class="bhc-footer">
         <div><span class="label">Mise:</span><span class="value"> ${bet.totalStake.toFixed(2)} TND</span></div>
         <div><span class="label">${bet.status === 'open' ? 'Gain pot.' : 'Gain:'}</span><span class="value ${bet.status === 'won' ? 'win' : ''}"> ${(bet.status === 'won' ? bet.actualWin : bet.potentialWin).toFixed(2)} TND</span></div>
       </div>
-      <div class="bhc-id">ID: ${bet.id}</div>
-      <div class="bhc-date">${dateStr}</div>
+      <div class="bhc-id">ID: ${bet.id}</div><div class="bhc-date">${dateStr}</div>
     </div>`;
   });
   myBetsListEl.innerHTML = html;
@@ -669,10 +655,7 @@ function simulateSettlement(betId) {
       balance += bet.potentialWin;
       updateBalanceUI();
       showToast(`🎉 Pari gagné ! +${bet.potentialWin.toFixed(2)} TND`);
-    } else {
-      bet.actualWin = 0;
-      showToast(`❌ Pari perdu`, true);
-    }
+    } else { bet.actualWin = 0; showToast(`❌ Pari perdu`, true); }
     saveState();
     renderMyBets();
   }, 15000 + Math.random() * 10000);
@@ -690,9 +673,9 @@ document.querySelectorAll('.mybets-tabs button').forEach(btn => {
   });
 });
 
-// ============================================================
-// BET SLIP
-// ============================================================
+/* ============================================================
+   BET SLIP
+   ============================================================ */
 function updateBalanceUI() {
   document.getElementById('balanceDisplay').textContent = balance.toFixed(2);
   saveState();
@@ -710,36 +693,32 @@ function updateBetSlipUI() {
   }
   document.getElementById('clearAllBtn').style.display = 'block';
   document.getElementById('placeBetBtn').disabled = false;
-
   let html = '';
   betSlip.forEach((item, index) => {
-    html += `
-      <div class="slip-item">
-        <div class="slip-item-header">
-          <div style="flex:1;min-width:0;">
-            ${item.isLive ? '<div class="slip-item-live">LIVE</div>' : ''}
-            <div class="slip-item-match">${item.match}</div>
-            <div class="slip-item-selection"><strong>${item.selection}</strong> @ <strong style="color:var(--gold)">${item.price.toFixed(2)}</strong></div>
-          </div>
-          <button class="slip-item-remove" data-index="${index}">✕</button>
+    html += `<div class="slip-item">
+      <div class="slip-item-header">
+        <div style="flex:1;min-width:0;">
+          ${item.isLive ? '<div class="slip-item-live">LIVE</div>' : ''}
+          <div class="slip-item-match">${item.match}</div>
+          <div class="slip-item-selection"><strong>${item.selection}</strong> @ <strong style="color:var(--gold)">${item.price.toFixed(2)}</strong></div>
         </div>
-        <div class="stake-row">
-          <div class="stake-input-wrap">
-            <span class="currency">TND</span>
-            <input type="number" class="stake-input" data-stake-index="${index}" value="${item.stake || ''}" placeholder="0.00" min="0" step="10">
-          </div>
-          <div class="stake-quick">
-            <button data-quick="10" data-idx="${index}">10</button>
-            <button data-quick="50" data-idx="${index}">50</button>
-            <button data-quick="100" data-idx="${index}">100</button>
-          </div>
+        <button class="slip-item-remove" data-index="${index}">✕</button>
+      </div>
+      <div class="stake-row">
+        <div class="stake-input-wrap">
+          <span class="currency">TND</span>
+          <input type="number" class="stake-input" data-stake-index="${index}" value="${item.stake || ''}" placeholder="0.00" min="0" step="10">
+        </div>
+        <div class="stake-quick">
+          <button data-quick="10" data-idx="${index}">10</button>
+          <button data-quick="50" data-idx="${index}">50</button>
+          <button data-quick="100" data-idx="${index}">100</button>
         </div>
       </div>
-    `;
+    </div>`;
   });
   betSlipItemsEl.innerHTML = html;
   betCountEl.textContent = betSlip.length;
-
   document.querySelectorAll('.slip-item-remove').forEach(btn => {
     btn.addEventListener('click', function() {
       betSlip.splice(parseInt(this.dataset.index), 1);
@@ -768,10 +747,7 @@ function updateSummary() {
   summary.style.display = 'block';
   let totalStake = 0, potentialWin = 0;
   if (slipMode === 'simple') {
-    betSlip.forEach(item => {
-      totalStake += item.stake || 0;
-      potentialWin += (item.stake || 0) * item.price;
-    });
+    betSlip.forEach(item => { totalStake += item.stake || 0; potentialWin += (item.stake || 0) * item.price; });
   } else {
     totalStake = betSlip[0]?.stake || 0;
     potentialWin = totalStake * betSlip.reduce((p, i) => p * i.price, 1);
@@ -848,9 +824,73 @@ document.getElementById('confirmTopup').addEventListener('click', () => {
   showToast(`💰 +${selectedTopupAmount} TND`);
 });
 
-// ============================================================
-// RENDER LIST
-// ============================================================
+/* ============================================================
+   INLINE ODDS PANEL (expand dans la liste)
+   ============================================================ */
+function buildInlineOddsPanel(match, homeName, awayName, isLive) {
+  const matchName = `${homeName} vs ${awayName}`;
+  let blocksHtml = '';
+
+  // 1X2
+  const mainMarket = match.Items?.find(m => m.Id === 1 || m.MarketId === 1);
+  if (mainMarket?.Items?.length) {
+    const odds = extractOdds(match.Items);
+    blocksHtml += `
+      <div class="inline-market-block">
+        <div class="inline-market-title">Résultat du match</div>
+        <div class="inline-market-items">
+          <div class="inline-odd ${!odds.odds1 || odds.odds1 === '-' ? 'locked' : ''}" data-selection="1" data-price="${odds.odds1}" data-match="${matchName}" data-islive="${isLive}">
+            <div class="od-name">1</div><div class="od-price">${odds.odds1}</div>
+          </div>
+          <div class="inline-odd ${!odds.oddsX || odds.oddsX === '-' ? 'locked' : ''}" data-selection="X" data-price="${odds.oddsX}" data-match="${matchName}" data-islive="${isLive}">
+            <div class="od-name">X</div><div class="od-price">${odds.oddsX}</div>
+          </div>
+          <div class="inline-odd ${!odds.odds2 || odds.odds2 === '-' ? 'locked' : ''}" data-selection="2" data-price="${odds.odds2}" data-match="${matchName}" data-islive="${isLive}">
+            <div class="od-name">2</div><div class="od-price">${odds.odds2}</div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  // Autres marchés principaux (Total, Double Chance, BTS, etc.)
+  const mainGroups = match.MarketGroups || [];
+  let extraCount = 0;
+  mainGroups.forEach(group => {
+    if (extraCount >= 4) return;
+    const items = group.Items || [];
+    items.forEach(market => {
+      if (extraCount >= 4) return;
+      const its = market.Items || [];
+      if (its.length === 0) return;
+      const marketName = market.Name || market.ShortName || group.Name;
+      const isTwoCols = its.length === 2;
+      const isFourCols = its.length === 4;
+      const colClass = isTwoCols ? 'two-cols' : (isFourCols ? 'four-cols' : '');
+      let itemsHtml = '';
+      its.slice(0, 6).forEach(item => {
+        const name = item.Name || item.ShortName || '—';
+        const price = item.Price;
+        const isLocked = !price || price <= 0;
+        itemsHtml += `<div class="inline-odd ${isLocked ? 'locked' : ''}" data-selection="${name}" data-price="${price || '-'}" data-match="${matchName}" data-islive="${isLive}">
+          <div class="od-name">${name}</div><div class="od-price">${isLocked ? '—' : price}</div>
+        </div>`;
+      });
+      blocksHtml += `
+        <div class="inline-market-block">
+          <div class="inline-market-title">${marketName}</div>
+          <div class="inline-market-items ${colClass}">${itemsHtml}</div>
+        </div>`;
+      extraCount++;
+    });
+  });
+
+  if (!blocksHtml) blocksHtml = '<div style="color:#5a6577;font-size:12px;text-align:center;padding:12px;">Aucune cote disponible</div>';
+  return blocksHtml;
+}
+
+/* ============================================================
+   RENDER LIST
+   ============================================================ */
 async function renderMatchList(events, type = 'live', preserveScroll = false) {
   if (!events || events.length === 0) {
     app.innerHTML = `<div class="error-msg">⚠️ Aucun événement trouvé.</div>`;
@@ -890,35 +930,37 @@ async function renderMatchList(events, type = 'live', preserveScroll = false) {
     const awayCrest = match.awayLogo ? `<img src="${match.awayLogo}" loading="lazy">` : awayName.substring(0,2).toUpperCase();
     const leagueLogo = match.leagueLogo ? `<img src="${match.leagueLogo}" loading="lazy">` : '';
     const timeClass = scoreData.halftime ? 'match-time ht' : 'match-time';
+    const isExpanded = expandedMatches.has(String(matchId));
+    const inlineOddsHtml = buildInlineOddsPanel(match, homeName, awayName, isLive);
 
     html += `
       <div class="match-card ${cardClass}" data-matchid="${matchId}">
-        <div class="match-header">
-          ${label}
-          <span class="${timeClass}">${timeDisplay}</span>
-          <span class="match-league">${leagueLogo} ${league}</span>
-        </div>
-        <div class="score-line">
-          <div class="team-block home">
-            <div class="team-crest">${homeCrest}</div>
-            <div class="team-info">
-              <span class="team-name">${homeName}</span>
-              <span class="team-score">${scoreData.home}</span>
+        <div class="match-card-main">
+          <div class="match-header">
+            ${label}
+            <span class="${timeClass}">${timeDisplay}</span>
+            <span class="match-league">${leagueLogo} ${league}</span>
+          </div>
+          <div class="score-line">
+            <div class="team-block home">
+              <div class="team-crest">${homeCrest}</div>
+              <div class="team-info"><span class="team-name">${homeName}</span><span class="team-score">${scoreData.home}</span></div>
+            </div>
+            <span class="vs-dash">⚡</span>
+            <div class="team-block away">
+              <div class="team-crest">${awayCrest}</div>
+              <div class="team-info"><span class="team-name">${awayName}</span><span class="team-score">${scoreData.away}</span></div>
             </div>
           </div>
-          <span class="vs-dash">⚡</span>
-          <div class="team-block away">
-            <div class="team-crest">${awayCrest}</div>
-            <div class="team-info">
-              <span class="team-name">${awayName}</span>
-              <span class="team-score">${scoreData.away}</span>
-            </div>
+          <div class="odds-row">
+            <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">1</div><div class="value">${odds1}</div></div>
+            <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">X</div><div class="value highlight">${oddsX}</div></div>
+            <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">2</div><div class="value">${odds2}</div></div>
           </div>
         </div>
-        <div class="odds-row">
-          <div class="odd-item" data-selection="1" data-price="${odds1}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">1</div><div class="value">${odds1}</div></div>
-          <div class="odd-item" data-selection="X" data-price="${oddsX}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">X</div><div class="value highlight">${oddsX}</div></div>
-          <div class="odd-item" data-selection="2" data-price="${odds2}" data-match="${homeName} vs ${awayName}" data-islive="${isLive}"><div class="label">2</div><div class="value">${odds2}</div></div>
+        <button class="match-expand-btn ${isExpanded ? 'open' : ''}" data-expand="${matchId}" title="Plus de cotes">▼</button>
+        <div class="inline-odds ${isExpanded ? 'open' : ''}" id="inline-${matchId}">
+          ${inlineOddsHtml}
         </div>
       </div>
     `;
@@ -928,13 +970,43 @@ async function renderMatchList(events, type = 'live', preserveScroll = false) {
   app.innerHTML = html;
   if (preserveScroll) window.scrollTo(0, scrollY);
 
-  document.querySelectorAll('.match-card').forEach(card => {
-    card.addEventListener('click', function(e) {
+  // Ouvrir détail (clic sur carte principale)
+  document.querySelectorAll('.match-card-main').forEach(main => {
+    main.addEventListener('click', function(e) {
       if (e.target.closest('.odd-item')) return;
-      if (this.dataset.matchid) showEventDetails(this.dataset.matchid);
+      const card = this.closest('.match-card');
+      if (card.dataset.matchid) showEventDetails(card.dataset.matchid);
     });
   });
-  document.querySelectorAll('.odd-item').forEach(item => {
+
+  // Toggle expand
+  document.querySelectorAll('.match-expand-btn').forEach(btn => {
+    btn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = this.dataset.expand;
+      const panel = document.getElementById('inline-' + id);
+      const isOpen = panel.classList.toggle('open');
+      this.classList.toggle('open', isOpen);
+      if (isOpen) expandedMatches.add(String(id));
+      else expandedMatches.delete(String(id));
+    });
+  });
+
+  // Ajouter au bet slip : cotes inline 1X2
+  document.querySelectorAll('.match-card .odd-item').forEach(item => {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const price = parseFloat(this.dataset.price);
+      if (price && price > 0) {
+        addToBetSlip(this.dataset.match, this.dataset.selection, price, this.dataset.islive === 'true');
+        this.classList.add('selected');
+        setTimeout(() => this.classList.remove('selected'), 800);
+      } else showToast('Cote non disponible', true);
+    });
+  });
+
+  // Ajouter au bet slip : cotes inline supplémentaires
+  document.querySelectorAll('.inline-odd:not(.locked)').forEach(item => {
     item.addEventListener('click', function(e) {
       e.stopPropagation();
       const price = parseFloat(this.dataset.price);
@@ -947,16 +1019,13 @@ async function renderMatchList(events, type = 'live', preserveScroll = false) {
   });
 }
 
-// ============================================================
-// DETAIL VIEW
-// ============================================================
+/* ============================================================
+   DETAIL VIEW
+   ============================================================ */
 function stopAllDetailTimers() {
   if (liveDetailApiTimer) { clearInterval(liveDetailApiTimer); liveDetailApiTimer = null; }
   if (liveDetailClockTimer) { clearInterval(liveDetailClockTimer); liveDetailClockTimer = null; }
-  localLiveSeconds = 0;
-  localBaseMinutes = 0;
-  localIsHalftime = false;
-  currentLiveEventRef = null;
+  localLiveSeconds = 0; localBaseMinutes = 0; localIsHalftime = false; currentLiveEventRef = null;
 }
 
 async function showEventDetails(matchId) {
@@ -974,14 +1043,11 @@ async function showEventDetails(matchId) {
 }
 
 function startLiveDetailTimers(matchId) {
-  // Sync API toutes les 3s
   liveDetailApiTimer = setInterval(() => fetchLiveSilentUpdate(matchId), 3000);
-  // Tick horloge toutes les 1s
   liveDetailClockTimer = setInterval(() => {
     if (localIsHalftime) return;
     if (localBaseMinutes > 0 && currentLiveEventRef && currentLiveEventRef.LiveCurrentTime) {
       localLiveSeconds++;
-      // Recalculer chaque seconde
       const totalSec = localBaseMinutes * 60 + localLiveSeconds;
       const mins = Math.floor(totalSec / 60);
       if (mins > 0 && mins <= 90) {
@@ -1016,10 +1082,8 @@ function buildScoreHtml(result, liveEvent) {
           </div>
         </div>
         <div class="detail-status"><span class="status-chip">📅 À venir</span></div>
-      </div>
-    `;
+      </div>`;
   }
-
   return `
     <div class="detail-hero">
       <div class="detail-league">🏆 ${league}</div>
@@ -1042,18 +1106,16 @@ function buildScoreHtml(result, liveEvent) {
       <div class="detail-status" id="liveStatusRow">
         ${scoreData.halftime ? '<span class="status-chip ht-chip">⏸ MI-TEMPS</span>' : '<span class="status-chip live-chip">🔴 EN DIRECT</span>'}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 function buildStickyOddsHtml(odds1, oddsX, odds2) {
   return `
     <div class="sticky-1x2" id="sticky1x2">
-      <div class="odd-item" data-selection="1" data-price="${odds1}" data-islive="true"><div class="label">1</div><div class="value" id="sticky1">${odds1}</div></div>
-      <div class="odd-item" data-selection="X" data-price="${oddsX}" data-islive="true"><div class="label">X</div><div class="value highlight" id="stickyX">${oddsX}</div></div>
-      <div class="odd-item" data-selection="2" data-price="${odds2}" data-islive="true"><div class="label">2</div><div class="value" id="sticky2">${odds2}</div></div>
-    </div>
-  `;
+      <div class="inline-odd" data-selection="1" data-price="${odds1}" data-islive="true"><div class="od-name">1</div><div class="od-price" id="sticky1">${odds1}</div></div>
+      <div class="inline-odd" data-selection="X" data-price="${oddsX}" data-islive="true"><div class="od-name">X</div><div class="od-price" id="stickyX">${oddsX}</div></div>
+      <div class="inline-odd" data-selection="2" data-price="${odds2}" data-islive="true"><div class="od-name">2</div><div class="od-price" id="sticky2">${odds2}</div></div>
+    </div>`;
 }
 
 async function loadMatchDetails(matchId, silent = false) {
@@ -1064,7 +1126,6 @@ async function loadMatchDetails(matchId, silent = false) {
       if (!silent) app.innerHTML = `<div class="error-msg">⚠️ Détails introuvables.</div>`;
       return;
     }
-
     let liveEvent = liveEventsCache[matchId];
     if (!liveEvent && result.IsLiveEvent) {
       try {
@@ -1077,7 +1138,6 @@ async function loadMatchDetails(matchId, silent = false) {
     currentLiveEventRef = liveEvent;
 
     if (silent) {
-      // === UPDATE CIBLÉ ===
       const scoreData = extractScore(liveEvent || result);
       const homeEl = document.getElementById('liveScoreHome');
       const awayEl = document.getElementById('liveScoreAway');
@@ -1087,16 +1147,13 @@ async function loadMatchDetails(matchId, silent = false) {
       if (awayEl) awayEl.textContent = scoreData.away;
       if (timeEl) timeEl.textContent = scoreData.halftime ? 'MI-TEMPS' : (scoreData.liveTime ? scoreData.liveTime + "'" : 'EN COURS');
       if (timeBox) timeBox.classList.toggle('ht', scoreData.halftime);
-      // Sync local clock
-      const minutes = parseInt(scoreData.liveTime) || 0;
-      localBaseMinutes = minutes;
+      localBaseMinutes = parseInt(scoreData.liveTime) || 0;
       localLiveSeconds = 0;
       localIsHalftime = scoreData.halftime;
       await refreshTimeline(result, matchId);
       return;
     }
 
-    // === RENDU COMPLET ===
     const homeTeam = result.Competitors?.[0]?.Name || 'Home';
     const awayTeam = result.Competitors?.[1]?.Name || 'Away';
     const isLive = result.IsLiveEvent;
@@ -1115,18 +1172,15 @@ async function loadMatchDetails(matchId, silent = false) {
     html += `<div id="timelineContainer"></div>`;
 
     if (tabNames.length > 0) {
-      // Sticky 1X2
       const odds = extractOdds(liveEvent?.Items || result.Items);
       html += buildStickyOddsHtml(odds.odds1, odds.oddsX, odds.odds2);
 
-      // Market tabs
       html += `<div class="market-tabs" id="marketTabs">`;
       tabNames.forEach((key) => {
         html += `<button class="${key === currentMarketTab ? 'active' : ''}" data-tab="${key}">${tabMap[key] || key.toUpperCase()}</button>`;
       });
       html += `</div>`;
 
-      // Accordion market sections (toutes dans un container, on filtre par onglet)
       tabNames.forEach((key) => {
         const groups = grouped[key];
         html += `<div class="tab-content" data-tab-content="${key}" style="${key === currentMarketTab ? '' : 'display:none;'}">`;
@@ -1158,22 +1212,19 @@ async function loadMatchDetails(matchId, silent = false) {
     await refreshCrests(result);
     await refreshTimeline(result, matchId);
 
-    // Market tabs switch
     document.querySelectorAll('#marketTabs button').forEach(btn => {
       btn.addEventListener('click', function() {
         document.querySelectorAll('#marketTabs button').forEach(b => b.classList.remove('active'));
         this.classList.add('active');
         currentMarketTab = this.dataset.tab;
         document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
-        document.querySelector(`[data-tab-content="${currentMarketTab}"]`).style.display = '';
+        const target = document.querySelector(`[data-tab-content="${currentMarketTab}"]`);
+        if (target) target.style.display = '';
       });
     });
 
-    // Accordion toggle
     document.querySelectorAll('.market-section-header').forEach(h => {
-      h.addEventListener('click', function() {
-        this.parentElement.classList.toggle('open');
-      });
+      h.addEventListener('click', function() { this.parentElement.classList.toggle('open'); });
     });
 
     document.getElementById('backToList').addEventListener('click', () => {
@@ -1184,12 +1235,11 @@ async function loadMatchDetails(matchId, silent = false) {
       loadView(currentView, true);
     });
 
-    // Bet click
-    document.querySelectorAll('.market-item:not(.locked), .sticky-1x2 .odd-item').forEach(item => {
+    document.querySelectorAll('.market-item:not(.locked), .sticky-1x2 .inline-odd').forEach(item => {
       item.addEventListener('click', function() {
         const price = parseFloat(this.dataset.price);
         if (price && price > 0) {
-          addToBetSlip(this.dataset.match, this.dataset.selection, price, this.dataset.islive === 'true');
+          addToBetSlip(this.dataset.match || `${homeTeam} vs ${awayTeam}`, this.dataset.selection, price, this.dataset.islive === 'true');
           this.classList.add('selected');
           setTimeout(() => this.classList.remove('selected'), 800);
         } else showToast('Cote non disponible', true);
@@ -1201,10 +1251,8 @@ async function loadMatchDetails(matchId, silent = false) {
   }
 }
 
-// === FETCH SILENCIEUX 3s ===
 async function fetchLiveSilentUpdate(matchId) {
   try {
-    // 1) GetLivenow pour score + time
     const liveData = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=50');
     const liveEvents = liveData?.Result?.Items?.[0]?.Events || [];
     const liveEvent = liveEvents.find(e => String(e.Id) === String(matchId));
@@ -1223,20 +1271,17 @@ async function fetchLiveSilentUpdate(matchId) {
       localBaseMinutes = parseInt(scoreData.liveTime) || 0;
       localLiveSeconds = 0;
       localIsHalftime = scoreData.halftime;
-      // Update status row
       const statusRow = document.getElementById('liveStatusRow');
       if (statusRow) {
-        statusRow.innerHTML = scoreData.halftime 
-          ? '<span class="status-chip ht-chip">⏸ MI-TEMPS</span>' 
+        statusRow.innerHTML = scoreData.halftime
+          ? '<span class="status-chip ht-chip">⏸ MI-TEMPS</span>'
           : '<span class="status-chip live-chip">🔴 EN DIRECT</span>';
       }
     }
 
-    // 2) GetEventDetails pour les cotes
     const detailData = await fetchFromProxy('GetEventDetails', `eventId=${matchId}&sportId=1`);
     const result = detailData?.Result;
     if (result) {
-      // Update sticky 1X2
       const odds = extractOdds(result.Items);
       const s1 = document.getElementById('sticky1');
       const sX = document.getElementById('stickyX');
@@ -1245,7 +1290,6 @@ async function fetchLiveSilentUpdate(matchId) {
       if (sX) sX.textContent = odds.oddsX;
       if (s2) s2.textContent = odds.odds2;
 
-      // Update market items prices
       const allItems = result.MarketGroups?.flatMap(g => g.Items?.flatMap(m => m.Items || []) || []) || [];
       document.querySelectorAll('.market-item[data-selection]').forEach(el => {
         const sel = el.dataset.selection;
@@ -1253,20 +1297,11 @@ async function fetchLiveSilentUpdate(matchId) {
         if (!priceEl || el.classList.contains('locked')) return;
         const found = allItems.find(i => (i.Name || i.ShortName) === sel);
         if (found && found.Price && found.Price !== priceEl.textContent) {
-          const old = parseFloat(priceEl.textContent) || 0;
-          const nw = parseFloat(found.Price) || 0;
           priceEl.textContent = found.Price;
-          priceEl.classList.remove('changed-up','changed-down');
-          void priceEl.offsetWidth;
-          if (nw > old) priceEl.classList.add('changed-up');
-          else if (nw < old) priceEl.classList.add('changed-down');
         }
       });
     }
-
-    // 3) Refresh timeline
     await refreshTimeline(result || {}, matchId);
-
   } catch (e) { console.warn('Silent update:', e); }
 }
 
@@ -1289,11 +1324,9 @@ async function refreshTimeline(result, matchId) {
     const matchInfo = timelineData?.doc?.[0]?.data?.match || {};
     const status = matchInfo?.status?.name || '';
     const isHT = status.toLowerCase().includes('half') || status.toLowerCase().includes('mi-temps');
-
     const homeTeam = result.Competitors?.[0]?.Name || 'Home';
     const awayTeam = result.Competitors?.[1]?.Name || 'Away';
 
-    // Filtre événements valides
     const validEvents = allEvents.filter(ev => {
       if (!ev.time || ev.time < 1) return false;
       const t = (ev.type || '').toLowerCase();
@@ -1319,7 +1352,6 @@ async function refreshTimeline(result, matchId) {
         else if (t === 'shotontarget') { icon = '🎯'; }
         else if (t === 'corner') { icon = '🚩'; cls = 'event-corner'; }
         else if (t === 'offside') { icon = '🚫'; }
-        else if (t === 'var') { icon = '📺'; }
         const teamName = ev.team === 'home' ? homeTeam : (ev.team === 'away' ? awayTeam : '');
         const playerName = ev.player?.name || '';
         const desc = ev.name || ev.type || '';
@@ -1332,10 +1364,8 @@ async function refreshTimeline(result, matchId) {
       return h;
     };
 
-    // FIX ORDRE : 2ème MT en HAUT si on est dedans
     const inSecondHalf = secondHalf.length > 0;
     let html = `<div class="timeline-wrap"><div class="timeline-header">📋 Événements du match</div>`;
-
     if (inSecondHalf) {
       html += `<div class="period-separator">2ème mi-temps</div>${renderEvents(secondHalf)}`;
       html += `<div class="period-separator ht">⏸ MI-TEMPS</div>`;
@@ -1349,9 +1379,9 @@ async function refreshTimeline(result, matchId) {
   } catch (e) { console.warn('Timeline:', e); }
 }
 
-// ============================================================
-// LOAD VIEWS
-// ============================================================
+/* ============================================================
+   LOAD VIEWS
+   ============================================================ */
 async function loadView(view, preserveScroll = false) {
   if (isUpdating) return;
   isUpdating = true;
@@ -1360,14 +1390,12 @@ async function loadView(view, preserveScroll = false) {
     currentView = view;
     let events = [];
     const cacheKey = `${view}_${currentDay}`;
-
     if (eventsCache[cacheKey]) {
       await renderMatchList(eventsCache[cacheKey], view, preserveScroll);
       isUpdating = false;
       return;
     }
     app.innerHTML = '<div class="loading">Chargement...</div>';
-
     if (view === 'live') {
       const data = await fetchFromProxy('GetLivenow', 'sportId=1&showAllEvents=false&count=15');
       events = data?.Result?.Items?.[0]?.Events || [];
@@ -1430,9 +1458,9 @@ function startListRefresh() {
   listRefreshInterval = setInterval(silentListRefresh, 10000);
 }
 
-// ============================================================
-// NAV & INIT
-// ============================================================
+/* ============================================================
+   NAV & INIT
+   ============================================================ */
 document.querySelectorAll('.nav-tabs button').forEach(btn => {
   btn.addEventListener('click', function() {
     document.querySelectorAll('.nav-tabs button').forEach(b => b.classList.remove('active'));
@@ -1459,7 +1487,7 @@ document.getElementById('home-link').addEventListener('click', (e) => {
 
 document.getElementById('calendarBtn').addEventListener('click', () => showToast('📅 Sélectionnez un jour'));
 
-// INIT
+/* INIT */
 loadState();
 renderDaysTabs();
 updateBalanceUI();
@@ -1469,4 +1497,4 @@ startListRefresh();
 loadView('live');
 </script>
 </body>
-        </html>
+  </html>
