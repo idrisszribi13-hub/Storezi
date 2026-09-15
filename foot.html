@@ -1188,19 +1188,35 @@
         .match-modal-tab-content {
             padding: 10px 0;
         }
+        /* ===== TIMELINE & EVENTS ===== */
+        .event-box {
+            position: relative;
+            padding: 10px 0;
+        }
+        /* Vertical timeline line */
+        .event-box::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 2px;
+            background: var(--border-color);
+            z-index: 0;
+        }
         .event-row {
+            position: relative;
+            z-index: 1;
             display: flex;
             align-items: center;
-            padding: 5px 0;
-            border-bottom: 1px solid var(--border-color);
-            gap: 8px;
-        }
-        .event-row:last-child {
-            border-bottom: none;
+            padding: 6px 0;
+            background: var(--light-bg); /* To hide line behind the row */
+            border-radius: 8px;
+            margin-bottom: 2px;
         }
         .event-row:hover {
-            background: rgba(13, 110, 253, 0.03);
-            border-radius: 6px;
+            background: var(--card-hover);
         }
         .event-time-cell {
             display: flex;
@@ -1208,6 +1224,8 @@
             align-items: center;
             width: 52px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .event-time-circle {
             display: flex;
@@ -1223,6 +1241,7 @@
             line-height: 1.1;
             box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
             border: 2px solid rgba(255, 255, 255, 0.8);
+            background: var(--card-bg);
         }
         [data-theme="dark"] .event-time-circle {
             border-color: rgba(255, 255, 255, 0.15);
@@ -1254,6 +1273,8 @@
             align-items: center;
             width: 28px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 2;
         }
         .event-side-right {
             justify-content: flex-end;
@@ -1271,6 +1292,8 @@
             justify-content: center;
             text-align: center;
             padding: 0 4px;
+            position: relative;
+            z-index: 2;
         }
         .event-player {
             font-size: calc(12px * var(--font-scale));
@@ -1308,23 +1331,26 @@
             font-weight: 700;
         }
         .halftime-divider {
-            background: var(--light-bg);
-            margin: 4px 0;
-            padding: 8px;
+            background: var(--card-bg);
+            margin: 6px 0;
+            padding: 10px;
             text-align: center;
             font-weight: 700;
             color: var(--text-color);
             font-size: calc(12px * var(--font-scale));
-            border-radius: 6px;
+            border-radius: 8px;
             border: 1px dashed var(--border-color);
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .halftime-divider .ht-score {
-            font-size: calc(16px * var(--font-scale));
+            font-size: calc(18px * var(--font-scale));
             color: var(--text-color);
         }
         .fulltime-divider {
             text-align: center;
-            padding: 8px;
+            padding: 10px;
             color: var(--secondary);
             font-size: calc(12px * var(--font-scale));
             font-weight: 600;
@@ -1332,17 +1358,36 @@
             align-items: center;
             justify-content: center;
             gap: 6px;
+            background: var(--card-bg);
+            border-radius: 8px;
+            margin: 6px 0;
+            position: relative;
+            z-index: 2;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
         .fulltime-divider.penalty {
             background: #fff8e1;
             border: 1px solid #ffc107;
-            border-radius: 6px;
+            border-radius: 8px;
             color: #333;
         }
         [data-theme="dark"] .fulltime-divider.penalty {
             background: #2a2a1a;
             border-color: #f39c12;
             color: #f1c40f;
+        }
+        .ht-countdown-timer {
+            font-size: calc(14px * var(--font-scale));
+            font-weight: 700;
+            color: #e74c3c;
+            text-align: center;
+            margin-top: 4px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.6; }
+            100% { opacity: 1; }
         }
         .detail-card {
             background: var(--card-bg);
@@ -3464,7 +3509,7 @@
                 return match.minutes || 0;
             }
             if (status === 0) return 0;
-            if (status === 2) return match.minutes || 0;
+            if (status === 2) return match.minutes || 0; // HT
             if (status === 10) return match.minutes || 0;
             if (status === 14) return 0;
             return 0;
@@ -3475,11 +3520,19 @@
             const mins = Math.floor(total / 60);
             const secs = Math.floor(total % 60);
             const padded = String(secs).padStart(2, '0');
+            
             if (status === 0) return { display: 'VS', stoppage: null, seconds: total };
             if (status === 4) return { display: 'FT', stoppage: null, seconds: total };
-            if (status === 2) return { display: 'HT', stoppage: null, seconds: total };
+            
+            if (status === 2) { // HT - Show 45:00 or 45:00 + stoppage
+                const htMins = 45;
+                const htStoppage = exTime ? `+${Math.floor(exTime)}` : '';
+                return { display: `${htMins}:00${htStoppage}`, stoppage: htStoppage, seconds: 45*60 };
+            }
+            
             if (status === 10) return { display: 'PEN', stoppage: null, seconds: total };
             if (status === 14) return { display: 'Postponed', stoppage: null, seconds: total };
+            
             let display = `${mins}:${padded}`;
             let stoppage = null;
             if (exTime && exTime > 0) {
@@ -3697,7 +3750,7 @@
             currentChampionship = { url_id: id, type, title, standings, cups };
             document.getElementById('more-bracket-item').style.display = (type === 4 || (type === 2 && cups)) ? '' : 'none';
             
-            // NEW: Automatically switch to "More" tab when championship is selected
+            // Automatically switch to "More" tab when championship is selected
             loadMoreContent();
             const moreNavBtn = document.querySelector('.bottom-nav .nav-item[data-page="more"]');
             if (moreNavBtn) moreNavBtn.click();
@@ -4123,6 +4176,7 @@
         let currentMatchInfo = null;
         let matchLiveInterval = null;
         let matchDataInterval = null;
+        let htCountdownInterval = null;
 
         async function openMatchDetails(matchId) {
             showLoading();
@@ -4171,6 +4225,7 @@
         function startLiveMatchUpdates(matchId) {
             if (matchLiveInterval) clearInterval(matchLiveInterval);
             if (matchDataInterval) clearInterval(matchDataInterval);
+            if (htCountdownInterval) clearInterval(htCountdownInterval);
 
             matchLiveInterval = setInterval(() => {
                 if (!currentMatchInfo) return;
@@ -4183,7 +4238,7 @@
                 const timerMain = document.querySelector('#matchModalBody .timer-main');
                 if (timerMain) {
                     if (status === 4) timerMain.textContent = 'FT';
-                    else if (status === 2) timerMain.textContent = timer.display;
+                    else if (status === 2) timerMain.textContent = '45:00'; // Fixed HT display
                     else timerMain.textContent = timer.display;
                 }
                 const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
@@ -4206,7 +4261,7 @@
                     }
                 }
                 const halfEl = document.querySelector('#matchModalBody .half-score');
-                if (halfEl && info.fh_scores && info.fh_scores.length) {
+                if (halfEl && info.fh_scores && info.fh_scores.length && status !== 2) { // Hide HT score if currently at HT
                     const h = info.fh_scores[0]?.home_scores || 0;
                     const a = info.fh_scores[0]?.away_scores || 0;
                     halfEl.textContent = `HT: ${h} - ${a}`;
@@ -4228,7 +4283,7 @@
                         const timerMain = document.querySelector('#matchModalBody .timer-main');
                         if (timerMain) {
                             if (status === 4) timerMain.textContent = 'FT';
-                            else if (status === 2) timerMain.textContent = timer.display;
+                            else if (status === 2) timerMain.textContent = '45:00'; // Fixed HT display
                             else timerMain.textContent = timer.display;
                         }
                         const stoppageEl = document.querySelector('#matchModalBody .timer-stoppage');
@@ -4253,7 +4308,7 @@
                             }
                         }
                         const halfEl = document.querySelector('#matchModalBody .half-score');
-                        if (halfEl && info.fh_scores && info.fh_scores.length) {
+                        if (halfEl && info.fh_scores && info.fh_scores.length && status !== 2) {
                             const h = info.fh_scores[0]?.home_scores || 0;
                             const a = info.fh_scores[0]?.away_scores || 0;
                             halfEl.textContent = `HT: ${h} - ${a}`;
@@ -4267,6 +4322,7 @@
                     matchLiveInterval = null; }
                 if (matchDataInterval) { clearInterval(matchDataInterval);
                     matchDataInterval = null; }
+                if (htCountdownInterval) { clearInterval(htCountdownInterval); htCountdownInterval = null; }
                 currentMatchInfo = null;
             }, { once: true });
         }
@@ -4319,15 +4375,15 @@
                 awayRedCard = false;
             if (events && events.length) {
                 events.forEach(ev => {
-                    if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.home_team.row_id) homeRedCard =
-                    true;
-                    if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.away_team.row_id) awayRedCard =
-                    true;
+                    const isOwnGoal = (ev.player_name && ev.player_name.team_id && ev.team_id && ev.player_name.team_id !== ev.team_id);
+                    if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.home_team.row_id && !isOwnGoal) homeRedCard = true;
+                    if ((ev.type === 6 || ev.type === 4) && ev.team_id === info.away_team.row_id && !isOwnGoal) awayRedCard = true;
                 });
             }
 
             let halfScoreHtml = '';
-            if (info.fh_scores && info.fh_scores.length && !isUpcoming && !isPostponed) {
+            // Only show HT score if not currently at HT
+            if (info.fh_scores && info.fh_scores.length && !isUpcoming && !isPostponed && !isHT) {
                 const h = info.fh_scores[0]?.home_scores || 0;
                 const a = info.fh_scores[0]?.away_scores || 0;
                 halfScoreHtml = `<div class="half-score">HT: ${h} - ${a}</div>`;
@@ -4415,14 +4471,18 @@
             } else if (isFinished) {
                 timerMainText = 'FT';
             } else if (isHT) {
-                const totalMins = Math.floor(seconds / 60);
-                const totalSecs = Math.floor(seconds % 60);
-                timerMainText = `${totalMins}:${String(totalSecs).padStart(2,'0')}`;
+                timerMainText = '45:00'; // Fixed HT display
             } else {
+                // Regular time (including ET)
                 const totalMins = Math.floor(seconds / 60);
                 const totalSecs = Math.floor(seconds % 60);
                 const timeStr = `${totalMins}:${String(totalSecs).padStart(2,'0')}`;
                 timerMainText = `${timeStr}${timer.stoppage ? ` +${timer.stoppage}` : ''}`;
+            }
+
+            let htCountdownHtml = '';
+            if (isHT) {
+                htCountdownHtml = `<div class="ht-countdown-timer text-warning fw-bold mt-1" id="htCountdown" data-ht-start="${info.ht_time || (Date.now()/1000)}">Waiting for 2nd half: 15:00</div>`;
             }
 
             let headerHtml = `
@@ -4449,6 +4509,7 @@
                             ${timer.stoppage && !isPostponed && !isUpcoming && !isFinished && !isHT ? `<span class="timer-stoppage">${timer.stoppage}</span>` : ''}
                         </div>
                         <div class="match-period">${periodDisplay}</div>
+                        ${htCountdownHtml}
                         <div class="timeline-container">
                             <div class="timeline-fill timeline-fill-modal" style="width:${isPostponed || isUpcoming ? 0 : isFinished ? 100 : progress}%"></div>
                             ${status === 2 ? '<div class="ht-marker-modal"></div>' : ''}
@@ -4577,7 +4638,6 @@
                 }
 
                 if (halfTime) {
-                    // FIX: Calculate HT score from events if fh_scores is missing
                     let score = { home: 0, away: 0 };
                     if (info.fh_scores && info.fh_scores.length) {
                         score.home = parseInt(info.fh_scores[0].home_scores) || 0;
@@ -4586,7 +4646,6 @@
                         firstHalf.forEach(ev => {
                             if ((ev.type === 1 || ev.type === 5 || ev.type === 13) && ev.team_id === info.home_team.row_id) score.home++;
                             if ((ev.type === 1 || ev.type === 5 || ev.type === 13) && ev.team_id === info.away_team.row_id) score.away++;
-                            // Note: Own goals are tricky, but we'll stick to standard goals for this fallback
                         });
                     }
                     orderedHtml += `
@@ -4594,6 +4653,9 @@
                             <img src="${ICONS.clock}" style="width:18px;height:18px;" />
                             <span class="ht-score">${score.home} - ${score.away}</span><br />Half Time
                         </div>`;
+                    if (isHT) {
+                        orderedHtml += `<div class="text-center text-danger fw-bold my-2" id="htCountdownEvents">Waiting for 2nd half: 15:00</div>`;
+                    }
                 }
 
                 if (secondHalf.length) {
@@ -4725,14 +4787,14 @@
                             </div>`;
                         }
 
-                        // We use a full pitch vertical layout
+                        // Full pitch vertical layout
                         return `
                         <div class="pitch-container">
                             <div class="pitch-team-name">
                                 <img src="${IMG_BASE_TEAM + team.image}" onclick="openTeamModal(${team.row_id})" />
                                 ${team.title} <span class="formation">(${formation})</span>
                             </div>
-                            <!-- Rows: Attack at top, Defense at bottom (like typical vertical pitch view) -->
+                            <!-- Rows: Attack at top, Defense at bottom -->
                             <div class="pitch-row" style="justify-content: center; flex-wrap: wrap;">
                                 ${fwd.map(p => playerCard(p)).join('')}
                             </div>
@@ -4923,6 +4985,30 @@
                 btn.addEventListener('click', function(e) { e.preventDefault();
                     new bootstrap.Tab(this).show(); });
             });
+
+            // Start HT Countdown if needed
+            if (isHT) {
+                const htStart = info.ht_time || Math.floor(Date.now()/1000);
+                const updateHtCountdown = () => {
+                    const elHeader = document.getElementById('htCountdown');
+                    const elEvents = document.getElementById('htCountdownEvents');
+                    const now = Math.floor(Date.now()/1000);
+                    const elapsed = now - htStart;
+                    const remaining = Math.max(0, 15 * 60 - elapsed);
+                    const mins = Math.floor(remaining / 60);
+                    const secs = remaining % 60;
+                    const text = `Waiting for 2nd half: ${mins}:${String(secs).padStart(2,'0')}`;
+                    if (elHeader) elHeader.textContent = text;
+                    if (elEvents) elEvents.textContent = text;
+                    if (remaining <= 0) {
+                        if (elHeader) elHeader.textContent = 'Starting soon...';
+                        if (elEvents) elEvents.textContent = 'Starting soon...';
+                    }
+                };
+                updateHtCountdown();
+                if (htCountdownInterval) clearInterval(htCountdownInterval);
+                htCountdownInterval = setInterval(updateHtCountdown, 1000);
+            }
         }
 
         // ===== SINGLE EVENT RENDER =====
@@ -5744,11 +5830,11 @@
         }
 
         console.log('Football Center fully restored with all fixes:');
-        console.log('- Lineup: Players are now positioned vertically on the pitch based on their roles (GK, DEF, MID, FWD).');
-        console.log('- Duplicate Events: HT, FT, Kick-Off are now filtered to show only once.');
-        console.log('- HT Score: Calculated correctly from events if API data is missing.');
-        console.log('- Championship Selector: Moved to the main page and automatically redirects to the "More" tab.');
-        console.log('- UI: Improved pitch layout, player cards, and event timeline styling.');
+        console.log('- Timer at HT shows 45:00 instead of 0:00.');
+        console.log('- HT Countdown (15 mins) added and auto-updates.');
+        console.log('- Duplicate HT removed. Only one divider shown.');
+        console.log('- Own Goal correctly identified (no more Red Card badge on team).');
+        console.log('- Improved timeline UI with vertical line behind events.');
     </script>
 </body>
     </html>
