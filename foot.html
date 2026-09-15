@@ -1735,18 +1735,43 @@
         }
         /* ===== LINEUP PITCH - CONTAINED WITHIN MODAL ===== */
         .pitch-container {
-            background-image: url('https://zi-store.online/events/formation_pitch.webp');
-            background-size: cover;
-            background-position: center;
-            background-color: #1a7a3a;
+            background: linear-gradient(to bottom, #1a7a3a, #2ecc71);
             border-radius: 12px;
             padding: 10px 8px;
             position: relative;
-            min-height: 280px;
-            max-height: 380px;
-            border: 2px solid rgba(255, 255, 255, 0.08);
+            min-height: 480px;
+            max-height: 600px;
+            border: 2px solid rgba(255, 255, 255, 0.1);
             overflow: hidden;
             margin-bottom: 8px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .pitch-container::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 100%;
+            height: 100%;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 12px;
+            pointer-events: none;
+            box-sizing: border-box;
+        }
+        .pitch-container::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 120px;
+            height: 120px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            border-radius: 50%;
+            pointer-events: none;
         }
         .pitch-container .pitch-team-name {
             text-align: center;
@@ -1759,6 +1784,7 @@
             align-items: center;
             gap: 8px;
             text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+            z-index: 2;
         }
         .pitch-container .pitch-team-name img {
             width: 22px;
@@ -1773,144 +1799,121 @@
             opacity: 0.7;
             font-weight: 400;
         }
-        .pitch-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            grid-template-rows: repeat(5, 1fr);
-            gap: 6px 3px;
-            height: 100%;
-            min-height: 220px;
-            position: relative;
+        .pitch-row {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            width: 100%;
+            flex: 1;
+            z-index: 2;
+            padding: 0 4px;
         }
-        .pitch-grid .pitch-player {
+        .pitch-player {
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             position: relative;
-            background: rgba(255, 255, 255, 0.04);
-            border-radius: 6px;
-            padding: 2px 1px;
-            min-height: 40px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 8px;
+            padding: 4px 2px;
+            min-width: 44px;
             transition: all 0.2s;
             cursor: pointer;
+            backdrop-filter: blur(2px);
         }
-        .pitch-grid .pitch-player:hover {
-            background: rgba(255, 255, 255, 0.10);
+        .pitch-player:hover {
+            background: rgba(255, 255, 255, 0.15);
+            transform: scale(1.05);
         }
-        .pitch-grid .pitch-player .player-avatar {
+        .pitch-player .player-avatar {
             position: relative;
-            width: 30px;
-            height: 30px;
+            width: 34px;
+            height: 34px;
             border-radius: 50%;
             border: 2px solid #fff;
             background: #fff;
             overflow: hidden;
-            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
             display: flex;
             align-items: center;
             justify-content: center;
         }
-        .pitch-grid .pitch-player .player-avatar img {
+        .pitch-player .player-avatar img {
             width: 100%;
             height: 100%;
             object-fit: cover;
         }
-        .pitch-grid .pitch-player .player-number {
+        .pitch-player .player-number {
             position: absolute;
-            top: -3px;
-            right: -3px;
+            top: -4px;
+            right: -4px;
             background: #000;
             color: #fff;
-            width: 14px;
-            height: 14px;
+            width: 16px;
+            height: 16px;
             border-radius: 50%;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255, 255, 255, 0.4);
+            border: 1px solid rgba(255, 255, 255, 0.5);
             z-index: 2;
         }
-        .pitch-grid .pitch-player .player-name {
-            font-size: 7px;
+        .pitch-player .player-name {
+            font-size: 8px;
             color: #fff;
             text-align: center;
-            margin-top: 1px;
+            margin-top: 2px;
             font-weight: 600;
-            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.7);
-            max-width: 44px;
+            text-shadow: 0 1px 4px rgba(0, 0, 0, 0.8);
+            max-width: 48px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
         }
-        .pitch-grid .pitch-player .player-rating {
+        .pitch-player .player-rating {
             position: absolute;
-            bottom: -3px;
+            bottom: -4px;
             background: #f39c12;
             color: #000;
-            font-size: 7px;
+            font-size: 8px;
             font-weight: 700;
-            padding: 0px 4px;
-            border-radius: 3px;
+            padding: 1px 5px;
+            border-radius: 4px;
             z-index: 3;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.2);
         }
-        .pitch-grid .pitch-player .player-icons {
+        .pitch-player .player-icons {
             position: absolute;
-            top: -4px;
-            left: -4px;
+            top: -6px;
+            left: -6px;
             display: flex;
-            gap: 1px;
+            gap: 2px;
             z-index: 4;
             flex-wrap: wrap;
-            max-width: 28px;
+            max-width: 30px;
         }
-        .pitch-grid .pitch-player .player-icons img {
-            width: 10px;
-            height: 10px;
+        .pitch-player .player-icons img {
+            width: 12px;
+            height: 12px;
             border: none;
             border-radius: 0;
+            filter: drop-shadow(0 1px 2px rgba(0,0,0,0.5));
         }
-        .pitch-grid .pitch-player .player-icons .captain-badge {
-            width: 9px;
-            height: 9px;
+        .pitch-player .player-icons .captain-badge {
+            width: 10px;
+            height: 10px;
             background: gold;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 5px;
+            font-size: 6px;
             font-weight: 900;
             color: #000;
             border: 1px solid #fff;
-        }
-        .pitch-grid .row-gk {
-            grid-row: 5;
-            display: flex;
-            justify-content: center;
-        }
-        .pitch-grid .row-def {
-            grid-row: 4;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .row-mid {
-            grid-row: 3;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .row-fwd {
-            grid-row: 2;
-            display: flex;
-            justify-content: space-around;
-        }
-        .pitch-grid .pitch-player.empty {
-            background: transparent;
-            cursor: default;
-        }
-        .pitch-grid .pitch-player.empty:hover {
-            background: transparent;
         }
         .pitch-lineup-tabs {
             display: flex;
@@ -2391,35 +2394,30 @@
             .stats-container .stats-grid {
                 grid-template-columns: 1fr;
             }
-            .pitch-grid .pitch-player .player-avatar {
-                width: 26px;
-                height: 26px;
+            .pitch-container {
+                min-height: 380px;
+                max-height: 500px;
+                padding: 6px 4px;
             }
-            .pitch-grid .pitch-player .player-number {
-                width: 12px;
-                height: 12px;
-                font-size: 6px;
+            .pitch-player .player-avatar {
+                width: 28px;
+                height: 28px;
+            }
+            .pitch-player .player-number {
+                width: 14px;
+                height: 14px;
+                font-size: 7px;
                 top: -3px;
                 right: -3px;
             }
-            .pitch-grid .pitch-player .player-name {
-                font-size: 6px;
-                max-width: 36px;
+            .pitch-player .player-name {
+                font-size: 7px;
+                max-width: 38px;
             }
-            .pitch-grid .pitch-player .player-rating {
-                font-size: 6px;
-            }
-            .pitch-container {
-                min-height: 240px;
-                max-height: 320px;
-                padding: 8px 4px;
-            }
-            .pitch-grid {
-                min-height: 180px;
-                gap: 4px 2px;
-            }
-            .pitch-grid .pitch-player {
-                min-height: 32px;
+            .pitch-player .player-rating {
+                font-size: 7px;
+                padding: 0px 3px;
+                bottom: -3px;
             }
         }
         @media (max-width: 480px) {
@@ -2512,36 +2510,29 @@
             .stats-container .stats-grid {
                 grid-template-columns: 1fr;
             }
-            .pitch-grid .pitch-player .player-avatar {
-                width: 22px;
-                height: 22px;
+            .pitch-container {
+                min-height: 320px;
+                max-height: 420px;
             }
-            .pitch-grid .pitch-player .player-number {
-                width: 10px;
-                height: 10px;
-                font-size: 5px;
+            .pitch-player .player-avatar {
+                width: 24px;
+                height: 24px;
+            }
+            .pitch-player .player-number {
+                width: 12px;
+                height: 12px;
+                font-size: 6px;
                 top: -2px;
                 right: -2px;
             }
-            .pitch-grid .pitch-player .player-name {
-                font-size: 5px;
-                max-width: 30px;
+            .pitch-player .player-name {
+                font-size: 6px;
+                max-width: 32px;
             }
-            .pitch-grid .pitch-player .player-rating {
-                font-size: 5px;
+            .pitch-player .player-rating {
+                font-size: 6px;
                 padding: 0px 2px;
-            }
-            .pitch-container {
-                min-height: 200px;
-                max-height: 280px;
-                padding: 6px 3px;
-            }
-            .pitch-grid {
-                min-height: 150px;
-                gap: 3px 1px;
-            }
-            .pitch-grid .pitch-player {
-                min-height: 28px;
+                bottom: -2px;
             }
         }
     </style>
@@ -2598,8 +2589,8 @@
             <button class="date-btn" id="nextDateBtn">›</button>
         </div>
 
-        <!-- ===== CHAMPIONSHIP SELECTOR ===== -->
-        <div class="champ-select mb-2">
+        <!-- ===== CHAMPIONSHIP SELECTOR (Global) ===== -->
+        <div class="champ-select mb-3">
             <label class="fw-bold mb-1" style="font-size:calc(13px*var(--font-scale));">Select Championship:</label>
             <div class="dropdown">
                 <button class="btn btn-light dropdown-toggle w-100 d-flex justify-content-between align-items-center" type="button" id="championshipDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="font-size:calc(14px*var(--font-scale));">
@@ -3705,7 +3696,11 @@
             bootstrap.Dropdown.getInstance(document.getElementById('championshipDropdown'))?.hide();
             currentChampionship = { url_id: id, type, title, standings, cups };
             document.getElementById('more-bracket-item').style.display = (type === 4 || (type === 2 && cups)) ? '' : 'none';
+            
+            // NEW: Automatically switch to "More" tab when championship is selected
             loadMoreContent();
+            const moreNavBtn = document.querySelector('.bottom-nav .nav-item[data-page="more"]');
+            if (moreNavBtn) moreNavBtn.click();
         }
 
         function quickSelectChampionship(url_id, title, type) {
@@ -3715,6 +3710,8 @@
                 `<span class="d-flex align-items-center">${title}</span>`;
             document.getElementById('more-bracket-item').style.display = (type === 4) ? '' : 'none';
             loadMoreContent();
+            const moreNavBtn = document.querySelector('.bottom-nav .nav-item[data-page="more"]');
+            if (moreNavBtn) moreNavBtn.click();
         }
 
         // ============================================================
@@ -4511,14 +4508,24 @@
                 const extraTime2 = normal.filter(e => (e.time_minute || 0) > 105 && (e.time_minute || 0) <= 120);
                 const penaltyEvents = normal.filter(e => (e.time_minute || 0) > 120);
 
-                const kickOff = special.find(ev => ev.status === 1);
-                const halfTime = special.find(ev => ev.status === 2);
-                const fullTime = special.find(ev => ev.status === 3);
-                const etHalf = special.find(ev => ev.status === 5);
-                const etFull = special.find(ev => ev.status === 7);
-                const etStart1 = special.find(ev => ev.status === 8);
-                const etStart2 = special.find(ev => ev.status === 9);
-                const penStart = special.find(ev => ev.status === 10);
+                // FIX: Remove duplicate special events by status
+                const uniqueSpecial = [];
+                const seenStatus = new Set();
+                special.forEach(ev => {
+                    if (!seenStatus.has(ev.status)) {
+                        seenStatus.add(ev.status);
+                        uniqueSpecial.push(ev);
+                    }
+                });
+
+                const kickOff = uniqueSpecial.find(ev => ev.status === 1);
+                const halfTime = uniqueSpecial.find(ev => ev.status === 2);
+                const fullTime = uniqueSpecial.find(ev => ev.status === 3);
+                const etHalf = uniqueSpecial.find(ev => ev.status === 5);
+                const etFull = uniqueSpecial.find(ev => ev.status === 7);
+                const etStart1 = uniqueSpecial.find(ev => ev.status === 8);
+                const etStart2 = uniqueSpecial.find(ev => ev.status === 9);
+                const penStart = uniqueSpecial.find(ev => ev.status === 10);
 
                 function renderEventGroup(list) {
                     let g = '';
@@ -4570,7 +4577,18 @@
                 }
 
                 if (halfTime) {
-                    const score = getScoreAtMinute(info, 45);
+                    // FIX: Calculate HT score from events if fh_scores is missing
+                    let score = { home: 0, away: 0 };
+                    if (info.fh_scores && info.fh_scores.length) {
+                        score.home = parseInt(info.fh_scores[0].home_scores) || 0;
+                        score.away = parseInt(info.fh_scores[0].away_scores) || 0;
+                    } else {
+                        firstHalf.forEach(ev => {
+                            if ((ev.type === 1 || ev.type === 5 || ev.type === 13) && ev.team_id === info.home_team.row_id) score.home++;
+                            if ((ev.type === 1 || ev.type === 5 || ev.type === 13) && ev.team_id === info.away_team.row_id) score.away++;
+                            // Note: Own goals are tricky, but we'll stick to standard goals for this fallback
+                        });
+                    }
                     orderedHtml += `
                         <div class="halftime-divider">
                             <img src="${ICONS.clock}" style="width:18px;height:18px;" />
@@ -4707,90 +4725,28 @@
                             </div>`;
                         }
 
-                        function renderRow(players, rowClass) {
-                            if (!players || players.length === 0) return '';
-                            let html = `<div class="${rowClass}">`;
-                            if (rowClass === 'row-gk') {
-                                html += `<div style="display:flex;justify-content:center;width:100%;">`;
-                                players.forEach(p => { html += playerCard(p); });
-                                html += `</div>`;
-                            } else {
-                                players.forEach(p => {
-                                    html += `<div style="flex:1;display:flex;justify-content:center;">${playerCard(p)}</div>`;
-                                });
-                            }
-                            html += `</div>`;
-                            return html;
-                        }
-
-                        let pitchHtml = `
+                        // We use a full pitch vertical layout
+                        return `
                         <div class="pitch-container">
                             <div class="pitch-team-name">
                                 <img src="${IMG_BASE_TEAM + team.image}" onclick="openTeamModal(${team.row_id})" />
                                 ${team.title} <span class="formation">(${formation})</span>
                             </div>
-                            <div class="pitch-grid">
-                                ${renderRow(gk, 'row-gk')}
-                                ${renderRow(def, 'row-def')}
-                                ${renderRow(mid, 'row-mid')}
-                                ${renderRow(fwd, 'row-fwd')}
+                            <!-- Rows: Attack at top, Defense at bottom (like typical vertical pitch view) -->
+                            <div class="pitch-row" style="justify-content: center; flex-wrap: wrap;">
+                                ${fwd.map(p => playerCard(p)).join('')}
                             </div>
+                            <div class="pitch-row">
+                                ${mid.map(p => playerCard(p)).join('')}
+                            </div>
+                            <div class="pitch-row">
+                                ${def.map(p => playerCard(p)).join('')}
+                            </div>
+                            <div class="pitch-row" style="justify-content: center;">
+                                ${gk.map(p => playerCard(p)).join('')}
+                            </div>
+                        </div>
                         `;
-
-                        let extrasHtml = '<div class="pitch-extras">';
-
-                        if (coach) {
-                            const img = coach.image ? IMG_BASE_COACH + coach.image :
-                                'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Crect width=\'32\' height=\'32\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                            extrasHtml += `
-                            <div class="coach-section" onclick="openCoachModal(${coach.id})">
-                                <img src="${img}" class="coach-avatar" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'32\' height=\'32\' viewBox=\'0 0 32 32\'%3E%3Crect width=\'32\' height=\'32\' fill=\'%23ddd\'/%3E%3Ctext x=\'5\' y=\'20\' font-family=\'sans-serif\' font-size=\'12\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E'" />
-                                <span class="coach-name">${coach.title}</span>
-                            </div>`;
-                        }
-
-                        if (subs && subs.length) {
-                            extrasHtml += `<div class="subs-section"><div class="subs-title">Substitutions</div>`;
-                            subs.forEach(sub => {
-                                const player = sub.player;
-                                const replaced = sub.player_lineup ? sub.player_lineup.title : '';
-                                const time = sub.substitute_time ? `${sub.substitute_time}'` : '';
-                                const img = player.image ? IMG_BASE_PLAYER + player.image :
-                                    'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' viewBox=\'0 0 18 18\'%3E%3Crect width=\'18\' height=\'18\' fill=\'%23ddd\'/%3E%3Ctext x=\'3\' y=\'12\' font-family=\'sans-serif\' font-size=\'10\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                                const playerId = player.row_id;
-                                extrasHtml += `
-                                <div class="sub-item">
-                                    <span>${time}</span>
-                                    <img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" />
-                                    <span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span>
-                                    ${replaced ? `<span class="sub-arrow">→ ${replaced}</span>` : ''}
-                                </div>`;
-                            });
-                            extrasHtml += `</div>`;
-                        }
-
-                        if (injured && injured.length) {
-                            extrasHtml += `<div class="injuries-section"><div class="injuries-title">⚠️ Missing Players</div>`;
-                            injured.forEach(inj => {
-                                const player = inj.player;
-                                const type = inj.type_name || 'Injury';
-                                const img = player.image ? IMG_BASE_PLAYER + player.image :
-                                    'data:image/svg+xml,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'18\' height=\'18\' viewBox=\'0 0 18 18\'%3E%3Crect width=\'18\' height=\'18\' fill=\'%23ddd\'/%3E%3Ctext x=\'3\' y=\'12\' font-family=\'sans-serif\' font-size=\'10\' fill=\'%23999\'%3E?%3C/text%3E%3C/svg%3E';
-                                const playerId = player.row_id;
-                                extrasHtml += `
-                                <div class="injury-item">
-                                    <img src="${img}" onclick="event.stopPropagation();openPlayerModal(${playerId})" />
-                                    <span onclick="event.stopPropagation();openPlayerModal(${playerId})">${player.title}</span>
-                                    <span class="injury-type">- ${type}</span>
-                                </div>`;
-                            });
-                            extrasHtml += `</div>`;
-                        }
-
-                        extrasHtml += '</div>';
-                        pitchHtml += extrasHtml;
-                        pitchHtml += `</div>`;
-                        return pitchHtml;
                     }
 
                     const homePlayers = homeLineup.lineup || [];
@@ -5788,16 +5744,11 @@
         }
 
         console.log('Football Center fully restored with all fixes:');
-        console.log('- Detected and fixed "Own Goal" showing as Red Card (type 4)');
-        console.log('- Added robust icon fallbacks to prevent missing icons');
-        console.log('- Enhanced UI for Event Timeline (better circles, hover effects, shadows)');
-        console.log('- Score at Half-Time, Full-Time, ET now displays correctly using fh_scores, sh_scores, fe_scores, se_scores');
-        console.log('- Statistics: clean grid layout with possession bar, all stats fields');
-        console.log('- Lineups: players on pitch with background, coach/subs/injuries outside pitch');
-        console.log('- Status bar: upcoming shows countdown, live shows time, FT shows only FT badge no time');
-        console.log('- Penalty shootout with scored/missed indicators');
-        console.log('- Stream matching improved with partial name matching');
-        console.log('- All data from API displayed correctly like the app.');
+        console.log('- Lineup: Players are now positioned vertically on the pitch based on their roles (GK, DEF, MID, FWD).');
+        console.log('- Duplicate Events: HT, FT, Kick-Off are now filtered to show only once.');
+        console.log('- HT Score: Calculated correctly from events if API data is missing.');
+        console.log('- Championship Selector: Moved to the main page and automatically redirects to the "More" tab.');
+        console.log('- UI: Improved pitch layout, player cards, and event timeline styling.');
     </script>
 </body>
-  </html>
+    </html>
