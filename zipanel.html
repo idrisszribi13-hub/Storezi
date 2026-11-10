@@ -3,55 +3,19 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة تحكم Zi Stream - Admin Panel</title>
-    <!-- Bootstrap 5 RTL & FontAwesome & Google Fonts -->
+    <title>لوحة تحكم Zi Stream - Admin Panel (FCM V1)</title>
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Cairo', sans-serif;
-            background-color: #f4f6f9;
-            color: #333;
-        }
-        .sidebar {
-            min-height: 100vh;
-            background: #1e293b;
-            color: #fff;
-        }
-        .sidebar .nav-link {
-            color: #cbd5e1;
-            font-size: 1.05rem;
-            padding: 12px 20px;
-            border-radius: 8px;
-            margin-bottom: 6px;
-            transition: all 0.3s;
-        }
-        .sidebar .nav-link:hover, .sidebar .nav-link.active {
-            background: #e50914;
-            color: #fff;
-        }
-        .card-custom {
-            border: none;
-            border-radius: 14px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
-            background: #fff;
-        }
-        .btn-danger-custom {
-            background-color: #e50914;
-            border: none;
-            color: #fff;
-            font-weight: 700;
-        }
-        .btn-danger-custom:hover {
-            background-color: #b80710;
-            color: #fff;
-        }
-        .badge-status {
-            font-size: 0.85rem;
-            padding: 6px 12px;
-            border-radius: 20px;
-        }
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f6f9; color: #333; }
+        .sidebar { min-height: 100vh; background: #1e293b; color: #fff; }
+        .sidebar .nav-link { color: #cbd5e1; font-size: 1.05rem; padding: 12px 20px; border-radius: 8px; margin-bottom: 6px; transition: all 0.3s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #e50914; color: #fff; }
+        .card-custom { border: none; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: #fff; }
+        .btn-danger-custom { background-color: #e50914; border: none; color: #fff; font-weight: 700; }
+        .btn-danger-custom:hover { background-color: #b80710; color: #fff; }
+        .badge-status { font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; }
     </style>
 </head>
 <body>
@@ -62,7 +26,7 @@
         <nav class="col-md-3 col-lg-2 sidebar p-3 d-flex flex-column">
             <div class="d-flex align-items-center mb-4 mt-2">
                 <i class="fa-solid fa-tv text-danger fs-2 me-2"></i>
-                <h4 class="fw-bold mb-0 text-white">Zi Stream</h4>
+                <h4 class="fw-bold mb-0 text-white">Zi Stream V1</h4>
             </div>
             <hr class="text-secondary">
             <ul class="nav nav-pills flex-column mb-auto">
@@ -87,21 +51,17 @@
                     </a>
                 </li>
             </ul>
-            <div class="mt-auto text-center text-muted small">
-                إصدار اللوحة v1.0.0
-            </div>
         </nav>
 
         <!-- المحتوى الرئيسي Main Content -->
         <main class="col-md-9 col-lg-10 p-4">
 
-            <!-- التنبيهات Alerts -->
             <div id="alert-box"></div>
 
             <!-- 1. شاشة إرسال الإشعارات -->
             <div id="sec-notif" class="tab-sec">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="fw-bold"><i class="fa-solid fa-paper-plane text-danger me-2"></i> إرسال إشعار فوري FCM</h3>
+                    <h3 class="fw-bold"><i class="fa-solid fa-paper-plane text-danger me-2"></i> إرسال إشعار فوري FCM V1</h3>
                     <span class="badge bg-success badge-status" id="fcm-status">متصل بـ Firebase</span>
                 </div>
 
@@ -131,7 +91,7 @@
 
                                 <div class="mb-3">
                                     <label class="form-label fw-semibold">نص الإشعار</label>
-                                    <textarea class="form-control" id="notif-body" rows="3" placeholder="أدخل نص الرسالة التي ستظهر للمستخدمين..." required></textarea>
+                                    <textarea class="form-control" id="notif-body" rows="3" placeholder="أدخل نص الرسالة..." required></textarea>
                                 </div>
 
                                 <div class="mb-3">
@@ -147,25 +107,16 @@
                     </div>
 
                     <div class="col-lg-5">
-                        <!-- معاينة الإشعار -->
                         <div class="card card-custom p-4 mb-4">
-                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-mobile-screen me-2"></i> معاينة الإشعار في الهاتف</h5>
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-mobile-screen me-2"></i> معاينة الإشعار</h5>
                             <div class="p-3 bg-dark text-white rounded-4 shadow-sm" style="max-width: 340px; margin: 0 auto;">
                                 <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
                                     <span><i class="fa-solid fa-tv me-1 text-danger"></i> Zi Stream</span>
                                     <span>الآن</span>
                                 </div>
-                                <h6 class="fw-bold text-warning mb-1" id="preview-title">عنوان الإشعار يظهر هنا</h6>
-                                <p class="small text-light mb-0" id="preview-body">نص الرسالة المعروض على شاشة الهاتف بالكامل...</p>
+                                <h6 class="fw-bold text-warning mb-1" id="preview-title">عنوان الإشعار</h6>
+                                <p class="small text-light mb-0" id="preview-body">نص الرسالة...</p>
                             </div>
-                        </div>
-
-                        <!-- تعليمات إرسال FCM SERVER KEY -->
-                        <div class="card card-custom p-4">
-                            <h6 class="fw-bold mb-2"><i class="fa-solid fa-circle-info text-info me-2"></i> طريقة الإرسال</h6>
-                            <p class="small text-muted mb-0">
-                                يتم إرسال الإشعارات عبر <strong>Firebase Cloud Messaging</strong> فوراً لجميع الأجهزة النشطة والمسجلة في القناة العامة <code>all_users</code>.
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -173,97 +124,69 @@
 
             <!-- 2. شاشة التحكم في التطبيق -->
             <div id="sec-control" class="tab-sec d-none">
-                <h3 class="fw-bold mb-4"><i class="fa-solid fa-sliders text-danger me-2"></i> التحكم في إعدادات التطبيق (Firestore / Remote Config)</h3>
-
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-sliders text-danger me-2"></i> التحكم في إعدادات التطبيق</h3>
                 <div class="row">
                     <div class="col-md-6 mb-4">
                         <div class="card card-custom p-4">
                             <h5 class="fw-bold mb-3 text-warning"><i class="fa-solid fa-triangle-exclamation me-2"></i> وضع الصيانة</h5>
                             <div class="form-check form-switch fs-5 mb-3">
-                                <input class="form-check-input" type="checkbox" id="switch-maintenance" onchange="updateAppState()">
-                                <label class="form-check-label fw-bold" for="switch-maintenance">تفعيل وضع الصيانة للتطبيق</label>
+                                <input class="form-check-input" type="checkbox" id="switch-maintenance">
+                                <label class="form-check-label fw-bold" for="switch-maintenance">تفعيل وضع الصيانة</label>
                             </div>
                             <div class="mb-3">
                                 <label class="form-label fw-semibold">رسالة وضع الصيانة</label>
-                                <textarea class="form-control" id="maintenance-msg" rows="3">التطبيق حالياً تحت الصيانة الدورية لتطوير الخدمات. يرجى العودة لاحقاً!</textarea>
+                                <textarea class="form-control" id="maintenance-msg" rows="3">التطبيق تحت الصيانة...</textarea>
                             </div>
-                            <button class="btn btn-warning fw-bold text-dark w-100" onclick="saveMaintenanceSettings()">
-                                <i class="fa-solid fa-floppy-disk me-2"></i> حفظ إعدادات الصيانة
-                            </button>
+                            <button class="btn btn-warning fw-bold text-dark w-100" onclick="saveMaintenanceSettings()">حفظ</button>
                         </div>
                     </div>
-
                     <div class="col-md-6 mb-4">
                         <div class="card card-custom p-4">
-                            <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cloud-arrow-up me-2"></i> التحديثات والإصدارات</h5>
+                            <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cloud-arrow-up me-2"></i> التحديثات</h5>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">أحدث إصدار مطلوب (Required Version)</label>
+                                <label class="form-label fw-semibold">أحدث إصدار</label>
                                 <input type="text" class="form-control" id="min-version" value="1.0.0">
                             </div>
                             <div class="mb-3">
-                                <label class="form-label fw-semibold">رابط التحميل المباشر / متجر بلاي</label>
-                                <input type="url" class="form-control" id="update-url" placeholder="https://play.google.com/store/apps/details?id=...">
+                                <label class="form-label fw-semibold">رابط التحميل</label>
+                                <input type="url" class="form-control" id="update-url" placeholder="https://...">
                             </div>
-                            <button class="btn btn-primary fw-bold w-100" onclick="saveUpdateSettings()">
-                                <i class="fa-solid fa-floppy-disk me-2"></i> حفظ إعدادات التحديث
-                            </button>
+                            <button class="btn btn-primary fw-bold w-100" onclick="saveUpdateSettings()">حفظ</button>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- 3. شاشة التوكنات والمستخدمين -->
+            <!-- 3. شاشة التوكنات -->
             <div id="sec-users" class="tab-sec d-none">
-                <h3 class="fw-bold mb-4"><i class="fa-solid fa-users text-danger me-2"></i> المسجلين وتوكنات FCM</h3>
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-users text-danger me-2"></i> توكنات FCM</h3>
                 <div class="card card-custom p-4">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0">قائمة توكنات الأجهزة المسجلة</h5>
-                        <button class="btn btn-sm btn-outline-secondary" onclick="loadTokensFromFirestore()">
-                            <i class="fa-solid fa-rotate me-1"></i> تحديث القائمة
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-hover align-middle" id="tokens-table">
-                            <thead class="table-light">
-                                <tr>
-                                    <th>#</th>
-                                    <th>معرف المستخدم / Token</th>
-                                    <th>النظام</th>
-                                    <th>تاريخ التحديث</th>
-                                    <th>إجراء</th>
-                                </tr>
-                            </thead>
-                            <tbody id="tokens-list">
-                                <tr><td colspan="5" class="text-center text-muted">جاري تحميل البيانات من Firestore...</td></tr>
-                            </tbody>
-                        </table>
-                    </div>
+                    <button class="btn btn-sm btn-outline-secondary mb-3 w-25" onclick="loadTokensFromFirestore()">تحديث القائمة</button>
+                    <table class="table table-hover align-middle">
+                        <thead class="table-light">
+                            <tr><th>#</th><th>Token</th><th>النظام</th><th>إجراء</th></tr>
+                        </thead>
+                        <tbody id="tokens-list"></tbody>
+                    </table>
                 </div>
             </div>
 
-            <!-- 4. إعدادات Firebase -->
+            <!-- 4. إعدادات Firebase (الـ Service Account) -->
             <div id="sec-config" class="tab-sec d-none">
-                <h3 class="fw-bold mb-4"><i class="fa-solid fa-gear text-danger me-2"></i> إعدادات الربط مع Firebase</h3>
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-gear text-danger me-2"></i> إعدادات الربط (FCM V1)</h3>
                 <div class="card card-custom p-4" style="max-width: 650px;">
-                    <h5 class="fw-bold mb-3">Firebase Web Configuration & Server Key</h5>
+                    <h5 class="fw-bold mb-3">Service Account JSON Key</h5>
                     <form onsubmit="saveFirebaseConfig(event)">
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">FCM Cloud Messaging Server Key (Legacy Server Key or OAuth)</label>
-                            <input type="text" class="form-control" id="fb-server-key" placeholder="AAAA...:APA91b..." required>
-                            <div class="form-text">تجد هذا المفتاح في Firebase Console -> Project Settings -> Cloud Messaging -> Cloud Messaging API (Legacy).</div>
+                            <label class="form-label fw-semibold">أدخل محتوى ملف JSON بالكامل</label>
+                            <textarea class="form-control" id="fb-service-account" rows="8" placeholder='{"type": "service_account", "project_id": "...", ...}' required></textarea>
                         </div>
-
                         <div class="mb-3">
-                            <label class="form-label fw-semibold">Firebase API Key</label>
+                            <label class="form-label fw-semibold">Firebase API Key (للاتصال بـ Firestore)</label>
                             <input type="text" class="form-control" id="fb-api-key" placeholder="AIzaSy...">
                         </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Firebase Project ID</label>
-                            <input type="text" class="form-control" id="fb-project-id" placeholder="zribitv-1234">
-                        </div>
-
                         <button type="submit" class="btn btn-success fw-bold w-100">
-                            <i class="fa-solid fa-check me-2"></i> حفظ المفاتيح في المتصفح
+                            <i class="fa-solid fa-check me-2"></i> حفظ الإعدادات
                         </button>
                     </form>
                 </div>
@@ -273,23 +196,23 @@
     </div>
 </div>
 
-<!-- Firebase Web SDK JS -->
+<!-- Firebase Web SDK & JWT Library for FCM v1 -->
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.25/jsrsasign-all-min.js"></script>
 
 <script>
-    // 1. التبديل بين الشاشات
+    let db;
+    let serviceAccount = null;
+
     function switchTab(tab) {
         document.querySelectorAll('.tab-sec').forEach(el => el.classList.add('d-none'));
         document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
-
         document.getElementById('sec-' + tab).classList.remove('d-none');
         document.getElementById('tab-' + tab + '-btn').classList.add('active');
-
         if (tab === 'users') loadTokensFromFirestore();
     }
 
-    // 2. إظهار / إخفاء خانة التوكن المفرد
     function toggleTargetInput() {
         const val = document.getElementById('notif-target').value;
         const group = document.getElementById('token-input-group');
@@ -297,65 +220,97 @@
         else group.classList.add('d-none');
     }
 
-    // 3. التحديث المباشر لشاشة المعاينة
     document.getElementById('notif-title').addEventListener('input', (e) => {
-        document.getElementById('preview-title').innerText = e.target.value || 'عنوان الإشعار يظهر هنا';
+        document.getElementById('preview-title').innerText = e.target.value || 'عنوان الإشعار';
     });
     document.getElementById('notif-body').addEventListener('input', (e) => {
-        document.getElementById('preview-body').innerText = e.target.value || 'نص الرسالة المعروض على شاشة الهاتف بالكامل...';
+        document.getElementById('preview-body').innerText = e.target.value || 'نص الرسالة...';
     });
 
-    // 4. حفظ واسترجاع إعدادات Firebase من LocalStorage
     function loadSavedConfig() {
-        const serverKey = localStorage.getItem('fb_server_key') || '';
+        const jsonStr = localStorage.getItem('fb_service_account') || '';
         const apiKey = localStorage.getItem('fb_api_key') || '';
-        const projectId = localStorage.getItem('fb_project_id') || '';
 
-        document.getElementById('fb-server-key').value = serverKey;
+        document.getElementById('fb-service-account').value = jsonStr;
         document.getElementById('fb-api-key').value = apiKey;
-        document.getElementById('fb-project-id').value = projectId;
 
-        if (apiKey && projectId) {
-            initFirebase(apiKey, projectId);
+        if (jsonStr) {
+            try {
+                serviceAccount = JSON.parse(jsonStr);
+                if (apiKey) initFirebase(apiKey, serviceAccount.project_id);
+                document.getElementById('fcm-status').innerText = 'متصل بـ ' + serviceAccount.project_id;
+            } catch (e) { console.error("Invalid JSON stored."); }
         }
     }
 
     function saveFirebaseConfig(e) {
         e.preventDefault();
-        const serverKey = document.getElementById('fb-server-key').value.trim();
+        const jsonStr = document.getElementById('fb-service-account').value.trim();
         const apiKey = document.getElementById('fb-api-key').value.trim();
-        const projectId = document.getElementById('fb-project-id').value.trim();
 
-        localStorage.setItem('fb_server_key', serverKey);
-        localStorage.setItem('fb_api_key', apiKey);
-        localStorage.setItem('fb_project_id', projectId);
-
-        showAlert('تم حفظ مفاتيح Firebase بنجاح!', 'success');
-        if (apiKey && projectId) initFirebase(apiKey, projectId);
-    }
-
-    let db;
-    function initFirebase(apiKey, projectId) {
         try {
-            if (!firebase.apps.length) {
-                firebase.initializeApp({
-                    apiKey: apiKey,
-                    projectId: projectId,
-                });
+            serviceAccount = JSON.parse(jsonStr);
+            if (!serviceAccount.project_id || !serviceAccount.private_key) {
+                throw new Error("ملف JSON غير صالح");
             }
-            db = firebase.firestore();
-            document.getElementById('fcm-status').innerText = 'متصل بـ ' + projectId;
-        } catch (e) {
-            console.error(e);
+            
+            localStorage.setItem('fb_service_account', jsonStr);
+            localStorage.setItem('fb_api_key', apiKey);
+
+            showAlert('تم حفظ الإعدادات بنجاح!', 'success');
+            initFirebase(apiKey, serviceAccount.project_id);
+            document.getElementById('fcm-status').innerText = 'متصل بـ ' + serviceAccount.project_id;
+        } catch (err) {
+            showAlert('خطأ: تأكد من نسخ محتوى ملف JSON بشكل صحيح.', 'danger');
         }
     }
 
-    // 5. إرسال الإشعارات عبر FCM HTTP API
+    function initFirebase(apiKey, projectId) {
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp({ apiKey: apiKey, projectId: projectId });
+            }
+            db = firebase.firestore();
+        } catch (e) { console.error(e); }
+    }
+
+    // ✅ دالة توليد OAuth 2.0 Access Token من Service Account
+    async function getAccessToken() {
+        if (!serviceAccount) throw new Error("لم يتم تكوين Service Account");
+
+        const header = { alg: "RS256", typ: "JWT" };
+        const now = Math.floor(Date.now() / 1000);
+        const claimSet = {
+            iss: serviceAccount.client_email,
+            scope: "https://www.googleapis.com/auth/firebase.messaging",
+            aud: "https://oauth2.googleapis.com/token",
+            exp: now + 3600,
+            iat: now
+        };
+
+        const sHeader = JSON.stringify(header);
+        const sClaimSet = JSON.stringify(claimSet);
+        const jwt = KJUR.jws.JWS.sign("RS256", sHeader, sClaimSet, serviceAccount.private_key);
+
+        const response = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                assertion: jwt
+            })
+        });
+
+        const data = await response.json();
+        if (data.access_token) return data.access_token;
+        throw new Error("فشل الحصول على الـ Token: " + JSON.stringify(data));
+    }
+
+    // ✅ إرسال الإشعارات عبر FCM HTTP v1 API
     async function sendNotification(e) {
         e.preventDefault();
-        const serverKey = localStorage.getItem('fb_server_key');
-        if (!serverKey) {
-            showAlert('يرجى إضافة FCM Server Key في تبويب "إعدادات Firebase" أولاً!', 'danger');
+        if (!serviceAccount) {
+            showAlert('يرجى إضافة Service Account JSON في الإعدادات أولاً!', 'danger');
             switchTab('config');
             return;
         }
@@ -366,107 +321,75 @@
         const image = document.getElementById('notif-image').value;
         const token = document.getElementById('target-token').value.trim();
 
-        let toPayload;
-        if (target === 'topic_all') toPayload = '/topics/all_users';
-        else if (target === 'topic_broadcast') toPayload = '/topics/broadcast';
-        else if (target === 'single_token') {
-            if (!token) {
-                showAlert('يرجى أدخال FCM Token الخاص بالمستخدم!', 'warning');
-                return;
-            }
-            toPayload = token;
-        }
-
-        const payload = {
-            to: toPayload,
-            notification: {
-                title: title,
-                body: body,
-                sound: 'default',
-                click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                image: image || null
-            },
-            data: {
-                click_action: 'FLUTTER_NOTIFICATION_CLICK',
-                title: title,
-                body: body
-            },
-            priority: 'high'
-        };
-
         const btn = document.getElementById('btn-send-notif');
         btn.disabled = true;
         btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> جاري الإرسال...';
 
         try {
-            const response = await fetch('https://fcm.googleapis.com/fcm/send', {
+            const accessToken = await getAccessToken();
+            
+            // تجهيز البيانات حسب صيغة V1 الجديدة
+            let messagePayload = {
+                notification: { title: title, body: body },
+                data: { click_action: 'FLUTTER_NOTIFICATION_CLICK', title: title, body: body }
+            };
+            if (image) messagePayload.notification.image = image;
+
+            if (target === 'topic_all') messagePayload.topic = 'all_users';
+            else if (target === 'topic_broadcast') messagePayload.topic = 'broadcast';
+            else if (target === 'single_token') {
+                if (!token) throw new Error("يرجى إدخال التوكن!");
+                messagePayload.token = token;
+            }
+
+            const response = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': 'key=' + serverKey
+                    'Authorization': 'Bearer ' + accessToken
                 },
-                body: JSON.stringify(payload)
+                body: JSON.stringify({ message: messagePayload })
             });
 
             const result = await response.json();
-            console.log('FCM Response:', result);
 
-            if (result.success === 1 || result.message_id) {
-                showAlert('🎉 تم إرسال الإشعار بنجاح لجميع المستهدفين!', 'success');
-            } else if (result.failure === 1 && result.results) {
-                showAlert('❌ خطأ في الإرسال: ' + JSON.stringify(result.results[0].error), 'danger');
+            if (response.ok) {
+                showAlert('🎉 تم إرسال الإشعار بنجاح عبر V1 API!', 'success');
             } else {
-                showAlert('تم استلام الرد: ' + JSON.stringify(result), 'info');
+                showAlert('❌ خطأ: ' + (result.error?.message || JSON.stringify(result)), 'danger');
             }
+
         } catch (err) {
             console.error(err);
-            showAlert('حدث خطأ أثناء الاتصال بسيرفر FCM: ' + err.message, 'danger');
+            showAlert('حدث خطأ: ' + err.message, 'danger');
         } finally {
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> إرسال الإشعار الآن';
         }
     }
 
-    // 6. تحميل التوكنات من Firestore
     async function loadTokensFromFirestore() {
-        if (!db) {
-            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
-            return;
-        }
+        if (!db) { showAlert('يرجى ربط Firebase أولاً!', 'warning'); return; }
         const tbody = document.getElementById('tokens-list');
-        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري جلب البيانات...</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center">جاري التحميل...</td></tr>';
 
         try {
             const snapshot = await db.collection('fcm_tokens').limit(50).get();
-            if (snapshot.empty) {
-                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا يوجد توكنات مسجلة بعد في مجموعة fcm_tokens</td></tr>';
-                return;
-            }
+            if (snapshot.empty) { tbody.innerHTML = '<tr><td colspan="4" class="text-center">لا يوجد توكنات مسجلة.</td></tr>'; return; }
 
-            let html = '';
-            let index = 1;
+            let html = ''; let index = 1;
             snapshot.forEach(doc => {
                 const data = doc.data();
                 const tok = data.token || doc.id;
-                html += `
-                    <tr>
-                        <td>${index++}</td>
-                        <td class="font-monospace small">${tok.substring(0, 35)}...</td>
-                        <td><span class="badge bg-secondary">${data.platform || 'Android'}</span></td>
-                        <td class="small text-muted">${data.last_updated ? new Date(data.last_updated.seconds * 1000).toLocaleString('ar-EG') : 'الآن'}</td>
-                        <td>
-                            <button class="btn btn-sm btn-outline-danger" onclick="selectTokenForNotif('${tok}')">
-                                <i class="fa-solid fa-paper-plane me-1"></i> إرسال إشعار
-                            </button>
-                        </td>
-                    </tr>
-                `;
+                html += `<tr>
+                    <td>${index++}</td>
+                    <td class="font-monospace small">${tok.substring(0, 35)}...</td>
+                    <td><span class="badge bg-secondary">${data.platform || 'Android'}</span></td>
+                    <td><button class="btn btn-sm btn-outline-danger" onclick="selectTokenForNotif('${tok}')">إرسال</button></td>
+                </tr>`;
             });
             tbody.innerHTML = html;
-        } catch (e) {
-            console.error(e);
-            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطأ أثناء جلب التوكنات: ' + e.message + '</td></tr>';
-        }
+        } catch (e) { tbody.innerHTML = `<tr><td colspan="4" class="text-danger">خطأ: ${e.message}</td></tr>`; }
     }
 
     function selectTokenForNotif(token) {
@@ -476,36 +399,25 @@
         document.getElementById('target-token').value = token;
     }
 
-    // 7. حفظ وتحديث وضع الصيانة في Firestore
     async function saveMaintenanceSettings() {
-        if (!db) {
-            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
-            return;
-        }
+        if (!db) return;
         const isMaint = document.getElementById('switch-maintenance').checked;
         const msg = document.getElementById('maintenance-msg').value;
-
         try {
             await db.collection('app_config').doc('status').set({
                 maintenance_mode: isMaint,
                 maintenance_message: msg,
                 updated_at: firebase.firestore.FieldValue.serverTimestamp()
             }, { merge: true });
-
-            showAlert('تم حفظ إعدادات وضع الصيانة بنجاح!', 'success');
-        } catch (e) {
-            showAlert('خطأ أثناء الحفظ: ' + e.message, 'danger');
-        }
+            showAlert('تم حفظ إعدادات الصيانة!', 'success');
+        } catch (e) { showAlert('خطأ: ' + e.message, 'danger'); }
     }
 
     function showAlert(msg, type) {
-        const box = document.getElementById('alert-box');
-        box.innerHTML = `
-            <div class="alert alert-${type} alert-dismissible fade show fw-bold shadow-sm" role="alert">
-                ${msg}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-        `;
+        document.getElementById('alert-box').innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show fw-bold shadow-sm">
+                ${msg}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>`;
     }
 
     window.onload = loadSavedConfig;
