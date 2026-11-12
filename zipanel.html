@@ -1,1237 +1,1161 @@
-import 'dart:async';
-import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import '../models/ysscores_models.dart';
-import '../services/match_reminder_service.dart';
-import '../services/ysscores_service.dart';
-import '../utils/ui_helpers.dart';
-import 'match_details_screen.dart';
-import 'match_player_screen.dart';
-import 'real_video_player_screen.dart';
-import '../widgets/app_brand_header.dart';
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة تحكم Zi Stream - Admin Panel (FCM V1 & Pro Controls)</title>
+    <!-- Bootstrap 5 RTL & FontAwesome & Google Fonts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.rtl.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Cairo', sans-serif; background-color: #f4f6f9; color: #333; }
+        .sidebar { min-height: 100vh; background: #1e293b; color: #fff; }
+        .sidebar .nav-link { color: #cbd5e1; font-size: 1.05rem; padding: 12px 20px; border-radius: 8px; margin-bottom: 6px; transition: all 0.3s; }
+        .sidebar .nav-link:hover, .sidebar .nav-link.active { background: #e50914; color: #fff; }
+        .card-custom { border: none; border-radius: 14px; box-shadow: 0 4px 15px rgba(0,0,0,0.05); background: #fff; }
+        .btn-danger-custom { background-color: #e50914; border: none; color: #fff; font-weight: 700; }
+        .btn-danger-custom:hover { background-color: #b80710; color: #fff; }
+        .badge-status { font-size: 0.85rem; padding: 6px 12px; border-radius: 20px; }
+    </style>
+</head>
+<body>
 
-class MatchesScreen extends StatefulWidget {
-  const MatchesScreen({super.key});
+<div class="container-fluid">
+    <div class="row">
+        <!-- القائمة الجانبية Sidebar -->
+        <nav class="col-md-3 col-lg-2 sidebar p-3 d-flex flex-column">
+            <div class="d-flex align-items-center mb-4 mt-2">
+                <i class="fa-solid fa-tv text-danger fs-2 me-2"></i>
+                <h4 class="fw-bold mb-0 text-white">Zi Stream Pro</h4>
+            </div>
+            <hr class="text-secondary">
+            <ul class="nav nav-pills flex-column mb-auto">
+                <li class="nav-item">
+                    <a href="#" class="nav-link active" id="tab-notif-btn" onclick="switchTab('notif')">
+                        <i class="fa-solid fa-paper-plane me-2"></i> إرسال الإشعارات (FCM)
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-control-btn" onclick="switchTab('control')">
+                        <i class="fa-solid fa-sliders me-2"></i> التحكم بالتطبيق والوضع
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-live-matches-btn" onclick="switchTab('live-matches')">
+                        <i class="fa-solid fa-play text-warning me-2"></i> روابط المباريات المباشرة
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-users-btn" onclick="switchTab('users')">
+                        <i class="fa-solid fa-users me-2"></i> إدارة المستخدمين والحظر
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-reports-btn" onclick="switchTab('reports')">
+                        <i class="fa-solid fa-flag me-2"></i> البلاغات والشكاوى
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-analytics-btn" onclick="switchTab('analytics')">
+                        <i class="fa-solid fa-chart-line me-2"></i> إحصائيات الاستخدام الحية
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-servers-btn" onclick="switchTab('servers')">
+                        <i class="fa-solid fa-server me-2"></i> إدارة السيرفرات والروابط
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-schedule-btn" onclick="switchTab('schedule')">
+                        <i class="fa-solid fa-clock me-2"></i> جدولة الإشعارات
+                    </a>
+                </li>
+                <li class="nav-item mt-3">
+                    <a href="#" class="nav-link" id="tab-config-btn" onclick="switchTab('config')">
+                        <i class="fa-solid fa-gear me-2"></i> إعدادات Firebase
+                    </a>
+                </li>
+            </ul>
+            <div class="mt-auto text-center text-muted small">
+                إصدار اللوحة v2.5.0 Pro
+            </div>
+        </nav>
 
-  @override
-  State<MatchesScreen> createState() => _MatchesScreenState();
-}
+        <!-- المحتوى الرئيسي Main Content -->
+        <main class="col-md-9 col-lg-10 p-4">
 
-class _MatchesScreenState extends State<MatchesScreen> {
-  final Color _primaryColor = const Color(0xFF00C08B);
+            <div id="alert-box"></div>
 
-  bool get _isDark => Theme.of(context).brightness == Brightness.dark;
-  Color get _currentBg => _isDark ? const Color(0xFF0A0E17) : const Color(0xFFF8F9FA);
-  Color get _currentCardBg => _isDark ? const Color(0xFF161B22) : Colors.white;
-  Color get _currentHeaderBg => _isDark ? const Color(0xFF1F2937) : const Color(0xFFE8ECEF);
-  Color get _currentText => _isDark ? Colors.white : const Color(0xFF1E1E1E);
-  Color get _currentGreyText => _isDark ? const Color(0xFF9CA3AF) : const Color(0xFF8E8E93);
-  Color get _currentIconColor => _isDark ? Colors.white : Colors.black;
-  Color get _currentBorderColor => _isDark ? const Color(0xFF374151) : Colors.grey.shade200;
-  Color get _currentChipBg => _isDark ? const Color(0xFF1F2937) : const Color(0xFFF0F0F0);
+            <!-- 1. شاشة إرسال الإشعارات -->
+            <div id="sec-notif" class="tab-sec">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="fw-bold"><i class="fa-solid fa-paper-plane text-danger me-2"></i> إرسال إشعار فوري (FCM V1 API)</h3>
+                    <span class="badge bg-success badge-status" id="fcm-status">غير متصل بـ Firebase</span>
+                </div>
 
-  bool _loading = true;
-  String _error = '';
-  DateTime _selectedDate = DateTime.now();
-  bool _isOffline = false;
-  late StreamSubscription<List<ConnectivityResult>> _connectivitySubscription;
+                <div class="row">
+                    <div class="col-lg-7">
+                        <div class="card card-custom p-4 mb-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-pen-to-square me-2"></i> بيانات الإشعار</h5>
+                            <form id="fcm-form" onsubmit="sendNotification(event)">
+                                <div class="mb-3">
+                                    <label for="notif-target" class="form-label fw-semibold">المستهدفين</label>
+                                    <select class="form-select" id="notif-target" onchange="toggleTargetInput()">
+                                        <option value="topic_all">🌐 جميع المستخدمين (Topic: all_users)</option>
+                                        <option value="topic_broadcast">📢 البث العام (Topic: broadcast)</option>
+                                        <option value="single_token">👤 توكن خاص بـ مستخدم محدد (Token)</option>
+                                    </select>
+                                </div>
 
-  List<Map<String, dynamic>> _allMatches = [];
-  Set<int> _reminderMatchIds = {};
-  Timer? _livePollingTimer;
+                                <div class="mb-3 d-none" id="token-input-group">
+                                    <label for="target-token" class="form-label fw-semibold">توكن FCM للمستخدم</label>
+                                    <input type="text" class="form-control" id="target-token" placeholder="أدخل FCM Token...">
+                                </div>
 
-  List<Map<String, dynamic>> _liveStreams = [];
-  StreamSubscription? _liveStreamsSubscription;
-  final Map<int, String> _lastKnownScores = {};
-  final Map<int, DateTime> _scoreChangedAt = {};
+                                <div class="mb-3">
+                                    <label for="notif-title" class="form-label fw-semibold">عنوان الإشعار</label>
+                                    <input type="text" class="form-control" id="notif-title" placeholder="مثال: ⚽ مباراة حاسمة الآن!" required>
+                                </div>
 
-  String _searchQuery = '';
-  bool _hideFavourites = false;
-  bool _groupByChampionship = true;
-  bool _importantOnly = false;
-  bool _liveOnly = false;
-  bool _favoriteOnly = false;
+                                <div class="mb-3">
+                                    <label for="notif-body" class="form-label fw-semibold">نص الإشعار</label>
+                                    <textarea class="form-control" id="notif-body" rows="3" placeholder="أدخل نص الرسالة..." required></textarea>
+                                </div>
 
-  final Set<int> _hiddenLeagues = {};
-  final Set<int> _topLeagues = {};
-  final Set<int> _bottomLeagues = {};
+                                <div class="mb-3">
+                                    <label for="notif-image" class="form-label fw-semibold">رابط صورة (اختياري)</label>
+                                    <input type="url" class="form-control" id="notif-image" placeholder="https://example.com/banner.png">
+                                </div>
 
-  @override
-  void initState() {
-    super.initState();
-    _checkInitialConnectivity();
-    _connectivitySubscription = Connectivity().onConnectivityChanged.listen((results) {
-      final offline = results.contains(ConnectivityResult.none) || results.isEmpty;
-      if (mounted) {
-        setState(() => _isOffline = offline);
-        if (!offline) {
-          _fetchMatches();
-          ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-            content: const Row(children: [
-              Icon(Icons.check_circle_rounded, color: Colors.white),
-              SizedBox(width: 12),
-              Text('تم استعادة الاتصال بالإنترنت', style: TextStyle(color: Colors.white))
-            ]),
-            backgroundColor: Colors.green.shade600,
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            margin: const EdgeInsets.all(16),
-          ));
+                                <button type="submit" class="btn btn-danger-custom btn-lg w-100 mt-2" id="btn-send-notif">
+                                    <i class="fa-solid fa-paper-plane me-2"></i> إرسال الإشعار الآن
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-5">
+                        <div class="card card-custom p-4 mb-4">
+                            <h5 class="fw-bold mb-3"><i class="fa-solid fa-mobile-screen me-2"></i> معاينة الإشعار</h5>
+                            <div class="p-3 bg-dark text-white rounded-4 shadow-sm" style="max-width: 340px; margin: 0 auto;">
+                                <div class="d-flex justify-content-between align-items-center text-muted small mb-2">
+                                    <span><i class="fa-solid fa-tv me-1 text-danger"></i> Zi Stream</span>
+                                    <span>الآن</span>
+                                </div>
+                                <h6 class="fw-bold text-warning mb-1" id="preview-title">عنوان الإشعار</h6>
+                                <p class="small text-light mb-0" id="preview-body">نص الرسالة...</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. شاشة التحكم في التطبيق (وضع الصيانة) -->
+            <div id="sec-control" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-sliders text-danger me-2"></i> التحكم في إعدادات التطبيق (لحظي)</h3>
+                <div class="row">
+                    <div class="col-md-6 mb-4">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold mb-3 text-warning"><i class="fa-solid fa-triangle-exclamation me-2"></i> وضع الصيانة</h5>
+                            <div class="form-check form-switch fs-5 mb-3">
+                                <input class="form-check-input" type="checkbox" id="switch-maintenance" onchange="saveMaintenanceSettings()">
+                                <label class="form-check-label fw-bold" for="switch-maintenance">تفعيل وضع الصيانة فوراً</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="maintenance-msg" class="form-label fw-semibold">رسالة وضع الصيانة</label>
+                                <textarea class="form-control" id="maintenance-msg" rows="3">التطبيق حالياً تحت الصيانة الدورية لتطوير الخدمات. يرجى العودة لاحقاً!</textarea>
+                            </div>
+                            <button class="btn btn-warning fw-bold text-dark w-100" onclick="saveMaintenanceSettings()">
+                                <i class="fa-solid fa-floppy-disk me-2"></i> حفظ وتحديث حالة الصيانة
+                            </button>
+                        </div>
+                    </div>
+                    <div class="col-md-6 mb-4">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold mb-3 text-primary"><i class="fa-solid fa-cloud-arrow-up me-2"></i> التحديثات والإصدارات</h5>
+                            <div class="mb-3">
+                                <label for="min-version" class="form-label fw-semibold">أحدث إصدار مطلوب</label>
+                                <input type="text" class="form-control" id="min-version" value="1.0.0">
+                            </div>
+                            <div class="mb-3">
+                                <label for="update-url" class="form-label fw-semibold">رابط التحميل المباشر</label>
+                                <input type="url" class="form-control" id="update-url" placeholder="https://play.google.com/store/apps/details?id=...">
+                            </div>
+                            <button class="btn btn-primary fw-bold w-100" onclick="saveUpdateSettings()">
+                                <i class="fa-solid fa-floppy-disk me-2"></i> حفظ إعدادات التحديث
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 3. شاشة إدارة المستخدمين والحظر -->
+            <div id="sec-users" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-users text-danger me-2"></i> إدارة المستخدمين المسجلين والحظر</h3>
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="input-group w-50">
+                            <span class="input-group-text"><i class="fa-solid fa-magnifying-glass"></i></span>
+                            <input type="text" class="form-control" id="user-search" placeholder="بحث باسم المستخدم أو البريد الإلكتروني..." onkeyup="filterUsersTable()">
+                        </div>
+                        <button class="btn btn-outline-primary fw-bold" onclick="loadUsers()">
+                            <i class="fa-solid fa-rotate me-1"></i> تحديث قائمة المستخدمين
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>المستخدم (الاسم / الإيميل / UID)</th>
+                                    <th>النظام</th>
+                                    <th>تاريخ التسجيل / النشاط</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات الإدارة</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-list">
+                                <tr><td colspan="6" class="text-center text-muted">قم بربط Firebase في الإعدادات ثم اضغط تحديث البيانات</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. شاشة البلاغات والشكاوى -->
+            <div id="sec-reports" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-flag text-danger me-2"></i> البلاغات والشكاوى الواردة من المستخدمين</h3>
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">قائمة البلاغات والشكاوى</h5>
+                        <button class="btn btn-outline-primary fw-bold" onclick="loadReports()">
+                            <i class="fa-solid fa-rotate me-1"></i> تحديث البلاغات
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>المُبلغ</th>
+                                    <th>العنصر المشتكى منه</th>
+                                    <th>النوع</th>
+                                    <th>سبب البلاغ</th>
+                                    <th>التاريخ</th>
+                                    <th>الحالة</th>
+                                    <th>إجراءات</th>
+                                </tr>
+                            </thead>
+                            <tbody id="reports-list">
+                                <tr><td colspan="8" class="text-center text-muted">جاري تحميل البلاغات...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 5. شاشة إعدادات Firebase -->
+            <div id="sec-config" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-gear text-danger me-2"></i> إعدادات الربط مع Firebase (V1 API)</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <h5 class="fw-bold mb-3">Service Account JSON Key & Web API Key</h5>
+                    <form onsubmit="saveFirebaseConfig(event)">
+                        <div class="mb-3">
+                            <label for="fb-service-account" class="form-label fw-semibold">أدخل محتوى ملف Service Account JSON بالكامل</label>
+                            <textarea class="form-control" id="fb-service-account" rows="8" placeholder='{"type": "service_account", "project_id": "...", ...}' required></textarea>
+                            <div class="form-text">تجد هذا الملف في Firebase Console -> Project Settings -> Service Accounts -> Generate New Private Key.</div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fb-api-key" class="form-label fw-semibold">Firebase Web API Key (للاتصال بـ Firestore)</label>
+                            <input type="text" class="form-control" id="fb-api-key" placeholder="AIzaSy..." required>
+                        </div>
+                        <button type="submit" class="btn btn-success fw-bold w-100">
+                            <i class="fa-solid fa-check me-2"></i> حفظ الإعدادات وربط السيرفر
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 6. إحصائيات الاستخدام الحية -->
+            <div id="sec-analytics" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-chart-line text-danger me-2"></i> إحصائيات واستخدام التطبيق</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">إجمالي المستخدمين</h6>
+                            <h2 class="fw-bold text-primary mt-2" id="stat-users">-</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">إجمالي البلاغات والشكاوى</h6>
+                            <h2 class="fw-bold text-danger mt-2" id="stat-reports">-</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">حالة النظام</h6>
+                            <h2 class="fw-bold text-success mt-2">متصل 🟢</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. إدارة السيرفرات والروابط -->
+            <div id="sec-servers" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-server text-danger me-2"></i> إدارة السيرفرات وروابط البث (OTA)</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <form onsubmit="saveServerConfig(event)">
+                        <div class="mb-3">
+                            <label for="proxy-url" class="form-label fw-semibold">رابط الـ Proxy الأساسي</label>
+                            <input type="url" class="form-control" id="proxy-url" value="https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fallback-proxy" class="form-label fw-semibold">رابط سيرفر احتياطي</label>
+                            <input type="url" class="form-control" id="fallback-proxy" placeholder="https://...">
+                        </div>
+                        <button type="submit" class="btn btn-danger-custom fw-bold w-100">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> حفظ وتحديث السيرفرات لجميع المستخدمين
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 8. جدولة الإشعارات -->
+            <div id="sec-schedule" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-clock text-danger me-2"></i> جدولة الإشعارات التلقائية</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <form onsubmit="scheduleNotification(event)">
+                        <div class="mb-3">
+                            <label for="sched-title" class="form-label fw-semibold">عنوان الإشعار</label>
+                            <input type="text" class="form-control" id="sched-title" placeholder="مثال: ⚽ مباراة نهائي دوري الأبطال تنطلق غداً!" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sched-body" class="form-label fw-semibold">نص الإشعار</label>
+                            <textarea class="form-control" id="sched-body" rows="3" placeholder="تفاصيل الإشعار..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sched-time" class="form-label fw-semibold">وقت الإرسال المجدول</label>
+                            <input type="datetime-local" class="form-control" id="sched-time" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary fw-bold w-100">
+                            <i class="fa-solid fa-calendar-plus me-2"></i> جدولة الإشعار
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 9. إدارة روابط المباريات المباشرة -->
+            <div id="sec-live-matches" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-play text-warning me-2"></i> إدارة روابط المباريات المباشرة (Live Stream Links)</h3>
+
+                <div class="row mb-4">
+                    <div class="col-lg-5 mb-3">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold mb-3" id="live-stream-form-title"><i class="fa-solid fa-plus-circle text-success me-2"></i> إضافة رابط مباراة مباشرة</h5>
+                            <form id="live-stream-form" onsubmit="saveLiveStream(event)">
+                                <input type="hidden" id="live-stream-id" value="">
+                                <div class="mb-3">
+                                    <label for="live-team-name" class="form-label fw-semibold">اسم الفريق أو المباراة</label>
+                                    <input type="text" class="form-control" id="live-team-name" placeholder="مثال: England أو Real Madrid أو France" required>
+                                    <div class="form-text">سيتم مطابقة هذا الاسم مع الفرق المتواجدة في قائمة المباريات في التطبيق.</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="live-stream-url" class="form-label fw-semibold">رابط البث المباشر</label>
+                                    <input type="url" class="form-control" id="live-stream-url" placeholder="https://..." required>
+                                    <div class="form-text">رابط مشغل البث (Embed URL أو m3u8/mp4 direct stream).</div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="live-channel-name" class="form-label fw-semibold">اسم القناة / السيرفر (اختياري)</label>
+                                    <input type="text" class="form-control" id="live-channel-name" placeholder="مثال: beIN Sports 1 HD">
+                                </div>
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="live-stream-active" checked>
+                                    <label class="form-check-label fw-semibold" for="live-stream-active">تفعيل البث الآن (نشط)</label>
+                                </div>
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-warning fw-bold text-dark flex-grow-1" id="btn-save-stream">
+                                        <i class="fa-solid fa-floppy-disk me-2"></i> حفظ رابط البث
+                                    </button>
+                                    <button type="button" class="btn btn-secondary d-none" id="btn-cancel-edit-stream" onclick="resetLiveStreamForm()">
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-7">
+                        <div class="card card-custom p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0"><i class="fa-solid fa-list me-2"></i> روابط البث المضافة</h5>
+                                <button class="btn btn-outline-warning btn-sm fw-bold" onclick="loadLiveStreams()">
+                                    <i class="fa-solid fa-rotate me-1"></i> تحديث القائمة
+                                </button>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>الفريق / المباراة</th>
+                                            <th>القناة</th>
+                                            <th>الحالة</th>
+                                            <th>إجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="live-streams-list">
+                                        <tr><td colspan="5" class="text-center text-muted">جاري تحميل روابط البث...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+</div>
+
+<!-- Modal تفضيلات وسجل المستخدم -->
+<div class="modal fade" id="userActivityModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="activityModalTitle">تفاصيل نشاط وتفضيلات المستخدم</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+                <ul class="nav nav-tabs mb-3" id="modalTab">
+                    <li class="nav-item">
+                        <button class="nav-link active fw-bold" id="fav-tab" data-bs-toggle="tab" data-bs-target="#fav-sec">❤️ المفضلة</button>
+                    </li>
+                    <li class="nav-item">
+                        <button class="nav-link fw-bold" id="hist-tab" data-bs-toggle="tab" data-bs-target="#hist-sec">🕒 سجل المشاهدة</button>
+                    </li>
+                </ul>
+                <div class="tab-content" id="modalTabContent">
+                    <div class="tab-pane fade show active" id="fav-sec">
+                        <div id="modal-fav-list" class="list-group">
+                            <div class="text-center text-muted p-3">جاري جلب المفضلة...</div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="hist-sec">
+                        <div id="modal-hist-list" class="list-group">
+                            <div class="text-center text-muted p-3">جاري جلب سجل المشاهدة...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Firebase Web SDK & JWT Library for FCM v1 -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jsrsasign/10.5.25/jsrsasign-all-min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+    let db;
+    let serviceAccount = null;
+
+    // 1. التبديل بين الشاشات
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-sec').forEach(el => el.classList.add('d-none'));
+        document.querySelectorAll('.nav-link').forEach(el => el.classList.remove('active'));
+
+        document.getElementById('sec-' + tab).classList.remove('d-none');
+        document.getElementById('tab-' + tab + '-btn').classList.add('active');
+
+        if (tab === 'users') loadUsers();
+        if (tab === 'reports') loadReports();
+        if (tab === 'control') loadMaintenanceSettings();
+        if (tab === 'analytics') loadAnalytics();
+        if (tab === 'servers') loadServerSettings();
+        if (tab === 'live-matches') loadLiveStreams();
+    }
+
+    async function loadAnalytics() {
+        if (!db) return;
+        try {
+            const usersSnap = await db.collection('users').get();
+            const reportsSnap = await db.collection('reports').get();
+            document.getElementById('stat-users').innerText = usersSnap.size;
+            document.getElementById('stat-reports').innerText = reportsSnap.size;
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadServerSettings() {
+        if (!db) return;
+        try {
+            const doc = await db.collection('app_config').doc('servers').get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.proxy_url) document.getElementById('proxy-url').value = data.proxy_url;
+                if (data.fallback_proxy) document.getElementById('fallback-proxy').value = data.fallback_proxy;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function saveServerConfig(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
         }
-      }
+        const proxyUrl = document.getElementById('proxy-url').value;
+        const fallbackProxy = document.getElementById('fallback-proxy').value;
+        try {
+            await db.collection('app_config').doc('servers').set({
+                proxy_url: proxyUrl,
+                fallback_proxy: fallbackProxy,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            showAlert('تم تحديث إعدادات السيرفرات بنجاح!', 'success');
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
+    }
+
+    async function scheduleNotification(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const title = document.getElementById('sched-title').value;
+        const body = document.getElementById('sched-body').value;
+        const time = document.getElementById('sched-time').value;
+        try {
+            await db.collection('scheduled_notifications').add({
+                title: title,
+                body: body,
+                scheduled_time: new Date(time),
+                status: 'pending',
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert('تم جدولة الإشعار بنجاح وسيتم إرساله في الوقت المحدد!', 'success');
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
+    }
+
+    function toggleTargetInput() {
+        const val = document.getElementById('notif-target').value;
+        const group = document.getElementById('token-input-group');
+        if (val === 'single_token') group.classList.remove('d-none');
+        else group.classList.add('d-none');
+    }
+
+    document.getElementById('notif-title').addEventListener('input', (e) => {
+        document.getElementById('preview-title').innerText = e.target.value || 'عنوان الإشعار';
     });
-    _loadReminders();
-    _fetchMatches();
-    _startLiveWatcher();
-    _listenToLiveStreams();
-  }
-
-  void _listenToLiveStreams() {
-    _liveStreamsSubscription?.cancel();
-    try {
-      _liveStreamsSubscription = FirebaseFirestore.instance
-          .collection('live_streams')
-          .snapshots()
-          .listen((snapshot) {
-        if (!mounted) return;
-        final streams = snapshot.docs
-            .map((doc) => {'id': doc.id, ...doc.data()})
-            .where((s) => s['is_active'] != false)
-            .toList();
-        setState(() {
-          _liveStreams = streams;
-        });
-      }, onError: (e) {
-        debugPrint('Firestore LiveStreams Error: $e');
-      });
-    } catch (e) {
-      debugPrint('Firestore LiveStreams Catch: $e');
-    }
-  }
-
-  Map<String, dynamic>? _getLiveStreamForMatch(String homeName, String awayName) {
-    if (_liveStreams.isEmpty) return null;
-    final home = homeName.trim().toLowerCase();
-    final away = awayName.trim().toLowerCase();
-    for (final stream in _liveStreams) {
-      final team = (stream['team_name'] ?? '').toString().trim().toLowerCase();
-      if (team.isEmpty) continue;
-      if (home.contains(team) || team.contains(home) || away.contains(team) || team.contains(away)) {
-        return stream;
-      }
-    }
-    return null;
-  }
-
-  void _openLiveStream(String streamUrl, String title) {
-    if (streamUrl.isEmpty) return;
-    final isDirectVideo = streamUrl.toLowerCase().contains('.m3u8') || streamUrl.toLowerCase().contains('.mp4');
-    if (isDirectVideo) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => RealVideoPlayerScreen(url: streamUrl, title: title),
-        ),
-      );
-    } else {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => MatchPlayerScreen(playerUrl: streamUrl, title: title),
-        ),
-      );
-    }
-  }
-
-  Future<void> _checkInitialConnectivity() async {
-    final results = await Connectivity().checkConnectivity();
-    if (mounted) {
-      setState(() => _isOffline = results.contains(ConnectivityResult.none) || results.isEmpty);
-    }
-  }
-
-  void _startLiveWatcher() {
-    _livePollingTimer?.cancel();
-    _livePollingTimer = Timer.periodic(const Duration(seconds: 20), (_) async {
-      if (!mounted) return;
-      if (_selectedDate.day == DateTime.now().day) {
-        _fetchMatches(silent: true);
-      }
+    document.getElementById('notif-body').addEventListener('input', (e) => {
+        document.getElementById('preview-body').innerText = e.target.value || 'نص الرسالة...';
     });
-  }
 
-  Future<void> _loadReminders() async {
-    final ids = await MatchReminderService.getReminderIds();
-    if (mounted) setState(() => _reminderMatchIds = ids.toSet());
-  }
+    function loadSavedConfig() {
+        const jsonStr = localStorage.getItem('fb_service_account') || '';
+        const apiKey = localStorage.getItem('fb_api_key') || '';
 
-  Future<void> _fetchMatches({bool silent = false}) async {
-    if (!mounted) return;
-    if (!silent) setState(() { _loading = true; _error = ''; _allMatches = []; });
+        document.getElementById('fb-service-account').value = jsonStr;
+        document.getElementById('fb-api-key').value = apiKey;
 
-    try {
-      List<Map<String, dynamic>> raw;
-      if (_isToday(_selectedDate)) {
-        raw = await YSScoresService.getLiveMatchesRaw();
-        final daily = await YSScoresService.getMatchesByDateRaw(_selectedDate);
-        final ids = raw.map((e) => e['match_id']).toSet();
-        raw.addAll(daily.where((e) => !ids.contains(e['match_id'])));
-      } else {
-        raw = await YSScoresService.getMatchesByDateRaw(_selectedDate);
-      }
-
-      // فحص كشوفات المباريات الحية وتتبع تغير النتائج بالأحمر
-      for (final m in raw) {
-        final mid = _asInt(m['match_id']);
-        final score = "${_asInt(m['home_scores'])}:${_asInt(m['away_scores'])}";
-        if (_lastKnownScores.containsKey(mid) && _lastKnownScores[mid] != score) {
-          _scoreChangedAt[mid] = DateTime.now();
+        if (jsonStr) {
+            try {
+                serviceAccount = JSON.parse(jsonStr);
+                if (apiKey) initFirebase(apiKey, serviceAccount.project_id);
+                document.getElementById('fcm-status').innerText = 'متصل بـ ' + serviceAccount.project_id;
+            } catch (e) { console.error("Invalid JSON stored."); }
         }
-        _lastKnownScores[mid] = score;
-      }
-
-      if (mounted) {
-        setState(() {
-          _allMatches = raw;
-          _loading = false;
-        });
-      }
-
-      // فحص كشوفات المباريات الحية والنتائج والأحداث والكروت لجميع المباريات المسجلة في التذكيرات
-      MatchReminderService.checkLiveMatchesList(raw);
-    } catch (e) {
-      if (mounted && !silent) setState(() { _error = e.toString(); _loading = false; });
-    }
-  }
-
-  bool _isToday(DateTime d) => d.year == DateTime.now().year && d.month == DateTime.now().month && d.day == DateTime.now().day;
-  int _asInt(dynamic v, [int d = 0]) => v is int ? v : (int.tryParse(v?.toString() ?? '') ?? d);
-  String _asStr(dynamic v, [String d = '']) => v?.toString() ?? d;
-
-  void _changeDate(int days) {
-    setState(() { _selectedDate = _selectedDate.add(Duration(days: days)); });
-    _fetchMatches();
-  }
-
-  Widget _buildLiveIndicatorPill() {
-    int liveCount = _allMatches.where((m) {
-      final status = _asInt(m['status']);
-      final live = _asInt(m['live']);
-      return status == 1 || status == 2 || status == 3 || status == 5 || status == 6 || status == 8 || status == 9 || status == 10 || live == 1;
-    }).length;
-
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _liveOnly = !_liveOnly;
-        });
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 4),
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: _liveOnly ? _primaryColor.withValues(alpha: 0.2) : _currentCardBg,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: _liveOnly ? _primaryColor : _currentBorderColor),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TweenAnimationBuilder<double>(
-              tween: Tween(begin: 0.3, end: 1.0),
-              duration: const Duration(milliseconds: 800),
-              builder: (context, value, child) {
-                return Container(
-                  width: 9,
-                  height: 9,
-                  decoration: BoxDecoration(
-                    color: Colors.red.withValues(alpha: value),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.red.withValues(alpha: value * 0.7),
-                        blurRadius: 6,
-                        spreadRadius: 2,
-                      ),
-                    ],
-                  ),
-                );
-              },
-            ),
-            const SizedBox(width: 6),
-            Text(
-              '$liveCount',
-              style: TextStyle(
-                color: _currentText,
-                fontWeight: FontWeight.bold,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildQuickDateBar() {
-    final today = DateTime.now();
-    final dates = List.generate(15, (index) => DateTime(today.year, today.month, today.day).add(Duration(days: index - 7)));
-
-    return Container(
-      height: 52,
-      margin: const EdgeInsets.symmetric(vertical: 8),
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: dates.length,
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-        itemBuilder: (context, index) {
-          final d = dates[index];
-          final isSelected = d.year == _selectedDate.year && d.month == _selectedDate.month && d.day == _selectedDate.day;
-          final isToday = d.year == today.year && d.month == today.month && d.day == today.day;
-          
-          String label;
-          if (isToday) {
-            label = 'اليوم';
-          } else if (d.difference(today).inDays == -1) {
-            label = 'الأمس';
-          } else if (d.difference(today).inDays == 1) {
-            label = 'الغد';
-          } else {
-            label = DateFormat('EEE, dd/MM').format(d);
-          }
-
-          return GestureDetector(
-            onTap: () {
-              setState(() {
-                _selectedDate = d;
-              });
-              _fetchMatches();
-            },
-            child: Container(
-              margin: const EdgeInsets.symmetric(horizontal: 4),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? _primaryColor : _currentCardBg,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: isSelected ? _primaryColor : _currentBorderColor,
-                  width: isSelected ? 2 : 1,
-                ),
-              ),
-              alignment: Alignment.center,
-              child: Text(
-                label,
-                style: TextStyle(
-                  color: isSelected ? Colors.white : _currentText,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    _connectivitySubscription.cancel();
-    _livePollingTimer?.cancel();
-    _liveStreamsSubscription?.cancel();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: _currentBg,
-      appBar: _buildAppBar(),
-      body: RefreshIndicator(
-        onRefresh: () => _fetchMatches(),
-        color: _primaryColor,
-        child: _buildBody(),
-      ),
-    );
-  }
-
-  PreferredSizeWidget _buildAppBar() {
-    return AppBar(
-      backgroundColor: _currentBg,
-      elevation: 0,
-      automaticallyImplyLeading: false,
-      title: Row(
-        children: [
-          const AppBrandHeader(subtitle: 'المباريات والنتائج'),
-          const Spacer(),
-          IconButton(
-            icon: Icon(
-              _favoriteOnly ? Icons.star : Icons.star_border,
-              color: _favoriteOnly ? Colors.amber : _currentIconColor,
-            ),
-            tooltip: 'مبارياتي المفضلة',
-            onPressed: () => setState(() => _favoriteOnly = !_favoriteOnly),
-          ),
-          _buildLiveIndicatorPill(),
-          IconButton(
-            icon: Icon(_searchQuery.isNotEmpty ? Icons.search_rounded : Icons.search, color: _searchQuery.isNotEmpty ? _primaryColor : _currentIconColor),
-            onPressed: _showSearchDialog,
-          ),
-          IconButton(icon: Icon(Icons.arrow_back_ios, size: 18, color: _currentIconColor), onPressed: () => _changeDate(-1)),
-          IconButton(icon: Icon(Icons.calendar_month_outlined, color: _currentIconColor), onPressed: () => _showDatePicker()),
-          IconButton(icon: Icon(Icons.arrow_forward_ios, size: 18, color: _currentIconColor), onPressed: () => _changeDate(1)),
-        ],
-      ),
-      bottom: PreferredSize(
-        preferredSize: const Size.fromHeight(40),
-        child: Container(
-          width: double.infinity,
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          alignment: Alignment.centerLeft,
-          child: Row(
-            children: [
-              Text(
-                DateFormat('EEEE, dd/MM/yyyy').format(_selectedDate),
-                style: TextStyle(fontWeight: FontWeight.bold, color: _currentGreyText, fontSize: 14),
-              ),
-              if (_searchQuery.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                  decoration: BoxDecoration(color: _primaryColor.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(6)),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Text('بحث: "$_searchQuery"', style: TextStyle(fontSize: 11, color: _primaryColor, fontWeight: FontWeight.bold)),
-                      const SizedBox(width: 4),
-                      GestureDetector(
-                        onTap: () => setState(() => _searchQuery = ''),
-                        child: Icon(Icons.close, size: 14, color: _primaryColor),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  void _showSearchDialog() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: _currentCardBg,
-        title: Text('البحث عن فريق أو بطولة', style: TextStyle(color: _currentText, fontWeight: FontWeight.bold)),
-        content: TextField(
-          autofocus: true,
-          style: TextStyle(color: _currentText),
-          decoration: InputDecoration(
-            hintText: 'اكتب اسم الفريق أو البطولة...',
-            hintStyle: TextStyle(color: _currentGreyText),
-            prefixIcon: Icon(Icons.search, color: _primaryColor),
-            enabledBorder: UnderlineInputBorder(borderSide: BorderSide(color: _currentBorderColor)),
-            focusedBorder: UnderlineInputBorder(borderSide: BorderSide(color: _primaryColor)),
-          ),
-          onChanged: (val) {
-            setState(() => _searchQuery = val);
-          },
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              setState(() => _searchQuery = '');
-              Navigator.pop(ctx);
-            },
-            child: const Text('إلغاء', style: TextStyle(color: Colors.red)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: _primaryColor),
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('تم', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    if (_loading && _allMatches.isEmpty) return Center(child: CircularProgressIndicator(color: _primaryColor));
-
-    if (_isOffline && _allMatches.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.wifi_off_rounded, size: 80, color: _currentGreyText),
-            const SizedBox(height: 16),
-            Text('No Internet Connection', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: _currentText)),
-            const SizedBox(height: 8),
-            Text('الرجاء الاتصال بالإنترنت والمحاولة مرة أخرى', style: TextStyle(fontSize: 14, color: _currentGreyText)),
-            const SizedBox(height: 24),
-            ElevatedButton.icon(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: _primaryColor,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-              ),
-              icon: const Icon(Icons.refresh),
-              label: const Text('إعادة المحاولة'),
-              onPressed: () => _fetchMatches(),
-            ),
-          ],
-        ),
-      );
     }
 
-    if (_error.isNotEmpty && _allMatches.isEmpty) {
-      return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(Icons.error_outline, size: 60, color: Colors.red),
-            const SizedBox(height: 16),
-            Text(_error, style: TextStyle(color: _currentText), textAlign: TextAlign.center),
-            const SizedBox(height: 16),
-            ElevatedButton(
-              onPressed: () => _fetchMatches(),
-              child: const Text('إعادة المحاولة'),
-            ),
-          ],
-        ),
-      );
-    }
-
-    if (_allMatches.isEmpty) return Center(child: Text('لا توجد مباريات في هذا اليوم', style: TextStyle(color: _currentText)));
-
-    // قائمة جميع المباريات المضافة للمفضلة
-    List<Map<String, dynamic>> myMatches = [];
-    if (!_favoriteOnly && _searchQuery.isEmpty) {
-      myMatches = _allMatches.where((m) {
-        final mid = _asInt(m['match_id']);
-        return _reminderMatchIds.contains(mid);
-      }).toList();
-    }
-
-    List<Map<String, dynamic>> filtered = _allMatches.where((m) {
-      final status = _asInt(m['status']);
-      final mid = _asInt(m['match_id']);
-      final champId = _asInt(m['championship']?['url_id']);
-      final live = _asInt(m['live']);
-
-      if (_searchQuery.isNotEmpty) {
-        final query = _searchQuery.toLowerCase();
-        final home = _asStr(m['home_team']?['title']).toLowerCase();
-        final away = _asStr(m['away_team']?['title']).toLowerCase();
-        final champTitle = _asStr(m['championship']?['title']).toLowerCase();
-        if (!home.contains(query) && !away.contains(query) && !champTitle.contains(query)) {
-          return false;
-        }
-      }
-
-      // المباشر أو بين الشوطين أو انتهى
-      final isLive = status == 1 || status == 2 || status == 3 || status == 5 || status == 6 || status == 8 || status == 9 || status == 10 || live == 1;
-
-      if (_hiddenLeagues.contains(champId)) return false;
-      if (_liveOnly && !isLive) return false;
-      if (_hideFavourites && _reminderMatchIds.contains(mid)) return false;
-      if (_favoriteOnly && !_reminderMatchIds.contains(mid)) return false;
-      if (_importantOnly && _asInt(m['championship']?['followed']) != 1) return false;
-
-      // إذا كانت المباريات معروضة في قسم "My matches" في الأعلى، لا نكررها بالأسفل
-      if (myMatches.isNotEmpty && _reminderMatchIds.contains(mid) && !_favoriteOnly) {
-        return false;
-      }
-
-      return true;
-    }).toList();
-
-    Widget matchesContent;
-    if (!_groupByChampionship) {
-      filtered.sort((a, b) => _asInt(a['match_timestamp']).compareTo(_asInt(b['match_timestamp'])));
-      matchesContent = Column(
-        children: filtered.map((m) => _buildMatchCard(m)).toList(),
-      );
-    } else {
-      final Map<int, List<Map<String, dynamic>>> grouped = {};
-      for (final m in filtered) {
-        final champId = _asInt(m['championship']?['url_id']);
-        grouped.putIfAbsent(champId, () => []).add(m);
-      }
-
-      var sortedLeagueIds = grouped.keys.toList();
-      sortedLeagueIds.sort((a, b) {
-        if (_topLeagues.contains(a)) return -1;
-        if (_topLeagues.contains(b)) return 1;
-        if (_bottomLeagues.contains(a)) return 1;
-        if (_bottomLeagues.contains(b)) return -1;
-        return 0;
-      });
-
-      matchesContent = Column(
-        children: sortedLeagueIds.map((id) => _buildLeagueSection(id, grouped[id]!)).toList(),
-      );
-    }
-
-    return ListView(
-      padding: const EdgeInsets.only(bottom: 20),
-      children: [
-        _buildQuickDateBar(),
-        if (myMatches.isNotEmpty && !_favoriteOnly && _searchQuery.isEmpty)
-          _buildMyMatchesSection(myMatches),
-        if (_isOffline)
-          Container(
-            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: _isDark ? const Color(0xFF3B2F00) : const Color(0xFFFFF3CD),
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: _isDark ? const Color(0xFF856404) : const Color(0xFFFFEEBA)),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.wifi_off_rounded, color: _isDark ? Colors.amber.shade300 : Colors.amber.shade800),
-                const SizedBox(width: 12),
-                Text('Offline', style: TextStyle(fontWeight: FontWeight.bold, color: _isDark ? Colors.amber.shade200 : Colors.amber.shade900)),
-                const Spacer(),
-                IconButton(
-                  icon: Icon(Icons.refresh, color: _isDark ? Colors.amber.shade300 : Colors.amber.shade800),
-                  onPressed: () => _fetchMatches(),
-                ),
-              ],
-            ),
-          ),
-        matchesContent,
-      ],
-    );
-  }
-
-  Widget _buildLeagueSection(int leagueId, List<Map<String, dynamic>> matches) {
-    final champ = matches.first['championship'] as Map? ?? {};
-    final title = _asStr(champ['title'], 'دوري');
-    final logo = YSImageConfig.buildChampionship(_asStr(champ['image'])) ?? '';
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Container(
-          margin: const EdgeInsets.only(top: 12, bottom: 8, left: 16, right: 16),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          decoration: BoxDecoration(color: _currentHeaderBg, borderRadius: BorderRadius.circular(8)),
-          child: Row(
-            children: [
-              SizedBox(
-                width: 24, height: 24,
-                child: Image.network(
-                  logo,
-                  errorBuilder: (_,__,___) => Icon(Icons.emoji_events, size: 20, color: _currentGreyText),
-                ),
-              ),
-              const SizedBox(width: 8),
-              Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14, color: _currentText)),
-              const Spacer(),
-              PopupMenuButton<String>(
-                icon: Icon(Icons.more_horiz, color: _currentGreyText),
-                color: _currentCardBg,
-                onSelected: (val) {
-                  setState(() {
-                    if (val == 'top') { _topLeagues.add(leagueId); _bottomLeagues.remove(leagueId); }
-                    if (val == 'bottom') { _bottomLeagues.add(leagueId); _topLeagues.remove(leagueId); }
-                    if (val == 'hide') { _hiddenLeagues.add(leagueId); }
-                  });
-                },
-                itemBuilder: (ctx) => [
-                  PopupMenuItem(value: 'top', child: Text('Move to the Top', style: TextStyle(color: _currentText))),
-                  const PopupMenuItem(value: 'hide', child: Text('Hide Championship', style: TextStyle(color: Colors.red))),
-                  PopupMenuItem(value: 'bottom', child: Text('Move to the Bottom', style: TextStyle(color: _currentText))),
-                ],
-              ),
-            ],
-          ),
-        ),
-        ...matches.map((m) => _buildMatchCard(m)),
-      ],
-    );
-  }
-
-  Widget _buildMyMatchesSection(List<Map<String, dynamic>> myMatches) {
-    if (myMatches.isEmpty) return const SizedBox.shrink();
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 6),
-      decoration: BoxDecoration(
-        color: _isDark ? const Color(0xFF161B22) : Colors.white,
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(
-          color: Colors.amber.shade700,
-          width: 1.5,
-        ),
-        boxShadow: _isDark
-            ? [BoxShadow(color: Colors.amber.withValues(alpha: 0.15), blurRadius: 10)]
-            : [BoxShadow(color: Colors.amber.withValues(alpha: 0.15), blurRadius: 8, offset: const Offset(0, 3))],
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            child: Row(
-              children: [
-                const Icon(Icons.star_rounded, color: Colors.amber, size: 24),
-                const SizedBox(width: 8),
-                Text(
-                  'My matches',
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 16,
-                    color: _currentText,
-                  ),
-                ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.red.shade600,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Text(
-                    '${myMatches.length}',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 6),
-          ...myMatches.map((m) => _buildMatchCard(m, isInMyMatches: true)),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMatchCard(Map<String, dynamic> m, {bool isInMyMatches = false}) {
-    final home = m['home_team'] as Map? ?? {};
-    final away = m['away_team'] as Map? ?? {};
-    final homeName = _asStr(home['title'], 'فريق');
-    final awayName = _asStr(away['title'], 'فريق');
-    final homeLogo = YSImageConfig.buildTeam(_asStr(home['image'])) ?? '';
-    final awayLogo = YSImageConfig.buildTeam(_asStr(away['image'])) ?? '';
-
-    final status = _asInt(m['status']);
-    final minutesRaw = _asInt(m['minutes']);
-    final exTime = m['ex_time'] != null ? (m['ex_time'] as num).toDouble() : null;
-    final homeScore = _asInt(m['home_scores']);
-    final awayScore = _asInt(m['away_scores']);
-    final ts = _asInt(m['match_timestamp']);
-    final mid = _asInt(m['match_id']);
-    final champ = m['championship'] as Map? ?? {};
-    final leagueUrlId = _asInt(champ['url_id']);
-
-    final isUpcoming = status == 0;
-    final isHalfTime = status == 2 || status == 5;
-    final isLive = status == 1 || status == 3 || status == 6 || status == 8 || status == 9 || status == 10;
-    final isEnded = status == 4 || status == 7 || status == 11 || status == 14;
-
-    int minutes = (minutesRaw / 60).floor();
-
-    String timeText = '';
-    if (isUpcoming) {
-      timeText = DateFormat('HH:mm').format(DateTime.fromMillisecondsSinceEpoch(ts * 1000).toLocal());
-    } else if (isHalfTime) {
-      timeText = 'HT';
-    } else if (isEnded) {
-      timeText = 'FT';
-    } else if (status == 10) {
-      timeText = 'PEN';
-    } else if (status == 8 || status == 9) {
-      timeText = 'ET';
-    } else if (isLive) {
-      timeText = "$minutes'";
-      if (exTime != null && exTime > 0) {
-        timeText += " +${exTime.toInt()}";
-      }
-    }
-
-    final penHome = _asInt(m['pen_home'] ?? m['pen_home_score'] ?? m['penalty_home'] ?? m['home_pen']);
-    final penAway = _asInt(m['pen_away'] ?? m['pen_away_score'] ?? m['penalty_away'] ?? m['away_pen']);
-
-    final isReminderSet = _reminderMatchIds.contains(mid);
-    final liveStream = _getLiveStreamForMatch(homeName, awayName);
-
-    final isRecentlyChanged = _scoreChangedAt.containsKey(mid) &&
-        DateTime.now().difference(_scoreChangedAt[mid]!).inSeconds < 4;
-
-    final scoreTextColor = isRecentlyChanged
-        ? Colors.redAccent
-        : ((isLive || isHalfTime) ? Colors.red.shade400 : _currentText);
-
-    Widget buildScoreDisplay(int score) {
-      if (isRecentlyChanged) {
-        return TweenAnimationBuilder<double>(
-          tween: Tween(begin: 1.5, end: 1.0),
-          duration: const Duration(milliseconds: 800),
-          curve: Curves.elasticOut,
-          builder: (context, scale, child) {
-            return Transform.scale(
-              scale: scale,
-              child: Text(
-                '$score',
-                style: const TextStyle(
-                  fontSize: 22,
-                  fontWeight: FontWeight.w900,
-                  color: Colors.redAccent,
-                  shadows: [Shadow(color: Colors.red, blurRadius: 10)],
-                ),
-              ),
-            );
-          },
-        );
-      }
-      return Text(
-        '$score',
-        style: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.bold,
-          color: scoreTextColor,
-        ),
-      );
-    }
-
-    return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MatchDetailsScreen(
-              matchId: mid,
-              leagueUrlId: leagueUrlId,
-              homeName: homeName,
-              awayName: awayName,
-              homeLogo: homeLogo,
-              awayLogo: awayLogo,
-              kickoffAt: DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toIso8601String(),
-              homeScore: homeScore,
-              awayScore: awayScore,
-              minute: isLive ? '$minutes' : null,
-              initialLive: isLive,
-            ),
-          ),
-        );
-      },
-      child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 12),
-        decoration: BoxDecoration(
-          color: _currentCardBg,
-          borderRadius: BorderRadius.circular(16),
-          border: _isDark ? Border.all(color: _currentBorderColor, width: 0.8) : null,
-          boxShadow: _isDark ? [] : [BoxShadow(color: Colors.black.withValues(alpha: 0.02), blurRadius: 10, offset: const Offset(0, 4))],
-        ),
-        child: Column(
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: [
-                      Image.network(homeLogo, width: 36, height: 36, errorBuilder: (_,__,___) => const Icon(Icons.shield, size: 36, color: Colors.grey)),
-                      const SizedBox(height: 8),
-                      Text(homeName, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _currentText)),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: Column(
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          buildScoreDisplay(homeScore),
-                          const SizedBox(width: 16),
-                          buildScoreDisplay(awayScore),
-                        ],
-                      ),
-                      if (penHome > 0 || penAway > 0)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text('Pen. ($penHome - $penAway)', style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
-                        ),
-                      const SizedBox(height: 4),
-                      if (isLive || isHalfTime)
-                        _buildStatusChip(timeText, isHalfTime: isHalfTime, isLive: isLive, minute: minutes, exTime: exTime)
-                      else
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                          decoration: BoxDecoration(color: _currentChipBg, borderRadius: BorderRadius.circular(8)),
-                          child: Text(
-                            timeText,
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: _currentText),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
-                Expanded(
-                  flex: 3,
-                  child: Column(
-                    children: [
-                      Image.network(awayLogo, width: 36, height: 36, errorBuilder: (_,__,___) => const Icon(Icons.shield, size: 36, color: Colors.grey)),
-                      const SizedBox(height: 8),
-                      Text(awayName, textAlign: TextAlign.center, maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 13, color: _currentText)),
-                    ],
-                  ),
-                ),
-                SizedBox(
-                  width: 30,
-                  child: _buildReminderButton(
-                    matchId: mid,
-                    homeName: homeName,
-                    awayName: awayName,
-                    kickoffIso: DateTime.fromMillisecondsSinceEpoch(ts * 1000, isUtc: true).toIso8601String(),
-                    status: isLive ? 'live' : isEnded ? 'ended' : 'scheduled',
-                    isSet: isReminderSet,
-                  ),
-                ),
-              ],
-            ),
-            if (liveStream != null) ...[
-              const SizedBox(height: 12),
-              GestureDetector(
-                onTap: () => _openLiveStream(liveStream['stream_url'], '$homeName vs $awayName'),
-                child: Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [Color(0xFFF59E0B), Color(0xFFD97706)],
-                      begin: Alignment.centerLeft,
-                      end: Alignment.centerRight,
-                    ),
-                    borderRadius: BorderRadius.circular(12),
-                    boxShadow: [
-                      BoxShadow(
-                        color: const Color(0xFFF59E0B).withValues(alpha: 0.35),
-                        blurRadius: 8,
-                        offset: const Offset(0, 3),
-                      ),
-                    ],
-                  ),
-                  child: Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      TweenAnimationBuilder<double>(
-                        tween: Tween(begin: 0.3, end: 1.0),
-                        duration: const Duration(milliseconds: 700),
-                        builder: (context, value, child) {
-                          return Container(
-                            width: 10,
-                            height: 10,
-                            decoration: BoxDecoration(
-                              color: Colors.red.withValues(alpha: value),
-                              shape: BoxShape.circle,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.red.withValues(alpha: value),
-                                  blurRadius: 6,
-                                  spreadRadius: 2,
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      ),
-                      const SizedBox(width: 8),
-                      const Icon(Icons.play_circle_fill, color: Colors.white, size: 20),
-                      const SizedBox(width: 6),
-                      Text(
-                        (liveStream['channel_name'] != null && (liveStream['channel_name'] as String).trim().isNotEmpty)
-                            ? 'Watch live now (${liveStream['channel_name']})'
-                            : 'Watch live now',
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildStatusChip(String text, {required bool isHalfTime, required bool isLive, required int minute, double? exTime}) {
-    if (isHalfTime) {
-      return Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-        decoration: BoxDecoration(color: Colors.orange.shade100, borderRadius: BorderRadius.circular(8)),
-        child: Text('HT', style: TextStyle(color: Colors.orange.shade800, fontWeight: FontWeight.bold, fontSize: 12)),
-      );
-    }
-
-    if (!isLive) return const SizedBox.shrink();
-
-    final hasMinute = minute > 0 && minute <= 120;
-    final hasExTime = exTime != null && exTime > 0;
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        SizedBox(
-          width: 38, height: 38,
-          child: Stack(
-            alignment: Alignment.center,
-            children: [
-              CircularProgressIndicator(
-                value: hasMinute ? (minute / 90).clamp(0.0, 1.0) : null,
-                strokeWidth: 3,
-                backgroundColor: _isDark ? Colors.grey.shade800 : Colors.grey.shade200,
-                valueColor: AlwaysStoppedAnimation<Color>(_primaryColor),
-              ),
-              Text(
-                "$minute'",
-                style: TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: _primaryColor),
-              ),
-            ],
-          ),
-        ),
-        if (hasExTime)
-          Padding(
-            padding: const EdgeInsets.only(top: 2),
-            child: Text(
-              "+${exTime.toInt()}",
-              style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.red),
-            ),
-          ),
-      ],
-    );
-  }
-
-  Widget _buildReminderButton({
-    required int matchId,
-    required String homeName,
-    required String awayName,
-    required String kickoffIso,
-    required String status,
-    required bool isSet,
-  }) {
-    return IconButton(
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
-      icon: Icon(
-        isSet ? Icons.notifications_active : Icons.notifications_none_rounded,
-        color: isSet ? Colors.amber : Colors.grey,
-        size: 22,
-      ),
-      onPressed: () async {
-        final confirmed = await showDialog<bool>(
-          context: context,
-          builder: (ctx) => AlertDialog(
-            backgroundColor: _isDark ? const Color(0xFF1E293B) : Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            title: Row(
-              children: [
-                Icon(isSet ? Icons.notifications_off_rounded : Icons.notifications_active, color: isSet ? Colors.redAccent : Colors.amber, size: 26),
-                const SizedBox(width: 10),
-                Text(isSet ? 'إلغاء التذكير' : 'تفعيل التذكير', style: TextStyle(color: _currentText, fontSize: 17, fontWeight: FontWeight.bold)),
-              ],
-            ),
-            content: Text(
-              isSet ? 'هل تريد إلغاء التذكير لهذه المباراة؟' : 'ستصلك تنبيهات عند تسجيل الأهداف وعند نهاية المباراة.',
-              style: TextStyle(color: _currentGreyText, fontSize: 13, height: 1.5),
-            ),
-            actions: [
-              TextButton(onPressed: () => Navigator.pop(ctx, false), child: Text('رجوع', style: TextStyle(color: _currentGreyText))),
-              ElevatedButton(
-                style: ElevatedButton.styleFrom(backgroundColor: isSet ? Colors.redAccent : Colors.amber, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8))),
-                onPressed: () => Navigator.pop(ctx, true),
-                child: Text(isSet ? 'نعم، ألغِ' : 'نعم، فعّل', style: TextStyle(color: isSet ? Colors.white : Colors.black, fontWeight: FontWeight.bold)),
-              ),
-            ],
-          ),
-        );
-        if (confirmed != true) return;
-
-        setState(() {
-          if (isSet) { _reminderMatchIds.remove(matchId); } else { _reminderMatchIds.add(matchId); }
-        });
+    function saveFirebaseConfig(e) {
+        e.preventDefault();
+        const jsonStr = document.getElementById('fb-service-account').value.trim();
+        const apiKey = document.getElementById('fb-api-key').value.trim();
 
         try {
-          final added = await MatchReminderService.toggleReminder(
-            matchId: matchId, kickoffIso: kickoffIso, homeName: homeName, awayName: awayName, status: status,
-          );
-          if (!mounted) return;
-          setState(() {
-            if (added) { _reminderMatchIds.add(matchId); } else { _reminderMatchIds.remove(matchId); }
-          });
-          if (mounted) {
-            showCustomSnackBar(context, added ? 'تم تفعيل التذكير ⚽🔔' : 'تم إلغاء التذكير', added ? Icons.notifications_active : Icons.notifications_off_rounded, added ? Colors.amber : Colors.grey);
-          }
-        } catch (e) {
-          if (mounted) {
-            setState(() { if (isSet) { _reminderMatchIds.add(matchId); } else { _reminderMatchIds.remove(matchId); } });
-            showCustomSnackBar(context, 'تعذر تحديث التذكير', Icons.error_outline, Colors.red);
-          }
+            serviceAccount = JSON.parse(jsonStr);
+            if (!serviceAccount.project_id || !serviceAccount.private_key) {
+                throw new Error("ملف JSON غير صالح");
+            }
+
+            localStorage.setItem('fb_service_account', jsonStr);
+            localStorage.setItem('fb_api_key', apiKey);
+
+            showAlert('تم حفظ الإعدادات وربط السيرفر بنجاح!', 'success');
+            initFirebase(apiKey, serviceAccount.project_id);
+            document.getElementById('fcm-status').innerText = 'متصل بـ ' + serviceAccount.project_id;
+        } catch (err) {
+            showAlert('خطأ: تأكد من نسخ محتوى ملف JSON بشكل صحيح.', 'danger');
         }
-      },
-    );
-  }
+    }
 
-  void _showFilterBottomSheet() {
-    showModalBottomSheet(
-      context: context, backgroundColor: Colors.transparent, isScrollControlled: true,
-      builder: (ctx) => StatefulBuilder(
-          builder: (context, setModalState) {
-            return Container(
-              decoration: BoxDecoration(color: _currentCardBg, borderRadius: const BorderRadius.vertical(top: Radius.circular(24))),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text('Match Sorting & Filtering', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: _currentText)),
-                      IconButton(icon: Icon(Icons.close, color: _currentIconColor), onPressed: () => Navigator.pop(ctx)),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                  _buildFilterCard('Hide favourites', null, Switch(value: _hideFavourites, activeThumbColor: _primaryColor, onChanged: (v) { setModalState(() => _hideFavourites = v); setState(() {}); })),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () { setModalState(() => _groupByChampionship = true); setState(() {}); },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: _groupByChampionship ? _primaryColor.withValues(alpha: 0.15) : _currentCardBg, border: Border.all(color: _groupByChampionship ? _primaryColor : _currentBorderColor, width: 1.5), borderRadius: BorderRadius.circular(12)),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Championship', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: _groupByChampionship ? _primaryColor : _currentText)),
-                        const SizedBox(height: 4),
-                        Text('Matches will be organized in separate boxes for each championship', style: TextStyle(fontSize: 12, color: _currentGreyText)),
-                      ]),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  GestureDetector(
-                    onTap: () { setModalState(() => _groupByChampionship = false); setState(() {}); },
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(color: !_groupByChampionship ? _primaryColor.withValues(alpha: 0.15) : _currentCardBg, border: Border.all(color: !_groupByChampionship ? _primaryColor : _currentBorderColor, width: 1.5), borderRadius: BorderRadius.circular(12)),
-                      child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        Text('Time', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: !_groupByChampionship ? _primaryColor : _currentText)),
-                        const SizedBox(height: 4),
-                        Text('Matches will be listed in chronological order', style: TextStyle(fontSize: 12, color: _currentGreyText)),
-                      ]),
-                    ),
-                  ),
-                  const SizedBox(height: 12),
-                  _buildFilterCard('Important ONLY', 'Only popular matches will be shown', Switch(value: _importantOnly, activeThumbColor: _primaryColor, onChanged: (v) { setModalState(() => _importantOnly = v); setState(() {}); })),
-                  const SizedBox(height: 12),
-                  _buildFilterCard('Live Only', 'Only live matches will be shown', Switch(value: _liveOnly, activeThumbColor: _primaryColor, onChanged: (v) { setModalState(() => _liveOnly = v); setState(() {}); }), badge: true),
-                  const SizedBox(height: 12),
-                  _buildFilterCard('Favorite Only', 'Only favorite matches', Switch(value: _favoriteOnly, activeThumbColor: _primaryColor, onChanged: (v) { setModalState(() => _favoriteOnly = v); setState(() {}); })),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity, height: 50,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(backgroundColor: _primaryColor, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12))),
-                      onPressed: () => Navigator.pop(ctx),
-                      child: const Text('Done', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                ],
-              ),
-            );
-          }
-      ),
-    );
-  }
+    function initFirebase(apiKey, projectId) {
+        try {
+            if (!firebase.apps.length) {
+                firebase.initializeApp({ apiKey: apiKey, projectId: projectId });
+            }
+            db = firebase.firestore();
+            loadMaintenanceSettings();
+        } catch (e) { console.error(e); }
+    }
 
-  Widget _buildFilterCard(String title, String? subtitle, Widget trailing, {bool badge = false}) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(color: _currentCardBg, borderRadius: BorderRadius.circular(12), border: Border.all(color: _currentBorderColor)),
-      child: Row(
-        children: [
-          Expanded(
-            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Row(children: [
-                Text(title, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15, color: _currentText)),
-                if (badge) ...[
-                  const SizedBox(width: 8),
-                  Container(padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2), decoration: BoxDecoration(color: Colors.red, borderRadius: BorderRadius.circular(4)), child: const Text('• LIVE', style: TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)))
-                ]
-              ]),
-              if (subtitle != null) ...[const SizedBox(height: 4), Text(subtitle, style: TextStyle(fontSize: 12, color: _currentGreyText))],
-            ]),
-          ),
-          trailing,
-        ],
-      ),
-    );
-  }
+    // ✅ دالة توليد OAuth 2.0 Access Token من Service Account
+    async function getAccessToken() {
+        if (!serviceAccount) throw new Error("لم يتم تكوين Service Account");
 
-  void _showDatePicker() {
-    showModalBottomSheet(
-      context: context, backgroundColor: Colors.transparent, shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) {
-        return Container(
-          padding: const EdgeInsets.all(16), height: 500,
-          decoration: BoxDecoration(
-            color: _currentCardBg,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          child: Column(
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Choose Date', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: _currentText)),
-                  IconButton(icon: Icon(Icons.close, color: _currentIconColor), onPressed: () => Navigator.pop(ctx)),
-                ],
-              ),
-              const SizedBox(height: 10),
-              Expanded(
-                child: Theme(
-                  data: (_isDark ? ThemeData.dark() : ThemeData.light()).copyWith(
-                    colorScheme: ColorScheme.fromSeed(
-                      seedColor: _primaryColor,
-                      brightness: _isDark ? Brightness.dark : Brightness.light,
-                      primary: _primaryColor,
-                    ),
-                  ),
-                  child: CalendarDatePicker(
-                    initialDate: _selectedDate,
-                    firstDate: DateTime.now().subtract(const Duration(days: 30)),
-                    lastDate: DateTime.now().add(const Duration(days: 30)),
-                    onDateChanged: (date) {
-                      setState(() => _selectedDate = date);
-                      Navigator.pop(ctx);
-                      _fetchMatches();
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ),
+        const header = { alg: "RS256", typ: "JWT" };
+        const now = Math.floor(Date.now() / 1000);
+        const claimSet = {
+            iss: serviceAccount.client_email,
+            scope: "https://www.googleapis.com/auth/firebase.messaging",
+            aud: "https://oauth2.googleapis.com/token",
+            exp: now + 3600,
+            iat: now
+        };
+
+        const sHeader = JSON.stringify(header);
+        const sClaimSet = JSON.stringify(claimSet);
+        const jwt = KJUR.jws.JWS.sign("RS256", sHeader, sClaimSet, serviceAccount.private_key);
+
+        const response = await fetch("https://oauth2.googleapis.com/token", {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams({
+                grant_type: "urn:ietf:params:oauth:grant-type:jwt-bearer",
+                assertion: jwt
+            })
+        });
+
+        const data = await response.json();
+        if (data.access_token) return data.access_token;
+        throw new Error("فشل الحصول على الـ Token: " + JSON.stringify(data));
+    }
+
+    // ✅ إرسال الإشعارات عبر FCM HTTP v1 API
+    async function sendNotification(e) {
+        e.preventDefault();
+        if (!serviceAccount) {
+            showAlert('يرجى إضافة Service Account JSON في الإعدادات أولاً!', 'danger');
+            switchTab('config');
+            return;
+        }
+
+        const target = document.getElementById('notif-target').value;
+        const title = document.getElementById('notif-title').value;
+        const body = document.getElementById('notif-body').value;
+        const image = document.getElementById('notif-image').value;
+        const token = document.getElementById('target-token').value.trim();
+
+        const btn = document.getElementById('btn-send-notif');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin me-2"></i> جاري الإرسال...';
+
+        try {
+            const accessToken = await getAccessToken();
+
+            let messagePayload = {
+                notification: { title: title, body: body },
+                data: { click_action: 'FLUTTER_NOTIFICATION_CLICK', title: title, body: body }
+            };
+            if (image) messagePayload.notification.image = image;
+
+            if (target === 'topic_all') messagePayload.topic = 'all_users';
+            else if (target === 'topic_broadcast') messagePayload.topic = 'broadcast';
+            else if (target === 'single_token') {
+                if (!token) throw new Error("يرجى إدخال التوكن!");
+                messagePayload.token = token;
+            }
+
+            const response = await fetch(`https://fcm.googleapis.com/v1/projects/${serviceAccount.project_id}/messages:send`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + accessToken
+                },
+                body: JSON.stringify({ message: messagePayload })
+            });
+
+            const result = await response.json();
+
+            if (response.ok) {
+                showAlert('🎉 تم إرسال الإشعار بنجاح عبر FCM V1 API!', 'success');
+            } else {
+                showAlert('❌ خطأ: ' + (result.error?.message || JSON.stringify(result)), 'danger');
+            }
+
+        } catch (err) {
+            console.error(err);
+            showAlert('حدث خطأ أثناء الإرسال: ' + err.message, 'danger');
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane me-2"></i> إرسال الإشعار الآن';
+        }
+    }
+
+    // 6. تحميل المستخدمين وإدارة الحظر
+    let allUsersData = [];
+    async function loadUsers() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في تبويب الإعدادات!', 'warning');
+            return;
+        }
+        const tbody = document.getElementById('users-list');
+        tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري تحميل قائمة المستخدمين...</td></tr>';
+
+        try {
+            const snapshot = await db.collection('users').get();
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">لا يوجد مستخدمين مسجلين في Firestore حتى الآن</td></tr>';
+                return;
+            }
+
+            allUsersData = [];
+            snapshot.forEach(doc => {
+                allUsersData.push({ uid: doc.id, ...doc.data() });
+            });
+
+            renderUsersTable(allUsersData);
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">خطأ في جلب المستخدمين: ' + e.message + '</td></tr>';
+        }
+    }
+
+    function renderUsersTable(users) {
+        const tbody = document.getElementById('users-list');
+        if (users.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">لا توجد نتائج مطابقة للبحث</td></tr>';
+            return;
+        }
+
+        let html = '';
+        let index = 1;
+        users.forEach(user => {
+            const isBanned = user.is_banned === true;
+            const dateStr = user.last_active ? new Date(user.last_active.seconds * 1000).toLocaleString('ar-EG') : (user.created_at ? new Date(user.created_at.seconds * 1000).toLocaleString('ar-EG') : 'غير محدد');
+            const token = user.fcm_token || (user.fcm_tokens ? user.fcm_tokens[0] : '');
+            const deviceModel = user.device_model || user.device_brand || 'غير محدد';
+            const osVersion = user.os_version || user.platform || 'Android';
+            const ip = user.ip_address || 'غير معروف';
+            const country = user.country ? `${user.country} ${user.country_code ? `(${user.country_code})` : ''}` : 'غير محدد';
+
+            html += `
+                <tr id="user-row-${user.uid}">
+                    <td>${index++}</td>
+                    <td>
+                        <div class="fw-bold text-primary">${user.name || 'مستخدم ' + user.uid.substring(0, 6)}</div>
+                        <div class="small text-muted">${user.email || 'بدون بريد'}</div>
+                        <div class="small text-muted font-monospace">${user.uid}</div>
+                    </td>
+                    <td>
+                        <div class="fw-semibold text-dark"><i class="fa-solid fa-mobile-screen me-1 text-primary"></i> ${deviceModel}</div>
+                    </td>
+                    <td><span class="badge bg-secondary">${osVersion}</span></td>
+                    <td class="small">
+                        <div class="fw-bold text-dark"><i class="fa-solid fa-globe me-1 text-info"></i> ${country}</div>
+                        <div class="text-muted font-monospace">${ip}</div>
+                    </td>
+                    <td class="small">${dateStr}</td>
+                    <td>
+                        ${isBanned ? '<span class="badge bg-danger fs-6">⛔ محظور</span>' : '<span class="badge bg-success fs-6">🟢 نشط</span>'}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn ${isBanned ? 'btn-success' : 'btn-danger'}" onclick="toggleBanUser('${user.uid}', ${isBanned})">
+                                ${isBanned ? '<i class="fa-solid fa-user-check me-1"></i> إلغاء الحظر' : '<i class="fa-solid fa-user-slash me-1"></i> حظر'}
+                            </button>
+                            <button class="btn btn-outline-info" onclick="openUserActivityModal('${user.uid}', '${user.name || user.email || user.uid}')">
+                                <i class="fa-solid fa-eye me-1"></i> التفاصيل
+                            </button>
+                            ${token ? `<button class="btn btn-outline-warning" onclick="selectTokenForNotif('${token}')"><i class="fa-solid fa-paper-plane"></i></button>` : ''}
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    function filterUsersTable() {
+        const query = document.getElementById('user-search').value.toLowerCase();
+        const filtered = allUsersData.filter(u =>
+            (u.name && u.name.toLowerCase().includes(query)) ||
+            (u.email && u.email.toLowerCase().includes(query)) ||
+            (u.uid && u.uid.toLowerCase().includes(query))
         );
-      },
-    );
-  }
-}
+        renderUsersTable(filtered);
+    }
+
+    async function toggleBanUser(uid, currentIsBanned) {
+        if (!db) return;
+        try {
+            await db.collection('users').doc(uid).set({
+                is_banned: !currentIsBanned,
+                banned_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            showAlert(`تم ${!currentIsBanned ? 'حظر' : 'إلغاء حظر'} المستخدم بنجاح!`, 'success');
+            loadUsers();
+        } catch (e) {
+            showAlert('خطأ أثناء تحديث حالة الحظر: ' + e.message, 'danger');
+        }
+    }
+
+    // 7. عرض سجل تفضيلات ومشاهدات المستخدم
+    async function openUserActivityModal(uid, userName) {
+        document.getElementById('activityModalTitle').innerText = 'نشاط المستخدم: ' + userName;
+        const favList = document.getElementById('modal-fav-list');
+        const histList = document.getElementById('modal-hist-list');
+
+        favList.innerHTML = '<div class="text-center text-muted p-3"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري جلب المفضلة...</div>';
+        histList.innerHTML = '<div class="text-center text-muted p-3"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري جلب سجل المشاهدة...</div>';
+
+        const modal = new bootstrap.Modal(document.getElementById('userActivityModal'));
+        modal.show();
+
+        try {
+            // جلب المفضلة
+            const favSnap = await db.collection('users').doc(uid).collection('favorites').get();
+            if (favSnap.empty) {
+                favList.innerHTML = '<div class="alert alert-light text-center">لا توجد عناصر مفضلة لهذا المستخدم.</div>';
+            } else {
+                let html = '';
+                favSnap.forEach(doc => {
+                    const data = doc.data();
+                    html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${data.title || data.name || doc.id}</strong>
+                                <div class="small text-muted">${data.type || 'فيلم/مسلسل'}</div>
+                            </div>
+                            <span class="badge bg-danger rounded-pill">❤️ مفضلة</span>
+                        </div>
+                    `;
+                });
+                favList.innerHTML = html;
+            }
+
+            // جلب سجل المشاهدة
+            const histSnap = await db.collection('users').doc(uid).collection('history').orderBy('watched_at', 'desc').limit(30).get();
+            if (histSnap.empty) {
+                histList.innerHTML = '<div class="alert alert-light text-center">لا يوجد سجل مشاهدة لهذا المستخدم.</div>';
+            } else {
+                let html = '';
+                histSnap.forEach(doc => {
+                    const data = doc.data();
+                    html += `
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>${data.title || data.name || doc.id}</strong>
+                                <div class="small text-muted">${data.watched_at ? new Date(data.watched_at).toLocaleString('ar-EG') : ''}</div>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">🕒 شوهد</span>
+                        </div>
+                    `;
+                });
+                histList.innerHTML = html;
+            }
+        } catch (e) {
+            console.error(e);
+            favList.innerHTML = '<div class="text-danger p-2">خطأ في جلب البيانات: ' + e.message + '</div>';
+        }
+    }
+
+    // 8. تحميل وإدارة البلاغات والشكاوى
+    async function loadReports() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في تبويب الإعدادات!', 'warning');
+            return;
+        }
+        const tbody = document.getElementById('reports-list');
+        tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري تحميل البلاغات...</td></tr>';
+
+        try {
+            const snapshot = await db.collection('reports').orderBy('created_at', 'desc').limit(50).get();
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center text-muted">لا توجد بلاغات مسجلة حالياً</td></tr>';
+                return;
+            }
+
+            let html = '';
+            let index = 1;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const docId = doc.id;
+                const isResolved = data.status === 'resolved';
+                const dateStr = data.created_at ? new Date(data.created_at.seconds * 1000).toLocaleString('ar-EG') : 'غير محدد';
+
+                html += `
+                    <tr>
+                        <td>${index++}</td>
+                        <td class="small">
+                            <div class="fw-bold">${data.user_email || 'مستخدم'}</div>
+                            <div class="text-muted font-monospace">${data.user_id || ''}</div>
+                        </td>
+                        <td class="fw-bold text-dark">${data.item_title || data.item_id || 'غير محدد'}</td>
+                        <td><span class="badge bg-info text-dark">${data.item_type || 'عنصر'}</span></td>
+                        <td class="small text-danger fw-semibold">${data.reason || 'مشكلة في التشغيل'}</td>
+                        <td class="small text-muted">${dateStr}</td>
+                        <td>
+                            ${isResolved ? '<span class="badge bg-success">✅ تم الحل</span>' : '<span class="badge bg-warning text-dark">⏳ معلق</span>'}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                ${!isResolved ? `<button class="btn btn-sm btn-success" onclick="resolveReport('${docId}')"><i class="fa-solid fa-check"></i> حل</button>` : ''}
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteReport('${docId}')"><i class="fa-solid fa-trash"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="8" class="text-center text-danger">خطأ في جلب البلاغات: ' + e.message + '</td></tr>';
+        }
+    }
+
+    async function resolveReport(docId) {
+        if (!db) return;
+        try {
+            await db.collection('reports').doc(docId).update({
+                status: 'resolved',
+                resolved_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert('تم تحديد البلاغ كمكتمل بنجاح!', 'success');
+            loadReports();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    async function deleteReport(docId) {
+        if (!db || !confirm('هل أنت تأكد من حذف هذا البلاغ؟')) return;
+        try {
+            await db.collection('reports').doc(docId).delete();
+            showAlert('تم حذف البلاغ بنجاح!', 'info');
+            loadReports();
+        } catch (e) {
+            showAlert('خطأ في الحذف: ' + e.message, 'danger');
+        }
+    }
+
+    // 9. إعدادات وضع الصيانة
+    async function loadMaintenanceSettings() {
+        if (!db) return;
+        try {
+            const doc = await db.collection('app_config').doc('status').get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('switch-maintenance').checked = data.maintenance_mode === true;
+                if (data.maintenance_message) document.getElementById('maintenance-msg').value = data.maintenance_message;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function saveMaintenanceSettings() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const isMaint = document.getElementById('switch-maintenance').checked;
+        const msg = document.getElementById('maintenance-msg').value;
+
+        try {
+            await db.collection('app_config').doc('status').set({
+                maintenance_mode: isMaint,
+                maintenance_message: msg,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            showAlert('تم تحديث وضع الصيانة بنجاح وشاشات التطبيق ستتأثر فوراً!', 'success');
+        } catch (e) {
+            showAlert('خطأ أثناء الحفظ: ' + e.message, 'danger');
+        }
+    }
+
+    function selectTokenForNotif(token) {
+        switchTab('notif');
+        document.getElementById('notif-target').value = 'single_token';
+        toggleTargetInput();
+        document.getElementById('target-token').value = token;
+    }
+
+    function showAlert(msg, type) {
+        const box = document.getElementById('alert-box');
+        box.innerHTML = `
+            <div class="alert alert-${type} alert-dismissible fade show fw-bold shadow-sm" role="alert">
+                ${msg}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        `;
+    }
+
+    // 10. إدارة روابط المباريات المباشرة
+    let allLiveStreams = [];
+
+    async function loadLiveStreams() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في تبويب الإعدادات!', 'warning');
+            return;
+        }
+        const tbody = document.getElementById('live-streams-list');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري تحميل روابط البث...</td></tr>';
+
+        try {
+            const snapshot = await db.collection('live_streams').get();
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد روابط بث مضافة حالياً</td></tr>';
+                return;
+            }
+
+            allLiveStreams = [];
+            snapshot.forEach(doc => {
+                allLiveStreams.push({ id: doc.id, ...doc.data() });
+            });
+
+            renderLiveStreamsTable(allLiveStreams);
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطأ في جلب البيانات: ' + e.message + '</td></tr>';
+        }
+    }
+
+    function renderLiveStreamsTable(streams) {
+        const tbody = document.getElementById('live-streams-list');
+        if (streams.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد روابط بث مضافة</td></tr>';
+            return;
+        }
+
+        let html = '';
+        let index = 1;
+        streams.forEach(stream => {
+            const isActive = stream.is_active !== false;
+            html += `
+                <tr>
+                    <td>${index++}</td>
+                    <td>
+                        <div class="fw-bold text-dark"><i class="fa-solid fa-futbol text-warning me-1"></i> ${stream.team_name || ''}</div>
+                        <div class="small text-muted font-monospace text-truncate" style="max-width: 180px;">${stream.stream_url || ''}</div>
+                    </td>
+                    <td class="small fw-semibold text-secondary">${stream.channel_name || 'سيرفر عام'}</td>
+                    <td>
+                        ${isActive ? '<span class="badge bg-success">🟢 نشط</span>' : '<span class="badge bg-secondary">⚪ معطل</span>'}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn ${isActive ? 'btn-warning' : 'btn-success'}" onclick="toggleLiveStreamActive('${stream.id}', ${isActive})">
+                                ${isActive ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'}
+                            </button>
+                            <button class="btn btn-outline-primary" onclick="editLiveStream('${stream.id}')">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" onclick="deleteLiveStream('${stream.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    async function saveLiveStream(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const streamId = document.getElementById('live-stream-id').value;
+        const teamName = document.getElementById('live-team-name').value.trim();
+        const streamUrl = document.getElementById('live-stream-url').value.trim();
+        const channelName = document.getElementById('live-channel-name').value.trim();
+        const isActive = document.getElementById('live-stream-active').checked;
+
+        try {
+            const payload = {
+                team_name: teamName,
+                stream_url: streamUrl,
+                channel_name: channelName,
+                is_active: isActive,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (streamId) {
+                await db.collection('live_streams').doc(streamId).update(payload);
+                showAlert('تم تحديث رابط البث بنجاح!', 'success');
+            } else {
+                payload.created_at = firebase.firestore.FieldValue.serverTimestamp();
+                await db.collection('live_streams').add(payload);
+                showAlert('تم إضافة رابط البث بنجاح!', 'success');
+            }
+
+            resetLiveStreamForm();
+            loadLiveStreams();
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
+    }
+
+    function editLiveStream(id) {
+        const stream = allLiveStreams.find(s => s.id === id);
+        if (!stream) return;
+
+        document.getElementById('live-stream-id').value = stream.id;
+        document.getElementById('live-team-name').value = stream.team_name || '';
+        document.getElementById('live-stream-url').value = stream.stream_url || '';
+        document.getElementById('live-channel-name').value = stream.channel_name || '';
+        document.getElementById('live-stream-active').checked = stream.is_active !== false;
+
+        document.getElementById('live-stream-form-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> تعديل رابط البث';
+        document.getElementById('btn-save-stream').innerHTML = '<i class="fa-solid fa-check me-2"></i> تحديث البث';
+        document.getElementById('btn-cancel-edit-stream').classList.remove('d-none');
+    }
+
+    function resetLiveStreamForm() {
+        document.getElementById('live-stream-id').value = '';
+        document.getElementById('live-stream-form').reset();
+        document.getElementById('live-stream-active').checked = true;
+
+        document.getElementById('live-stream-form-title').innerHTML = '<i class="fa-solid fa-plus-circle text-success me-2"></i> إضافة رابط مباراة مباشرة';
+        document.getElementById('btn-save-stream').innerHTML = '<i class="fa-solid fa-floppy-disk me-2"></i> حفظ رابط البث';
+        document.getElementById('btn-cancel-edit-stream').classList.add('d-none');
+    }
+
+    async function toggleLiveStreamActive(id, currentActive) {
+        if (!db) return;
+        try {
+            await db.collection('live_streams').doc(id).update({
+                is_active: !currentActive,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert(`تم ${!currentActive ? 'تفعيل' : 'تعطيل'} رابط البث!`, 'info');
+            loadLiveStreams();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    async function deleteLiveStream(id) {
+        if (!db || !confirm('هل أنت تأكد من حذف رابط البث هذا؟')) return;
+        try {
+            await db.collection('live_streams').doc(id).delete();
+            showAlert('تم حذف رابط البث بنجاح!', 'info');
+            loadLiveStreams();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    window.onload = loadSavedConfig;
+</script>
+</body>
+</html>
