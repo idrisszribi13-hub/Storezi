@@ -51,6 +51,21 @@
                         <i class="fa-solid fa-flag me-2"></i> البلاغات والشكاوى
                     </a>
                 </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-analytics-btn" onclick="switchTab('analytics')">
+                        <i class="fa-solid fa-chart-line me-2"></i> إحصائيات الاستخدام الحية
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-servers-btn" onclick="switchTab('servers')">
+                        <i class="fa-solid fa-server me-2"></i> إدارة السيرفرات والروابط
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-schedule-btn" onclick="switchTab('schedule')">
+                        <i class="fa-solid fa-clock me-2"></i> جدولة الإشعارات
+                    </a>
+                </li>
                 <li class="nav-item mt-3">
                     <a href="#" class="nav-link" id="tab-config-btn" onclick="switchTab('config')">
                         <i class="fa-solid fa-gear me-2"></i> إعدادات Firebase
@@ -257,6 +272,75 @@
                 </div>
             </div>
 
+            <!-- 6. إحصائيات الاستخدام الحية -->
+            <div id="sec-analytics" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-chart-line text-danger me-2"></i> إحصائيات واستخدام التطبيق</h3>
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">إجمالي المستخدمين</h6>
+                            <h2 class="fw-bold text-primary mt-2" id="stat-users">-</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">إجمالي البلاغات والشكاوى</h6>
+                            <h2 class="fw-bold text-danger mt-2" id="stat-reports">-</h2>
+                        </div>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <div class="card card-custom p-4 text-center">
+                            <h6 class="text-muted fw-bold">حالة النظام</h6>
+                            <h2 class="fw-bold text-success mt-2">متصل 🟢</h2>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 7. إدارة السيرفرات والروابط -->
+            <div id="sec-servers" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-server text-danger me-2"></i> إدارة السيرفرات وروابط البث (OTA)</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <form onsubmit="saveServerConfig(event)">
+                        <div class="mb-3">
+                            <label for="proxy-url" class="form-label fw-semibold">رابط الـ Proxy الأساسي</label>
+                            <input type="url" class="form-control" id="proxy-url" value="https://kvsyzgavfxnwqmtsginv.supabase.co/functions/v1/proxy" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="fallback-proxy" class="form-label fw-semibold">رابط سيرفر احتياطي</label>
+                            <input type="url" class="form-control" id="fallback-proxy" placeholder="https://...">
+                        </div>
+                        <button type="submit" class="btn btn-danger-custom fw-bold w-100">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> حفظ وتحديث السيرفرات لجميع المستخدمين
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 8. جدولة الإشعارات -->
+            <div id="sec-schedule" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-clock text-danger me-2"></i> جدولة الإشعارات التلقائية</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <form onsubmit="scheduleNotification(event)">
+                        <div class="mb-3">
+                            <label for="sched-title" class="form-label fw-semibold">عنوان الإشعار</label>
+                            <input type="text" class="form-control" id="sched-title" placeholder="مثال: ⚽ مباراة نهائي دوري الأبطال تنطلق غداً!" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sched-body" class="form-label fw-semibold">نص الإشعار</label>
+                            <textarea class="form-control" id="sched-body" rows="3" placeholder="تفاصيل الإشعار..." required></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="sched-time" class="form-label fw-semibold">وقت الإرسال المجدول</label>
+                            <input type="datetime-local" class="form-control" id="sched-time" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary fw-bold w-100">
+                            <i class="fa-solid fa-calendar-plus me-2"></i> جدولة الإشعار
+                        </button>
+                    </form>
+                </div>
+            </div>
+
         </main>
     </div>
 </div>
@@ -316,6 +400,73 @@
         if (tab === 'users') loadUsers();
         if (tab === 'reports') loadReports();
         if (tab === 'control') loadMaintenanceSettings();
+        if (tab === 'analytics') loadAnalytics();
+        if (tab === 'servers') loadServerSettings();
+    }
+
+    async function loadAnalytics() {
+        if (!db) return;
+        try {
+            const usersSnap = await db.collection('users').get();
+            const reportsSnap = await db.collection('reports').get();
+            document.getElementById('stat-users').innerText = usersSnap.size;
+            document.getElementById('stat-reports').innerText = reportsSnap.size;
+        } catch (e) { console.error(e); }
+    }
+
+    async function loadServerSettings() {
+        if (!db) return;
+        try {
+            const doc = await db.collection('app_config').doc('servers').get();
+            if (doc.exists) {
+                const data = doc.data();
+                if (data.proxy_url) document.getElementById('proxy-url').value = data.proxy_url;
+                if (data.fallback_proxy) document.getElementById('fallback-proxy').value = data.fallback_proxy;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function saveServerConfig(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const proxyUrl = document.getElementById('proxy-url').value;
+        const fallbackProxy = document.getElementById('fallback-proxy').value;
+        try {
+            await db.collection('app_config').doc('servers').set({
+                proxy_url: proxyUrl,
+                fallback_proxy: fallbackProxy,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+            showAlert('تم تحديث إعدادات السيرفرات بنجاح!', 'success');
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
+    }
+
+    async function scheduleNotification(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const title = document.getElementById('sched-title').value;
+        const body = document.getElementById('sched-body').value;
+        const time = document.getElementById('sched-time').value;
+        try {
+            await db.collection('scheduled_notifications').add({
+                title: title,
+                body: body,
+                scheduled_time: new Date(time),
+                status: 'pending',
+                created_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert('تم جدولة الإشعار بنجاح وسيتم إرساله في الوقت المحدد!', 'success');
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
     }
 
     function toggleTargetInput() {
