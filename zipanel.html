@@ -47,6 +47,16 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-ads-btn" onclick="switchTab('ads')">
+                        <i class="fa-solid fa-rectangle-ad text-danger me-2"></i> إدارة الإعلانات والبانرات
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-predictions-btn" onclick="switchTab('predictions')">
+                        <i class="fa-solid fa-trophy text-warning me-2"></i> توقعات المباريات
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" id="tab-users-btn" onclick="switchTab('users')">
                         <i class="fa-solid fa-users me-2"></i> إدارة المستخدمين والحظر
                     </a>
@@ -414,6 +424,71 @@
                 </div>
             </div>
 
+            <!-- 10. إدارة الإعلانات والرسائل الترويجية المباشرة (OTA Ads) -->
+            <div id="sec-ads" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-rectangle-ad text-danger me-2"></i> إدارة الإعلانات والبانرات الترويجية (OTA)</h3>
+                <div class="card card-custom p-4" style="max-width: 650px;">
+                    <form onsubmit="saveAdsConfig(event)">
+                        <div class="form-check form-switch fs-5 mb-3">
+                            <input class="form-check-input" type="checkbox" id="switch-ads-active">
+                            <label class="form-check-label fw-bold" for="switch-ads-active">تفعيل البانر الترويجي في التطبيق</label>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ad-title" class="form-label fw-semibold">عنوان الإعلان</label>
+                            <input type="text" class="form-control" id="ad-title" placeholder="مثال: 🔥 اشترك الآن في العضوية الممتازة VIP">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ad-subtitle" class="form-label fw-semibold">وصف الإعلان</label>
+                            <textarea class="form-control" id="ad-subtitle" rows="2" placeholder="تفاصيل العرض الترويجي..."></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label for="ad-image-url" class="form-label fw-semibold">رابط صورة الإعلان (اختياري)</label>
+                            <input type="url" class="form-control" id="ad-image-url" placeholder="https://example.com/banner.jpg">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ad-action-url" class="form-label fw-semibold">رابط الإجراء عند النقر (URL Action)</label>
+                            <input type="url" class="form-control" id="ad-action-url" placeholder="https://t.me/zribitv_support">
+                        </div>
+                        <div class="mb-3">
+                            <label for="ad-btn-text" class="form-label fw-semibold">نص الزر</label>
+                            <input type="text" class="form-control" id="ad-btn-text" value="إعراض الآن">
+                        </div>
+                        <button type="submit" class="btn btn-danger-custom fw-bold w-100">
+                            <i class="fa-solid fa-floppy-disk me-2"></i> حفظ وتحديث الإعلانات فورياً
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- 11. توقعات المباريات والمترتبين -->
+            <div id="sec-predictions" class="tab-sec d-none">
+                <h3 class="fw-bold mb-4"><i class="fa-solid fa-trophy text-warning me-2"></i> توقعات المستخدمين للمباريات (Predict & Win)</h3>
+                <div class="card card-custom p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">قائمة التوقعات المسجلة</h5>
+                        <button class="btn btn-outline-warning fw-bold" onclick="loadPredictions()">
+                            <i class="fa-solid fa-rotate me-1"></i> تحديث التوقعات
+                        </button>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th>#</th>
+                                    <th>المستخدم</th>
+                                    <th>المباراة</th>
+                                    <th>التوقع</th>
+                                    <th>التاريخ</th>
+                                </tr>
+                            </thead>
+                            <tbody id="predictions-list">
+                                <tr><td colspan="5" class="text-center text-muted">جاري تحميل التوقعات...</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 </div>
@@ -476,6 +551,8 @@
         if (tab === 'analytics') loadAnalytics();
         if (tab === 'servers') loadServerSettings();
         if (tab === 'live-matches') loadLiveStreams();
+        if (tab === 'ads') loadAdsConfig();
+        if (tab === 'predictions') loadPredictions();
     }
 
     async function loadAnalytics() {
@@ -1152,6 +1229,118 @@
             loadLiveStreams();
         } catch (e) {
             showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    // 11. إدارة ترقية المستخدمين لـ VIP
+    async function toggleVipUser(uid, currentIsVip) {
+        if (!db) return;
+        try {
+            await db.collection('users').doc(uid).set({
+                is_vip: !currentIsVip,
+                vip_updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            showAlert(`تم ${!currentIsVip ? 'ترقية' : 'إلغاء ترقية'} المستخدم إلى VIP 👑 بنجاح!`, 'success');
+            loadUsers();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    // 12. فحص سلامة السيرفرات
+    async function checkServerHealth(url, id) {
+        try {
+            showAlert('جاري فحص سلامة السيرفر...', 'info');
+            await fetch(url, { method: 'HEAD', mode: 'no-cors' });
+            showAlert('🟢 السيرفر يعمل واستجاب بنجاح!', 'success');
+        } catch (e) {
+            showAlert('🔴 تحذير: تعذر الوصول للسيرفر أو يوجد انقطاع.', 'danger');
+        }
+    }
+
+    // 13. إدارة الإعلانات والبانرات الترويجية (OTA)
+    async function loadAdsConfig() {
+        if (!db) return;
+        try {
+            const doc = await db.collection('app_config').doc('ads').get();
+            if (doc.exists) {
+                const data = doc.data();
+                document.getElementById('switch-ads-active').checked = data.is_enabled === true;
+                if (data.banner_title) document.getElementById('ad-title').value = data.banner_title;
+                if (data.banner_subtitle) document.getElementById('ad-subtitle').value = data.banner_subtitle;
+                if (data.image_url) document.getElementById('ad-image-url').value = data.image_url;
+                if (data.action_url) document.getElementById('ad-action-url').value = data.action_url;
+                if (data.button_text) document.getElementById('ad-btn-text').value = data.button_text;
+            }
+        } catch (e) { console.error(e); }
+    }
+
+    async function saveAdsConfig(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const isEnabled = document.getElementById('switch-ads-active').checked;
+        const title = document.getElementById('ad-title').value.trim();
+        const subtitle = document.getElementById('ad-subtitle').value.trim();
+        const imageUrl = document.getElementById('ad-image-url').value.trim();
+        const actionUrl = document.getElementById('ad-action-url').value.trim();
+        const btnText = document.getElementById('ad-btn-text').value.trim();
+
+        try {
+            await db.collection('app_config').doc('ads').set({
+                is_enabled: isEnabled,
+                banner_title: title,
+                banner_subtitle: subtitle,
+                image_url: imageUrl,
+                action_url: actionUrl,
+                button_text: btnText,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            }, { merge: true });
+
+            showAlert('تم حفظ الإعلانات وتحديث شاشات التطبيق بنجاح!', 'success');
+        } catch (e) {
+            showAlert('خطأ أثناء الحفظ: ' + e.message, 'danger');
+        }
+    }
+
+    // 14. تحميل توقعات المباريات (Predict & Win)
+    async function loadPredictions() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const tbody = document.getElementById('predictions-list');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري تحميل التوقعات...</td></tr>';
+
+        try {
+            const snapshot = await db.collection('predictions').orderBy('created_at', 'desc').limit(50).get();
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد توقعات مسجلة حتى الآن</td></tr>';
+                return;
+            }
+
+            let html = '';
+            let index = 1;
+            snapshot.forEach(doc => {
+                const data = doc.data();
+                const dateStr = data.created_at ? new Date(data.created_at.seconds * 1000).toLocaleString('ar-EG') : 'غير محدد';
+                html += `
+                    <tr>
+                        <td>${index++}</td>
+                        <td class="fw-bold text-primary">${data.user_email || data.user_id || 'مستخدم'}</td>
+                        <td class="fw-bold">${data.home_name || 'الفريق 1'} × ${data.away_name || 'الفريق 2'}</td>
+                        <td><span class="badge bg-warning text-dark fs-6">🏆 ${data.home_pred} - ${data.away_pred}</span></td>
+                        <td class="small text-muted">${dateStr}</td>
+                    </tr>
+                `;
+            });
+            tbody.innerHTML = html;
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطأ: ' + e.message + '</td></tr>';
         }
     }
 
