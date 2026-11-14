@@ -47,6 +47,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a href="#" class="nav-link" id="tab-iptv-btn" onclick="switchTab('iptv')">
+                        <i class="fa-solid fa-tv text-info me-2"></i> دليل القنوات المباشرة (IPTV)
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a href="#" class="nav-link" id="tab-ads-btn" onclick="switchTab('ads')">
                         <i class="fa-solid fa-rectangle-ad text-danger me-2"></i> إدارة الإعلانات والبانرات
                     </a>
@@ -489,6 +494,153 @@
                 </div>
             </div>
 
+            <!-- 12. إدارة دليل القنوات المباشرة (IPTV Live Channels) -->
+            <div id="sec-iptv" class="tab-sec d-none">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h3 class="fw-bold mb-1"><i class="fa-solid fa-tv text-info me-2"></i> دليل القنوات المباشرة (Live IPTV Directory)</h3>
+                        <p class="text-muted mb-0">إضافة وتحديث روابط تشغيل القنوات الرياضية والترفيهية أونلاين فورياً في التطبيق</p>
+                    </div>
+                    <button class="btn btn-primary fw-bold" onclick="loadIPTVChannels()">
+                        <i class="fa-solid fa-rotate me-1"></i> تحديث القنوات
+                    </button>
+                </div>
+
+                <!-- إحصائيات سريعة للقنوات -->
+                <div class="row g-3 mb-4">
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-start border-4 border-info">
+                            <div class="text-muted small">إجمالي القنوات</div>
+                            <h3 class="fw-bold text-dark mb-0" id="stat-iptv-total">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-start border-4 border-success">
+                            <div class="text-muted small">القنوات النشطة</div>
+                            <h3 class="fw-bold text-success mb-0" id="stat-iptv-active">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-start border-4 border-warning">
+                            <div class="text-muted small">قنوات beIN Sports</div>
+                            <h3 class="fw-bold text-warning mb-0" id="stat-iptv-bein">0</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card card-custom p-3 border-start border-4 border-danger">
+                            <div class="text-muted small">قنوات SSC و Abu Dhabi</div>
+                            <h3 class="fw-bold text-danger mb-0" id="stat-iptv-ssc">0</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <!-- نموذج إضافة / تعديل قناة -->
+                    <div class="col-lg-4 mb-4">
+                        <div class="card card-custom p-4">
+                            <h5 class="fw-bold mb-3" id="iptv-form-title">
+                                <i class="fa-solid fa-plus-circle text-success me-2"></i> إضافة قناة جديدة
+                            </h5>
+                            <form id="iptv-channel-form" onsubmit="saveIPTVChannel(event)">
+                                <input type="hidden" id="iptv-channel-id">
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">اسم القناة *</label>
+                                    <input type="text" class="form-control" id="iptv-channel-name" placeholder="مثال: beIN Sports 1 HD" required>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">فئة / تصنيف القناة *</label>
+                                    <select class="form-select" id="iptv-channel-category" required>
+                                        <option value="beIN Sports">⚽ beIN Sports (قنوات بي إن)</option>
+                                        <option value="SSC Sports">🇸🇦 SSC Sports (قنوات إس إس سي)</option>
+                                        <option value="Abu Dhabi Sports">🇦🇪 Abu Dhabi Sports (أبوظبي الرياضية)</option>
+                                        <option value="Alkass Sports">🇶🇦 Alkass Sports (قنوات الكأس)</option>
+                                        <option value="الرياضية">🏆 قنوات رياضية أخرى</option>
+                                        <option value="الترفيهية">🎬 ترفيه وسينما (MBC, OSN, إلخ)</option>
+                                        <option value="الإخبارية">📰 قنوات إخبارية</option>
+                                        <option value="إسلامية">القرآن الكريم والشرعية</option>
+                                        <option value="أطفال">👶 قنوات الأطفال</option>
+                                    </select>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">رابط البث المباشر (HLS / m3u8 / Direct) *</label>
+                                    <input type="url" class="form-control font-monospace" id="iptv-stream-url" placeholder="https://example.com/live/stream.m3u8" required>
+                                    <div class="form-text">يدعم روابط .m3u8 و .mp4 والسيرفرات المباشرة.</div>
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">رابط شعار / لوجو القناة (Logo URL)</label>
+                                    <input type="url" class="form-control" id="iptv-logo-url" placeholder="https://example.com/logos/bein1.png">
+                                </div>
+
+                                <div class="mb-3">
+                                    <label class="form-label fw-semibold">جودة القناة</label>
+                                    <select class="form-select" id="iptv-channel-quality">
+                                        <option value="FHD 1080p">FHD 1080p (عالية الجودة جداً)</option>
+                                        <option value="HD 720p" selected>HD 720p (جودة عالية)</option>
+                                        <option value="SD 480p">SD 480p (جودة متوسطة/ضعيفة)</option>
+                                        <option value="Multi-Quality">متعدد الجودات (Auto HLS)</option>
+                                    </select>
+                                </div>
+
+                                <div class="form-check form-switch mb-3">
+                                    <input class="form-check-input" type="checkbox" id="iptv-channel-active" checked>
+                                    <label class="form-check-label fw-semibold" for="iptv-channel-active">القناة مفعلة ونشطة للمستخدمين</label>
+                                </div>
+
+                                <div class="d-flex gap-2">
+                                    <button type="submit" class="btn btn-success fw-bold flex-grow-1" id="btn-save-iptv">
+                                        <i class="fa-solid fa-floppy-disk me-1"></i> حفظ القناة
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary d-none" id="btn-cancel-iptv" onclick="resetIPTVChannelForm()">
+                                        إلغاء
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- جدول القنوات المضافة -->
+                    <div class="col-lg-8">
+                        <div class="card card-custom p-4">
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5 class="fw-bold mb-0">قائمة القنوات المسجلة</h5>
+                                <div class="d-flex gap-2">
+                                    <select class="form-select form-select-sm" id="iptv-filter-category" onchange="filterIPTVTable()" style="width: 180px;">
+                                        <option value="ALL">جميع التصنيفات</option>
+                                        <option value="beIN Sports">beIN Sports</option>
+                                        <option value="SSC Sports">SSC Sports</option>
+                                        <option value="Abu Dhabi Sports">Abu Dhabi Sports</option>
+                                        <option value="Alkass Sports">Alkass Sports</option>
+                                        <option value="الرياضية">قنوات رياضية أخرى</option>
+                                        <option value="الترفيهية">الترفيهية</option>
+                                        <option value="الإخبارية">الإخبارية</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="table-responsive">
+                                <table class="table table-hover align-middle">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>الشعار واسم القناة</th>
+                                            <th>التصنيف والجودة</th>
+                                            <th>الحالة</th>
+                                            <th>الإجراءات</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="iptv-channels-list">
+                                        <tr><td colspan="5" class="text-center text-muted">جاري تحميل القنوات...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
         </main>
     </div>
 </div>
@@ -551,6 +703,7 @@
         if (tab === 'analytics') loadAnalytics();
         if (tab === 'servers') loadServerSettings();
         if (tab === 'live-matches') loadLiveStreams();
+        if (tab === 'iptv') loadIPTVChannels();
         if (tab === 'ads') loadAdsConfig();
         if (tab === 'predictions') loadPredictions();
     }
@@ -1341,6 +1494,205 @@
         } catch (e) {
             console.error(e);
             tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطأ: ' + e.message + '</td></tr>';
+        }
+    }
+
+    // 15. إدارة دليل القنوات المباشرة (IPTV Channels)
+    let allIPTVChannels = [];
+
+    async function loadIPTVChannels() {
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const tbody = document.getElementById('iptv-channels-list');
+        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted"><i class="fa-solid fa-spinner fa-spin me-2"></i> جاري تحميل القنوات المباشرة...</td></tr>';
+
+        try {
+            const snapshot = await db.collection('iptv_channels').get();
+            if (snapshot.empty) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد قنوات مباشرة مضافة حتى الآن</td></tr>';
+                updateIPTVStats([]);
+                return;
+            }
+
+            allIPTVChannels = [];
+            snapshot.forEach(doc => {
+                allIPTVChannels.push({ id: doc.id, ...doc.data() });
+            });
+
+            updateIPTVStats(allIPTVChannels);
+            filterIPTVTable();
+        } catch (e) {
+            console.error(e);
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger">خطأ في جلب القنوات: ' + e.message + '</td></tr>';
+        }
+    }
+
+    function updateIPTVStats(channels) {
+        const total = channels.length;
+        const active = channels.filter(c => c.is_active !== false).length;
+        const bein = channels.filter(c => (c.category || '').includes('beIN')).length;
+        const ssc = channels.filter(c => (c.category || '').includes('SSC') || (c.category || '').includes('Abu Dhabi')).length;
+
+        document.getElementById('stat-iptv-total').innerText = total;
+        document.getElementById('stat-iptv-active').innerText = active;
+        document.getElementById('stat-iptv-bein').innerText = bein;
+        document.getElementById('stat-iptv-ssc').innerText = ssc;
+    }
+
+    function filterIPTVTable() {
+        const selectedCat = document.getElementById('iptv-filter-category').value;
+        let filtered = allIPTVChannels;
+        if (selectedCat !== 'ALL') {
+            filtered = allIPTVChannels.filter(c => c.category === selectedCat);
+        }
+        renderIPTVChannelsTable(filtered);
+    }
+
+    function renderIPTVChannelsTable(channels) {
+        const tbody = document.getElementById('iptv-channels-list');
+        if (channels.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">لا توجد قنوات مطابقة للتصنيف المختار</td></tr>';
+            return;
+        }
+
+        let html = '';
+        let index = 1;
+        channels.forEach(ch => {
+            const isActive = ch.is_active !== false;
+            const logoHtml = ch.logo_url
+                ? `<img src="${ch.logo_url}" alt="${ch.name}" class="rounded me-2" style="width: 36px; height: 36px; object-fit: contain; background: #000; padding: 2px;" onerror="this.src='https://via.placeholder.com/36?text=TV'">`
+                : `<i class="fa-solid fa-tv text-info fs-4 me-2"></i>`;
+
+            html += `
+                <tr>
+                    <td>${index++}</td>
+                    <td>
+                        <div class="d-flex align-items-center">
+                            ${logoHtml}
+                            <div>
+                                <div class="fw-bold text-dark">${ch.name || 'بدون اسم'}</div>
+                                <div class="small text-muted font-monospace text-truncate" style="max-width: 220px;">${ch.stream_url || ''}</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="badge bg-primary me-1">${ch.category || 'عام'}</span>
+                        <span class="badge bg-dark">${ch.quality || 'HD'}</span>
+                    </td>
+                    <td>
+                        ${isActive ? '<span class="badge bg-success">🟢 نشطة</span>' : '<span class="badge bg-secondary">⚪ معطلة</span>'}
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn ${isActive ? 'btn-warning' : 'btn-success'}" title="${isActive ? 'تعطيل' : 'تفعيل'}" onclick="toggleIPTVChannelActive('${ch.id}', ${isActive})">
+                                ${isActive ? '<i class="fa-solid fa-pause"></i>' : '<i class="fa-solid fa-play"></i>'}
+                            </button>
+                            <button class="btn btn-outline-primary" title="تعديل" onclick="editIPTVChannel('${ch.id}')">
+                                <i class="fa-solid fa-pen"></i>
+                            </button>
+                            <button class="btn btn-outline-danger" title="حذف" onclick="deleteIPTVChannel('${ch.id}')">
+                                <i class="fa-solid fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+            `;
+        });
+        tbody.innerHTML = html;
+    }
+
+    async function saveIPTVChannel(e) {
+        e.preventDefault();
+        if (!db) {
+            showAlert('يرجى ربط Firebase أولاً في الإعدادات!', 'warning');
+            return;
+        }
+        const id = document.getElementById('iptv-channel-id').value;
+        const name = document.getElementById('iptv-channel-name').value.trim();
+        const category = document.getElementById('iptv-channel-category').value;
+        const streamUrl = document.getElementById('iptv-stream-url').value.trim();
+        const logoUrl = document.getElementById('iptv-logo-url').value.trim();
+        const quality = document.getElementById('iptv-channel-quality').value;
+        const isActive = document.getElementById('iptv-channel-active').checked;
+
+        try {
+            const payload = {
+                name: name,
+                category: category,
+                stream_url: streamUrl,
+                logo_url: logoUrl,
+                quality: quality,
+                is_active: isActive,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            if (id) {
+                await db.collection('iptv_channels').doc(id).update(payload);
+                showAlert('تم تحديث بيانات القناة بنجاح!', 'success');
+            } else {
+                payload.created_at = firebase.firestore.FieldValue.serverTimestamp();
+                await db.collection('iptv_channels').add(payload);
+                showAlert('تم إضافة القناة المباشرة بنجاح!', 'success');
+            }
+
+            resetIPTVChannelForm();
+            loadIPTVChannels();
+        } catch (err) {
+            showAlert('خطأ: ' + err.message, 'danger');
+        }
+    }
+
+    function editIPTVChannel(id) {
+        const ch = allIPTVChannels.find(c => c.id === id);
+        if (!ch) return;
+
+        document.getElementById('iptv-channel-id').value = ch.id;
+        document.getElementById('iptv-channel-name').value = ch.name || '';
+        document.getElementById('iptv-channel-category').value = ch.category || 'beIN Sports';
+        document.getElementById('iptv-stream-url').value = ch.stream_url || '';
+        document.getElementById('iptv-logo-url').value = ch.logo_url || '';
+        document.getElementById('iptv-channel-quality').value = ch.quality || 'HD 720p';
+        document.getElementById('iptv-channel-active').checked = ch.is_active !== false;
+
+        document.getElementById('iptv-form-title').innerHTML = '<i class="fa-solid fa-pen-to-square text-warning me-2"></i> تعديل القناة المباشرة';
+        document.getElementById('btn-save-iptv').innerHTML = '<i class="fa-solid fa-check me-2"></i> تحديث القناة';
+        document.getElementById('btn-cancel-iptv').classList.remove('d-none');
+    }
+
+    function resetIPTVChannelForm() {
+        document.getElementById('iptv-channel-id').value = '';
+        document.getElementById('iptv-channel-form').reset();
+        document.getElementById('iptv-channel-active').checked = true;
+
+        document.getElementById('iptv-form-title').innerHTML = '<i class="fa-solid fa-plus-circle text-success me-2"></i> إضافة قناة جديدة';
+        document.getElementById('btn-save-iptv').innerHTML = '<i class="fa-solid fa-floppy-disk me-2"></i> حفظ القناة';
+        document.getElementById('btn-cancel-iptv').classList.add('d-none');
+    }
+
+    async function toggleIPTVChannelActive(id, currentActive) {
+        if (!db) return;
+        try {
+            await db.collection('iptv_channels').doc(id).update({
+                is_active: !currentActive,
+                updated_at: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            showAlert(`تم ${!currentActive ? 'تفعيل' : 'تعطيل'} القناة!`, 'info');
+            loadIPTVChannels();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
+        }
+    }
+
+    async function deleteIPTVChannel(id) {
+        if (!db || !confirm('هل أنت تأكد من حذف هذه القناة المباشرة؟')) return;
+        try {
+            await db.collection('iptv_channels').doc(id).delete();
+            showAlert('تم حذف القناة بنجاح!', 'info');
+            loadIPTVChannels();
+        } catch (e) {
+            showAlert('خطأ: ' + e.message, 'danger');
         }
     }
 
