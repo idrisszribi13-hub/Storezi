@@ -372,9 +372,15 @@
                             <form id="live-stream-form" onsubmit="saveLiveStream(event)">
                                 <input type="hidden" id="live-stream-id" value="">
                                 <div class="mb-3">
-                                    <label for="live-team-name" class="form-label fw-semibold">اسم الفريق أو المباراة</label>
-                                    <input type="text" class="form-control" id="live-team-name" placeholder="مثال: England أو Real Madrid أو France" required>
-                                    <div class="form-text">سيتم مطابقة هذا الاسم مع الفرق المتواجدة في قائمة المباريات في التطبيق.</div>
+                                    <div class="d-flex justify-content-between align-items-center mb-1">
+                                        <label for="live-team-name" class="form-label fw-semibold mb-0">اسم الفريق أو المباراة</label>
+                                        <div class="form-check form-switch">
+                                            <input class="form-check-input" type="checkbox" id="live-match-by-team" checked onchange="toggleTeamNameInput()">
+                                            <label class="form-check-label small" for="live-match-by-team">تفعيل المطابقة</label>
+                                        </div>
+                                    </div>
+                                    <input type="text" class="form-control" id="live-team-name" placeholder="مثال: England أو Real Madrid">
+                                    <div class="form-text">اختياري: سيتم مطابقة هذا الاسم مع الفرق إذا كان مفَعّلاً.</div>
                                 </div>
                                 <div class="mb-3">
                                     <label for="live-stream-url" class="form-label fw-semibold">رابط البث المباشر</label>
@@ -382,8 +388,9 @@
                                     <div class="form-text">رابط مشغل البث (Embed URL أو m3u8/mp4 direct stream).</div>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="live-channel-name" class="form-label fw-semibold">اسم القناة / السيرفر (اختياري)</label>
+                                    <label for="live-channel-name" class="form-label fw-semibold">اسم القناة للمطابقة التلقائية (Channel Name)</label>
                                     <input type="text" class="form-control" id="live-channel-name" placeholder="مثال: beIN Sports 1 HD">
+                                    <div class="form-text">سيتم مطابقة اسم القناة تلقائياً مع تفاصيل قنوات المباراة (Channel Match Detail).</div>
                                 </div>
                                 <div class="form-check form-switch mb-3">
                                     <input class="form-check-input" type="checkbox" id="live-stream-active" checked>
@@ -414,7 +421,7 @@
                                         <tr>
                                             <th>#</th>
                                             <th>الفريق / المباراة</th>
-                                            <th>القناة</th>
+                                            <th>اسم القناة (مطابقة تلقائية)</th>
                                             <th>الحالة</th>
                                             <th>إجراءات</th>
                                         </tr>
@@ -1275,7 +1282,9 @@
                         <div class="fw-bold text-dark"><i class="fa-solid fa-futbol text-warning me-1"></i> ${stream.team_name || ''}</div>
                         <div class="small text-muted font-monospace text-truncate" style="max-width: 180px;">${stream.stream_url || ''}</div>
                     </td>
-                    <td class="small fw-semibold text-secondary">${stream.channel_name || 'سيرفر عام'}</td>
+                    <td class="small fw-semibold text-secondary">
+                        <span class="badge bg-info text-dark"><i class="fa-solid fa-tv me-1"></i> ${stream.channel_name || 'غير محدد'}</span>
+                    </td>
                     <td>
                         ${isActive ? '<span class="badge bg-success">🟢 نشط</span>' : '<span class="badge bg-secondary">⚪ معطل</span>'}
                     </td>
@@ -1298,6 +1307,13 @@
         tbody.innerHTML = html;
     }
 
+    function toggleTeamNameInput() {
+        const enabled = document.getElementById('live-match-by-team').checked;
+        const input = document.getElementById('live-team-name');
+        input.disabled = !enabled;
+        if (!enabled) input.value = '';
+    }
+
     async function saveLiveStream(e) {
         e.preventDefault();
         if (!db) {
@@ -1306,6 +1322,7 @@
         }
         const streamId = document.getElementById('live-stream-id').value;
         const teamName = document.getElementById('live-team-name').value.trim();
+        const matchByTeam = document.getElementById('live-match-by-team').checked;
         const streamUrl = document.getElementById('live-stream-url').value.trim();
         const channelName = document.getElementById('live-channel-name').value.trim();
         const isActive = document.getElementById('live-stream-active').checked;
@@ -1313,6 +1330,7 @@
         try {
             const payload = {
                 team_name: teamName,
+                match_by_team: matchByTeam,
                 stream_url: streamUrl,
                 channel_name: channelName,
                 is_active: isActive,
@@ -1341,6 +1359,9 @@
 
         document.getElementById('live-stream-id').value = stream.id;
         document.getElementById('live-team-name').value = stream.team_name || '';
+        const matchByTeam = stream.match_by_team !== false;
+        document.getElementById('live-match-by-team').checked = matchByTeam;
+        toggleTeamNameInput();
         document.getElementById('live-stream-url').value = stream.stream_url || '';
         document.getElementById('live-channel-name').value = stream.channel_name || '';
         document.getElementById('live-stream-active').checked = stream.is_active !== false;
@@ -1353,6 +1374,8 @@
     function resetLiveStreamForm() {
         document.getElementById('live-stream-id').value = '';
         document.getElementById('live-stream-form').reset();
+        document.getElementById('live-match-by-team').checked = true;
+        toggleTeamNameInput();
         document.getElementById('live-stream-active').checked = true;
 
         document.getElementById('live-stream-form-title').innerHTML = '<i class="fa-solid fa-plus-circle text-success me-2"></i> إضافة رابط مباراة مباشرة';
